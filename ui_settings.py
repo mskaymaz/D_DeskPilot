@@ -1,628 +1,10 @@
-# Ver. 03022026 Saat : 16.00  düzeltilmiş versiyon.
-# Form 1 tamamlandı.
-# pil boş ve dolu yapısı eklendi.
-
-
-
-import sys
-import os
-import json
-import locale
-import winsound
-import time
-import winreg
-import ctypes
-from dataclasses import dataclass, asdict
-from datetime import datetime
-
-try:
-    import psutil
-except ImportError:
-    psutil = None
-
 try:
     from PySide6 import QtCore, QtGui, QtWidgets
 except ImportError:
     from PyQt6 import QtCore, QtGui, QtWidgets
 
-APP_NAME = "DigitalSaat"
-APP_ID = "MSK.DigitalSaat"
-APP_DATA_DIR = os.path.join(os.environ.get("LOCALAPPDATA", os.path.expanduser("~")), APP_NAME)
-SETTINGS_FILE = os.path.join(APP_DATA_DIR, "settings.json")
-ICON_FILE = "digitalsaaticon.ico"
-RUN_REG_PATH = r"Software\Microsoft\Windows\CurrentVersion\Run"
-
-
-def resource_path(relative_path: str) -> str:
-    base_path = getattr(sys, "_MEIPASS", os.path.abspath("."))
-    return os.path.join(base_path, relative_path)
-
-
-def _get_autostart_command():
-    if getattr(sys, "frozen", False):
-        return f"\"{sys.executable}\""
-    script_path = os.path.abspath(sys.argv[0])
-    return f"\"{sys.executable}\" \"{script_path}\""
-
-
-def set_autostart(enabled: bool):
-    try:
-        with winreg.OpenKey(winreg.HKEY_CURRENT_USER, RUN_REG_PATH, 0, winreg.KEY_SET_VALUE) as key:
-            if enabled:
-                winreg.SetValueEx(key, APP_NAME, 0, winreg.REG_SZ, _get_autostart_command())
-            else:
-                try:
-                    winreg.DeleteValue(key, APP_NAME)
-                except FileNotFoundError:
-                    pass
-        return True
-    except Exception:
-        return False
-
-
-# =======================
-# AYARLAR MODELİ
-# =======================
-
-@dataclass
-class PanelSettings:
-    şeffaflık: float = 0.85
-    her_zaman_üstte: bool = True
-    açılışta_çalıştır: bool = True
-
-    time_visible: bool = True
-    time_font_family: str = "Segoe UI"
-    time_font_size: int = 30
-    time_color: str = "#00FF7F"
-    time_bold: bool = False
-    time_seconds_scale: float = 0.7
-    time_seconds_bold: bool = False
-    time_seconds_visible: bool = True
-
-    date_visible: bool = True
-    date_format: str = "g a y, h"
-    date_font_family: str = "Segoe UI"
-    date_color: str = "#000000"
-    date_font_size: int = 30
-    date_bold: bool = False
-
-    battery_visible: bool = True
-    battery_font_family: str = "Segoe UI"
-    battery_color: str = "#FF0000"
-    battery_bold: bool = True
-    battery_warning_level: int = 20
-    battery_alert_interval: int = 10
-    battery_font_size: int = 30
-    battery_alert_sound_type: str = "Uyarı 1"
-    battery_full_alert_enabled: bool = False
-    battery_full_alert_level: int = 100
-
-    # --- Ayrı dikey boşluklar ---
-    spacing_battery_time: int = 0
-    spacing_time_date: int = 0
-    spacing_battery_date_hidden: int = 2
-
-    # --- Ayrı şeffaflıklar ---
-    date_opacity: float = 1.0
-    battery_opacity: float = 1.0
-
-    # --- Pencere pozisyonu ---
-    pos_x: int = 0
-    pos_y: int = 0
-
-
-# =======================
-# AYAR OKU / YAZ
-# =======================
-
-def load_settings():
-    if os.path.isfile(SETTINGS_FILE):
-        try:
-            with open(SETTINGS_FILE, "r", encoding="utf-8") as f:
-                data = json.load(f)
-                if isinstance(data, dict):
-                    allowed = set(PanelSettings.__dataclass_fields__.keys())
-                    data = {k: v for k, v in data.items() if k in allowed}
-                return PanelSettings(**data)
-        except Exception:
-            pass
-    return PanelSettings()
-
-
-def save_settings(settings: PanelSettings):
-    os.makedirs(APP_DATA_DIR, exist_ok=True)
-    with open(SETTINGS_FILE, "w", encoding="utf-8") as f:
-        json.dump(asdict(settings), f, ensure_ascii=False, indent=2)
-
-
-# =======================
-# GÜVENLİ KONUM
-# =======================
-
-def move_window_safely(window, settings):
-    app = QtWidgets.QApplication.instance()
-    screen = app.screenAt(QtGui.QCursor.pos()) or app.primaryScreen()
-    rect = screen.availableGeometry()
-
-    window.adjustSize()
-    w, h = window.width(), window.height()
-
-    x, y = settings.pos_x, settings.pos_y
-
-    if not rect.contains(QtCore.QPoint(x, y)):
-        x = rect.left() + (rect.width() - w) // 2
-        y = rect.top() + (rect.height() - h) // 2
-        settings.pos_x = x
-        settings.pos_y = y
-        save_settings(settings)
-
-    window.move(x, y)
-
-
-# =======================
-# ANA PENCERE
-# =======================
-
-class DraggableTransparentWindow(QtWidgets.QWidget):
-    def __init__(self, settings):
-        super().__init__()
-        self.settings = settings
-        self.drag_pos = None
-        self._full_charge_blink_on = False
-        self._last_low_batt_alert_ts = 0
-        self._low_batt_blink_on = False
-        self._last_full_batt_alert_ts = 0
-
-
-        flags = QtCore.Qt.WindowType.FramelessWindowHint | QtCore.Qt.WindowType.Window
-        if settings.her_zaman_üstte:
-            flags |= QtCore.Qt.WindowType.WindowStaysOnTopHint
-        self.setWindowFlags(flags)
-        self.setAttribute(QtCore.Qt.WidgetAttribute.WA_TranslucentBackground)
-        self.setWindowOpacity(settings.şeffaflık)
-        self.setWindowIcon(QtGui.QIcon(resource_path(ICON_FILE)))
-
-        # --- Tarih ---
-        self.date_label = QtWidgets.QLabel(alignment=QtCore.Qt.AlignmentFlag.AlignCenter)
-
-        # --- Pil ---
-        self.battery_label = QtWidgets.QLabel(alignment=QtCore.Qt.AlignmentFlag.AlignCenter)
-        self.battery_icon_label = QtWidgets.QLabel(alignment=QtCore.Qt.AlignmentFlag.AlignCenter)
-        self.battery_icon_label.setVisible(False)
-
-        self.battery_row = QtWidgets.QWidget()
-        self.battery_row_layout = QtWidgets.QHBoxLayout(self.battery_row)
-        self.battery_row_layout.setContentsMargins(0, 0, 0, 0)
-        self.battery_row_layout.setSpacing(4)
-        self.battery_row_layout.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
-        self.battery_row_layout.addWidget(self.battery_label)
-        self.battery_row_layout.addWidget(self.battery_icon_label)
-
-
-        # === ANA LAYOUT ===
-        self.main_layout = QtWidgets.QVBoxLayout(self)
-        self.main_layout.setContentsMargins(
-            0,
-            0,
-            0,
-            0
-        )
-        self.main_layout.setSpacing(0)
-
-
-        # --- Spacer: Pil ↔ Saat ---
-        self.spacer_bt = QtWidgets.QSpacerItem(
-            0,
-            settings.spacing_battery_time,
-            QtWidgets.QSizePolicy.Policy.Minimum,
-            QtWidgets.QSizePolicy.Policy.Fixed
-        )
-
-        # --- Spacer: Saat ↔ Tarih ---
-        self.spacer_td = QtWidgets.QSpacerItem(
-            0,
-            settings.spacing_time_date,
-            QtWidgets.QSizePolicy.Policy.Minimum,
-            QtWidgets.QSizePolicy.Policy.Fixed
-        )
-
-        self.time_label = QtWidgets.QLabel(alignment=QtCore.Qt.AlignmentFlag.AlignCenter)
-
-
-        # --- Layout sıralaması ---
-        self.main_layout.addWidget(self.battery_row)
-        self.main_layout.addItem(self.spacer_bt)
-        self.main_layout.addWidget(self.time_label)
-        self.main_layout.addItem(self.spacer_td)
-        self.main_layout.addWidget(self.date_label)
-
-
-
-        for lbl in (
-            self.time_label,
-            self.date_label,
-            self.battery_label,
-            self.battery_icon_label
-        ):
-            lbl.setAttribute(QtCore.Qt.WidgetAttribute.WA_TransparentForMouseEvents)
-            lbl.setContentsMargins(0, 0, 0, 0)
-            lbl.setStyleSheet("""
-                QLabel {
-                    padding: 0px;
-                    margin: 0px;
-                }
-            """)
-
-
-
-
-
-
-
-
-        self.timer = QtCore.QTimer(self)
-        self.timer.timeout.connect(self.update_time)
-        self.timer.start(200)
-
-        self.batt_timer = QtCore.QTimer(self)
-        self.batt_timer.timeout.connect(self.update_battery)
-        self.batt_timer.start(5000)
-
-        self.full_charge_timer = QtCore.QTimer(self)
-        self.full_charge_timer.timeout.connect(self._toggle_full_charge_blink)
-        self.full_charge_timer.setInterval(500)
-
-        self.low_batt_timer = QtCore.QTimer(self)
-        self.low_batt_timer.timeout.connect(self._toggle_low_batt_blink)
-        self.low_batt_timer.setInterval(500)
-
-        self.setContextMenuPolicy(QtCore.Qt.ContextMenuPolicy.CustomContextMenu)
-        self.customContextMenuRequested.connect(self.show_menu)
-
-        self.apply_settings()
-        self.update_time()
-        self.update_battery()
-
-    # ---------- AYARLAR ---------- *****************
-
-
-    def apply_settings(self):
-        # --- Saat ---
-        font_main = QtGui.QFont(
-            self.settings.time_font_family,
-            self.settings.time_font_size
-        )
-        font_main.setBold(self.settings.time_bold)
-
-        self.time_label.setFont(font_main)
-        self.time_label.setStyleSheet(
-            f"""
-            QLabel {{
-                color: {self.settings.time_color};
-                line-height: {self.settings.time_font_size}px;
-                padding: 0px;
-                margin: 0px;
-            }}
-            """
-        )
-        self.time_label.setVisible(self.settings.time_visible)
-        # --- Tarih ---
-        df = QtGui.QFont(
-            self.settings.date_font_family,
-            self.settings.date_font_size
-        )
-        df.setBold(self.settings.date_bold)
-        self.date_label.setFont(df)
-        self.date_label.setStyleSheet(
-            f"color:{self.settings.date_color};"
-            f"opacity:{self.settings.date_opacity};"
-        )
-        self.date_label.setVisible(self.settings.date_visible)
-        self._lock_label_height(self.date_label, self.settings.date_font_size)
-
-
-        # --- Pil ---
-        bf = QtGui.QFont(
-            self.settings.battery_font_family,
-            self.settings.battery_font_size
-        )
-        bf.setBold(self.settings.battery_bold)
-        self.battery_label.setFont(bf)
-        self.battery_label.setStyleSheet(
-            f"color:{self.settings.battery_color};"
-            f"opacity:{self.settings.battery_opacity};"
-        )
-        self.battery_label.setVisible(self.settings.battery_visible)
-        self._lock_label_height(self.battery_label, self.settings.battery_font_size)
-
-        icon_size = max(1.0, float(self.settings.battery_font_size) * 0.8)
-        # Use a symbol font to avoid emoji-size overrides
-        bif = QtGui.QFont("Segoe UI Symbol")
-        bif.setPointSizeF(icon_size)
-        bif.setBold(False)
-        self.battery_icon_label.setFont(bif)
-        self.battery_icon_label.setStyleSheet(
-            f"color:{self.settings.battery_color};"
-            f"opacity:{self.settings.battery_opacity};"
-            f"font-size:{icon_size}px;"
-            "font-family:'Segoe UI Symbol';"
-        )
-        self._lock_label_height(self.battery_icon_label, int(icon_size))
-
-        self._set_battery_color(self.settings.battery_color)
-        self.battery_row_layout.invalidate()
-        self.battery_row.adjustSize()
-        self.battery_row.updateGeometry()
-
-
-        # --- Spacer guncelle ---
-        if self.settings.time_visible:
-            bt_space = self.settings.spacing_battery_time
-            td_space = self.settings.spacing_time_date
-        else:
-            # Saat yok -> pil ile tarih birbirine yakin olsun
-            bt_space = 0
-            td_space = self.settings.spacing_battery_date_hidden
-
-        self.spacer_bt.changeSize(
-            0,
-            bt_space,
-            QtWidgets.QSizePolicy.Policy.Minimum,
-            QtWidgets.QSizePolicy.Policy.Fixed
-        )
-
-        self.spacer_td.changeSize(
-            0,
-            td_space,
-            QtWidgets.QSizePolicy.Policy.Minimum,
-            QtWidgets.QSizePolicy.Policy.Fixed
-        )
-
-        self.main_layout.setContentsMargins(
-            0,
-            0,
-            0,
-            0
-        )
-
-        self.layout().invalidate()
-        self.main_layout.activate()
-        self.adjustSize()
-        self.updateGeometry()
-        self.setWindowOpacity(self.settings.şeffaflık)
-
-    def _lock_label_height(self, label, font_size):
-        fm = QtGui.QFontMetrics(label.font())
-        h = fm.ascent() + fm.descent()
-        label.setFixedHeight(h)
-
-
-    def position_settings_window(self, dialog):
-        app = QtWidgets.QApplication.instance()
-
-        screen = app.screenAt(self.frameGeometry().center())
-        if not screen:
-            screen = app.primaryScreen()
-
-        rect = screen.availableGeometry()
-
-        dialog.adjustSize()
-        dw, dh = dialog.width(), dialog.height()
-
-        # Varsayılan: pencerenin SAĞINDA aç
-        x = self.x() + self.width() + 10
-        y = self.y()
-
-        # Sağdan taşarsa → SOLA al
-        if x + dw > rect.right():
-            x = self.x() - dw - 10
-
-        # Soldan taşarsa → ekran içine sabitle
-        if x < rect.left():
-            x = rect.left()
-
-        # Alttan taşarsa → yukarı al
-        if y + dh > rect.bottom():
-            y = rect.bottom() - dh
-
-        # Üstten taşarsa → aşağı sabitle
-        if y < rect.top():
-            y = rect.top()
-
-        dialog.move(x, y)
-
-
-
-    # ---------- MENÜ ----------
-
-    def show_menu(self, pos):
-        menu = QtWidgets.QMenu(self)
-        act_settings = menu.addAction("Ayarlar")
-        act_exit = menu.addAction("Çıkış")
-        action = menu.exec(self.mapToGlobal(pos))
-        if action == act_settings:
-            self.settings_window = SettingsDialog(self.settings, self)
-            self.position_settings_window(self.settings_window)
-            self.settings_window.show()
-            self.settings_window.raise_()
-
-        elif action == act_exit:
-            QtWidgets.QApplication.quit()
-
-
-
-
-
-    # ---------- GÜNCELLEMELER ----------
-
-    def update_time(self):
-        now = datetime.now()
-        self.time_label.setText(self._format_time_html(now))
-        self.date_label.setText(self._format_date(now))
-
-    def update_battery(self):
-        if not psutil or not self.settings.battery_visible:
-            self._stop_full_charge_blink()
-            self._stop_low_batt_blink()
-            return
-        b = psutil.sensors_battery()
-        if not b:
-            self._stop_full_charge_blink()
-            self._stop_low_batt_blink()
-            return
-        if b.power_plugged:
-            self.battery_icon_label.setText("\u26A1")
-            self.battery_icon_label.setVisible(True)
-        else:
-            self.battery_icon_label.setVisible(False)
-        self.battery_label.setText(f"Pil: {int(b.percent)}%")
-
-        full_alert = (
-            self.settings.battery_full_alert_enabled
-            and b.power_plugged
-            and int(b.percent) >= self.settings.battery_full_alert_level
-        )
-        low_alert = (not b.power_plugged) and int(b.percent) <= self.settings.battery_warning_level
-
-        if full_alert:
-            self._stop_low_batt_blink()
-            if not self.full_charge_timer.isActive():
-                self._full_charge_blink_on = False
-                self.full_charge_timer.start()
-            now_ts = time.time()
-            if now_ts - self._last_full_batt_alert_ts >= self.settings.battery_alert_interval:
-                self._play_batt_alert_sound()
-                self._last_full_batt_alert_ts = now_ts
-        else:
-            self._stop_full_charge_blink()
-            self._last_full_batt_alert_ts = 0
-
-        if low_alert and not full_alert:
-            if not self.low_batt_timer.isActive():
-                self._low_batt_blink_on = False
-                self.low_batt_timer.start()
-            now_ts = time.time()
-            if now_ts - self._last_low_batt_alert_ts >= self.settings.battery_alert_interval:
-                self._play_batt_alert_sound()
-                self._last_low_batt_alert_ts = now_ts
-        else:
-            self._stop_low_batt_blink()
-            self._last_low_batt_alert_ts = 0
-
-    def _set_battery_color(self, color):
-        self.battery_label.setStyleSheet(
-            f"color:{color};"
-            f"opacity:{self.settings.battery_opacity};"
-        )
-        icon_size = max(1.0, float(self.settings.battery_font_size) * 0.8)
-        self.battery_icon_label.setStyleSheet(
-            f"color:{color};"
-            f"opacity:{self.settings.battery_opacity};"
-            f"font-size:{icon_size}px;"
-            "font-family:'Segoe UI Symbol';"
-        )
-
-    def _format_time_html(self, now):
-        base_size = self.settings.time_font_size
-        sec_size = max(1, int(base_size * self.settings.time_seconds_scale))
-        weight = "bold" if self.settings.time_bold else "normal"
-        sec_weight = "bold" if self.settings.time_seconds_bold else "normal"
-        family = self.settings.time_font_family
-        color = self.settings.time_color
-        hhmm = now.strftime("%H:%M")
-        ss = now.strftime("%S")
-        if not self.settings.time_seconds_visible:
-            return (
-                f"<span style='font-family:{family};"
-                f" font-size:{base_size}px;"
-                f" font-weight:{weight};"
-                f" color:{color};'>{hhmm}</span>"
-            )
-        return (
-            f"<span style='font-family:{family};"
-            f" font-size:{base_size}px;"
-            f" font-weight:{weight};"
-            f" color:{color};'>{hhmm}</span>"
-            f"<span style='font-family:{family};"
-            f" font-size:{sec_size}px;"
-            f" font-weight:{sec_weight};"
-            f" color:{color};'>:{ss}</span>"
-        )
-
-    def _format_date(self, now):
-        fmt = self.settings.date_format
-        if "%" in fmt:
-            return now.strftime(fmt)
-        mapping = {
-            "g": "%d",
-            "G": "%d",
-            "a": "%b",
-            "A": "%B",
-            "y": "%y",
-            "Y": "%Y",
-            "h": "%a",
-            "H": "%A",
-        }
-        out = []
-        for ch in fmt:
-            out.append(mapping.get(ch, ch))
-        return now.strftime("".join(out))
-
-    def _stop_full_charge_blink(self):
-        if self.full_charge_timer.isActive():
-            self.full_charge_timer.stop()
-        if self._full_charge_blink_on:
-            self._full_charge_blink_on = False
-        self._set_battery_color(self.settings.battery_color)
-
-    def _toggle_full_charge_blink(self):
-        self._full_charge_blink_on = not self._full_charge_blink_on
-        color = "#00cc66" if self._full_charge_blink_on else self.settings.battery_color
-        self._set_battery_color(color)
-
-    def _stop_low_batt_blink(self):
-        if self.low_batt_timer.isActive():
-            self.low_batt_timer.stop()
-        if self._low_batt_blink_on:
-            self._low_batt_blink_on = False
-        self._set_battery_color(self.settings.battery_color)
-
-    def _toggle_low_batt_blink(self):
-        self._low_batt_blink_on = not self._low_batt_blink_on
-        color = "#cc0000" if self._low_batt_blink_on else self.settings.battery_color
-        self._set_battery_color(color)
-
-    def _play_batt_alert_sound(self):
-        if not winsound:
-            return
-        sound = self.settings.battery_alert_sound_type
-        if sound == "Uyarı 2":
-            winsound.MessageBeep(winsound.MB_ICONEXCLAMATION)
-        elif sound == "Uyarı 3":
-            winsound.MessageBeep(winsound.MB_ICONASTERISK)
-        else:
-            winsound.MessageBeep(winsound.MB_ICONHAND)
-
-    # ---------- SÜRÜKLE ----------
-
-    def mousePressEvent(self, e):
-        if e.button() == QtCore.Qt.MouseButton.LeftButton:
-            self.drag_pos = e.globalPosition().toPoint() - self.frameGeometry().topLeft()
-
-    def mouseMoveEvent(self, e):
-        if self.drag_pos:
-            self.move(e.globalPosition().toPoint() - self.drag_pos)
-
-            if hasattr(self, "settings_window") and self.settings_window.isVisible():
-                self.position_settings_window(self.settings_window)
-
-
-    def mouseReleaseEvent(self, e):
-        self.drag_pos = None
-        self.settings.pos_x = self.x()
-        self.settings.pos_y = self.y()
-        save_settings(self.settings)
-
+from core_settings import PanelSettings, save_settings
+from utils import set_autostart
 
 # =======================
 # AYARLAR DİYALOĞU
@@ -747,7 +129,7 @@ class SettingsDialog(QtWidgets.QDialog):
         if tab_name == "Genel":
             text = (
                 "Genel ayarlar:\n"
-                "- Şeffaflık: Kaydırıcıyı sağa/sola çekerek saydamlığı ayarlayın.\n"
+                "- seffaflik: Kaydırıcıyı sağa/sola çekerek saydamlığı ayarlayın.\n"
                 "- Boşluklar: Pil-Saat ve Saat-Tarih arası mesafeyi ayarlayın.\n"
                 "- Saat kapalıyken Pil-Tarih boşluğu ayrı ayarlanır."
             )
@@ -803,15 +185,20 @@ class SettingsDialog(QtWidgets.QDialog):
         self.chk_autostart.setChecked(self.settings.açılışta_çalıştır)
         self.chk_autostart.toggled.connect(lambda _: self._set_dirty(True))
 
+        self.chk_free_layout = QtWidgets.QCheckBox("Serbest dağıt")
+        self.chk_free_layout.setChecked(self.settings.free_layout_enabled)
+        self.chk_free_layout.toggled.connect(self._apply_free_layout_preview)
+
         self.sld_opacity = QtWidgets.QSlider(QtCore.Qt.Orientation.Horizontal)
         self.sld_opacity.setRange(10, 100)
-        self.sld_opacity.setValue(int(self.settings.şeffaflık * 100))
+        self.sld_opacity.setValue(int(self.settings.seffaflik * 100))
 
         self.sld_opacity.valueChanged.connect(self._apply_opacity_preview)
 
         self.lbl_opacity_value = QtWidgets.QLabel(f"{self.sld_opacity.value()}%")
         f.addRow(self.chk_top)
         f.addRow(self.chk_autostart)
+        f.addRow(self.chk_free_layout)
         opacity_row = QtWidgets.QHBoxLayout()
         opacity_row.addWidget(self.sld_opacity)
         opacity_row.addWidget(self.lbl_opacity_value)
@@ -944,8 +331,13 @@ class SettingsDialog(QtWidgets.QDialog):
         self._set_dirty(True)
         self.parent().apply_settings()
 
+    def _apply_free_layout_preview(self, value):
+        self.settings.free_layout_enabled = value
+        self._set_dirty(True)
+        self.parent().apply_settings()
+
     def _apply_opacity_preview(self, value):
-        self.settings.şeffaflık = value / 100
+        self.settings.seffaflik = value / 100
         self.lbl_opacity_value.setText(f"{value}%")
         self._set_dirty(True)
         self.parent().apply_settings()
@@ -1123,7 +515,8 @@ class SettingsDialog(QtWidgets.QDialog):
 
         s.her_zaman_üstte = self.chk_top.isChecked()
         s.açılışta_çalıştır = self.chk_autostart.isChecked()
-        s.şeffaflık = self.sld_opacity.value() / 100
+        s.seffaflik = self.sld_opacity.value() / 100
+        s.free_layout_enabled = self.chk_free_layout.isChecked()
 
         s.time_visible = self.chk_time_visible.isChecked()
         s.time_font_family = self.cmb_time_font.currentFont().family()
@@ -1179,9 +572,11 @@ def main():
 
     settings = load_settings()
     win = DraggableTransparentWindow(settings)
-    win.show()
-
-    move_window_safely(win, settings)
+    if settings.free_layout_enabled:
+        win.hide()
+    else:
+        win.show()
+        move_window_safely(win, settings)
 
     sys.exit(app.exec())
 
