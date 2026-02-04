@@ -1,0 +1,14 @@
+Harika, işte yarın kaldığımız yerden devam edebilmemiz için kısa ve net bir özet:
+
+Özet (04 Şub 2026)
+
+Proje modüllere ayrıldı ve pushlandı.
+Yeni dosyalar: core_settings.py, core_window.py, ui_settings.py, utils.py.
+digitalSaatV2.py artık sadece main() ve başlatma kısmını içeriyor.
+Silinmesi istenen eski dosyalar commit’e dahil edildi (senin isteğinle).
+Ayar isimleri için tek bir ASCII isimlendirme standardına geçiş yapıldı:
+seffaflik, her_zaman_ustte, acilista_calistir
+Settings loading sırasında eski key’leri normalize eden _normalize_key eklendi.
+Serbest dağıt özelliği (3 ayrı pencere + tekrar birleştirme) ve sağ tıkta ayar panelinin ilgili satırda açılması mantığı kodda duruyor.
+Commit: 97e17b7 pushlandı (main).
+Yarın ilk iş: çalıştırıp kalan isim/bağlantı hatası varsa hızlıca düzeltmek ve serbest dağıt akışını test etmek.
