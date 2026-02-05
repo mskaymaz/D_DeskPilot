@@ -1,7 +1,7 @@
 {
-  "şeffaflık": 0.6,
-  "her_zaman_üstte": true,
-  "açılışta_çalıştır": true,
+  "seffaflik": 0.6,
+  "her_zaman_ustte": true,
+  "acilista_calistir": true,
   "time_visible": true,
   "time_font_family": "Stencil",
   "time_font_size": 90,

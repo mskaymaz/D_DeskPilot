@@ -11,8 +11,8 @@ from utils import APP_DATA_DIR, SETTINGS_FILE
 @dataclass
 class PanelSettings:
     seffaflik: float = 0.85
-    her_zaman_üstte: bool = True
-    açılışta_çalıştır: bool = True
+    her_zaman_ustte: bool = True
+    acilista_calistir: bool = True
 
     time_visible: bool = True
     time_font_family: str = "Segoe UI"
@@ -46,7 +46,7 @@ class PanelSettings:
     spacing_time_date: int = 0
     spacing_battery_date_hidden: int = 2
 
-    # --- Ayrı şeffaflıklar ---
+    # --- Ayrı seffafliklar ---
     date_opacity: float = 1.0
     battery_opacity: float = 1.0
 
@@ -66,12 +66,20 @@ class PanelSettings:
 
 
 def _normalize_key(key: str) -> str:
-    lk = key.lower()
-    if "effaf" in lk:
+    tr_map = str.maketrans({
+        "ş": "s", "Ş": "s",
+        "ç": "c", "Ç": "c",
+        "ğ": "g", "Ğ": "g",
+        "ü": "u", "Ü": "u",
+        "ö": "o", "Ö": "o",
+        "ı": "i", "İ": "i",
+    })
+    lk = key.translate(tr_map).lower()
+    if "seffaf" in lk:
         return "seffaflik"
-    if "zaman" in lk and ("ust" in lk or "stte" in lk or "?stte" in lk):
+    if "zaman" in lk and "ustte" in lk:
         return "her_zaman_ustte"
-    if "calistir" in lk or "calistir" in lk:
+    if "acilista" in lk and "calistir" in lk:
         return "acilista_calistir"
     return key
 

@@ -1,3 +1,5 @@
+from dataclasses import asdict
+
 try:
     from PySide6 import QtCore, QtGui, QtWidgets
 except ImportError:
@@ -59,16 +61,30 @@ class SettingsDialog(QtWidgets.QDialog):
         main.addLayout(btns)
 
     def apply_now(self):
+        prev_autostart = self.settings.acilista_calistir
         s = self.get_settings()
         self.parent().settings = s
         self.parent().apply_settings()
-        if not set_autostart(s.açılışta_çalıştır):
+        ok = set_autostart(s.acilista_calistir)
+        if not ok:
             QtWidgets.QMessageBox.warning(
                 self,
                 "Açılış Ayarı",
                 "Açılışta çalıştır ayarı uygulanamadı.\n"
                 "Lütfen yetkileri ve sistem ayarlarını kontrol edin."
             )
+        elif s.acilista_calistir != prev_autostart:
+            msg = (
+                "Uygulama başlangıca eklendi."
+                if s.acilista_calistir
+                else "Uygulama başlangıçtan kaldırıldı."
+            )
+            info = QtWidgets.QMessageBox(self)
+            info.setWindowTitle("Açılış Ayarı")
+            info.setText(msg)
+            info.setStandardButtons(QtWidgets.QMessageBox.StandardButton.Ok)
+            info.setIcon(QtWidgets.QMessageBox.Icon.NoIcon)
+            info.exec()
         self._set_dirty(False)
 
     def save_and_close(self):
@@ -128,32 +144,53 @@ class SettingsDialog(QtWidgets.QDialog):
         tab_name = self.tabs.tabText(idx)
         if tab_name == "Genel":
             text = (
-                "Genel ayarlar:\n"
-                "- seffaflik: Kaydırıcıyı sağa/sola çekerek saydamlığı ayarlayın.\n"
-                "- Boşluklar: Pil-Saat ve Saat-Tarih arası mesafeyi ayarlayın.\n"
-                "- Saat kapalıyken Pil-Tarih boşluğu ayrı ayarlanır."
+                "Özet: Genel görünüm, saydamlık, satır aralıkları ve serbest dağıt bu sekmeden yönetilir.\n"
+                "\n"
+                "Genel ayarlar (sırasıyla):\n"
+                "- Her zaman üstte: Pencerenin diğer uygulamaların üstünde kalmasını sağlar.\n"
+                "- Açılışta çalıştır: Uygulama Windows açılışında otomatik başlar.\n"
+                "- Serbest dağıt: Pil/Saat/Tarih satırları ayrı pencereler olur, her biri bağımsız taşınır.\n"
+                "- Şeffaflık (%): Tüm satırların saydamlık seviyesini ayarlar.\n"
+                "- Pil ↔ Saat boşluğu: Pil satırı ile saat satırı arasındaki dikey mesafe.\n"
+                "- Saat ↔ Tarih boşluğu: Saat satırı ile tarih satırı arasındaki dikey mesafe.\n"
+                "- Pil ↔ Tarih boşluğu (saat kapalıyken): Saat görünmüyorsa pil ve tarih arası mesafe."
             )
         elif tab_name == "Pil":
             text = (
-                "Pil ayarları:\n"
-                "- Uyarı seviyesi: Pil bu yüzdeye düşünce uyarı verir.\n"
-                "- Uyarı aralığı: Uyarıların saniye cinsinden tekrar süresi.\n"
-                "- Tam dolu uyarısı: Şarjda ve belirlenen yüzde üstünde yeşil yanıp söner.\n"
-                "- Renk/Font: Pil satırının görünümünü değiştirir."
+                "Özet: Pil satırının görünümü ve uyarı davranışları bu sekmeden ayarlanır.\n"
+                "\n"
+                "Pil ayarları (sırasıyla):\n"
+                "- Pil bilgisi görünür: Pil satırını aç/kapat.\n"
+                "- Uyarı seviyesi (%): Pil bu seviyenin altına düşünce uyarı verir.\n"
+                "- Uyarı aralığı (sn): Uyarıların kaç saniyede bir tekrar edeceği.\n"
+                "- Uyarı sesi: Uyarı sesinin tipi (Uyarı 1/2/3).\n"
+                "- Tam dolu uyarısı (yeşil yanıp sönsün): Şarjdayken ve belirlenen yüzde üstünde yeşil yanıp söner.\n"
+                "- Tam dolu uyarı seviyesi (%): Tam dolu uyarısının devreye gireceği seviye.\n"
+                "- Renk: Pil satırının yazı rengi.\n"
+                "- Font: Pil satırı yazı tipi.\n"
+                "- Font boyutu: Pil satırı yazı boyutu.\n"
+                "- Kalın: Pil yazısını kalın yapar."
             )
         elif tab_name == "Saat":
             text = (
-                "Saat ayarları:\n"
-                "- Görünürlük: Saat satırını aç/kapat.\n"
-                "- Font/Boyut/Renk: Saat görünümünü belirler.\n"
-                "- Kalın: Saat ve dakika yazısını kalınlaştırır.\n"
+                "Özet: Saat satırının görünümü ve saniye ayarları bu sekmeden yönetilir.\n"
+                "\n"
+                "Saat ayarları (sırasıyla):\n"
+                "- Saat görünür: Saat satırını aç/kapat.\n"
+                "- Font: Saat yazı tipi.\n"
+                "- Boyut: Saat yazı boyutu.\n"
                 "- Saniye boyutu (%): Saniyelerin saat/dakikaya oranı.\n"
-                "- Saniye kalın: Saniyeleri kalın yapar."
+                "- Saniye kalın: Saniyeleri kalın yapar.\n"
+                "- Saniyeyi gizle: Saniyeleri göstermez (sadece saat:dakika).\n"
+                "- Renk: Saat yazı rengi.\n"
+                "- Kalın: Saat/dakika yazısını kalın yapar."
             )
         elif tab_name == "Tarih":
             text = (
-                "Tarih ayarları:\n"
-                "- Görünürlük: Tarih satırını aç/kapat.\n"
+                "Özet: Tarih satırının görünümü ve formatı bu sekmeden ayarlanır.\n"
+                "\n"
+                "Tarih ayarları (sırasıyla):\n"
+                "- Tarih görünür: Tarih satırını aç/kapat.\n"
                 "- Format: Tarihin yazım biçimini belirler.\n"
                 "  Özel kısa format harfleri:\n"
                 "  g = gün (01-31), G = gün (01-31)\n"
@@ -162,13 +199,64 @@ class SettingsDialog(QtWidgets.QDialog):
                 "  h = gün kısa (Pzt), H = gün uzun (Pazartesi)\n"
                 "  Örnek: g a y, h\n"
                 "  % işaretli formatlar da geçerlidir (strftime).\n"
-                "- Font/Boyut/Renk: Tarih görünümünü belirler.\n"
+                "- Font: Tarih yazı tipi.\n"
+                "- Renk: Tarih yazı rengi.\n"
+                "- Boyut: Tarih yazı boyutu.\n"
                 "- Kalın: Yazıyı kalınlaştırır."
             )
         else:
             text = "Bu sekme için yardım metni bulunamadı."
 
-        QtWidgets.QMessageBox.information(self, f"Yardım - {tab_name}", text)
+        self._show_help_box(tab_name, text)
+
+    def _show_help_box(self, tab_name, text):
+        box = QtWidgets.QMessageBox(self)
+        box.setWindowTitle(f"Yardım - {tab_name}")
+        box.setText(text)
+        box.setStandardButtons(QtWidgets.QMessageBox.StandardButton.Ok)
+        # Ses çıkmaması için icon kullanma
+        box.setIcon(QtWidgets.QMessageBox.Icon.NoIcon)
+        box.adjustSize()
+        self._position_help_box(box)
+        box.exec()
+
+    def _position_help_box(self, box):
+        app = QtWidgets.QApplication.instance()
+        screen = app.screenAt(self.frameGeometry().center()) or app.primaryScreen()
+        rect = screen.availableGeometry()
+
+        box.adjustSize()
+        bw, bh = box.width(), box.height()
+        padding = 10
+
+        dlg = self.frameGeometry()
+
+        candidates = [
+            (dlg.right() + padding, dlg.top()),            # right
+            (dlg.left() - bw - padding, dlg.top()),        # left
+            (dlg.left(), dlg.bottom() + padding),          # below
+            (dlg.left(), dlg.top() - bh - padding),        # above
+        ]
+
+        def fits(x, y):
+            return (
+                x >= rect.left()
+                and y >= rect.top()
+                and x + bw <= rect.right()
+                and y + bh <= rect.bottom()
+            )
+
+        x, y = None, None
+        for cx, cy in candidates:
+            if fits(cx, cy):
+                x, y = cx, cy
+                break
+
+        if x is None:
+            x = min(max(rect.left(), dlg.right() + padding), rect.right() - bw)
+            y = min(max(rect.top(), dlg.top()), rect.bottom() - bh)
+
+        box.move(x, y)
 
 
     # ================= GENEL =================
@@ -178,11 +266,11 @@ class SettingsDialog(QtWidgets.QDialog):
         f = QtWidgets.QFormLayout(w)
 
         self.chk_top = QtWidgets.QCheckBox("Her zaman üstte")
-        self.chk_top.setChecked(self.settings.her_zaman_üstte)
+        self.chk_top.setChecked(self.settings.her_zaman_ustte)
         self.chk_top.toggled.connect(lambda _: self._set_dirty(True))
 
         self.chk_autostart = QtWidgets.QCheckBox("Açılışta çalıştır")
-        self.chk_autostart.setChecked(self.settings.açılışta_çalıştır)
+        self.chk_autostart.setChecked(self.settings.acilista_calistir)
         self.chk_autostart.toggled.connect(lambda _: self._set_dirty(True))
 
         self.chk_free_layout = QtWidgets.QCheckBox("Serbest dağıt")
@@ -513,8 +601,8 @@ class SettingsDialog(QtWidgets.QDialog):
     def get_settings(self):
         s = self.settings
 
-        s.her_zaman_üstte = self.chk_top.isChecked()
-        s.açılışta_çalıştır = self.chk_autostart.isChecked()
+        s.her_zaman_ustte = self.chk_top.isChecked()
+        s.acilista_calistir = self.chk_autostart.isChecked()
         s.seffaflik = self.sld_opacity.value() / 100
         s.free_layout_enabled = self.chk_free_layout.isChecked()
 

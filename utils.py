@@ -34,9 +34,9 @@ def resource_path(relative_path: str) -> str:
 
 def _get_autostart_command():
     if getattr(sys, "frozen", False):
-        return f""{sys.executable}""
+        return f"\"{sys.executable}\""
     script_path = os.path.abspath(sys.argv[0])
-    return f""{sys.executable}" "{script_path}""
+    return f"\"{sys.executable}\" \"{script_path}\""
 
 
 def set_autostart(enabled: bool):

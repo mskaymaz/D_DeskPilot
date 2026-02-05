@@ -155,7 +155,7 @@ class DraggableTransparentWindow(QtWidgets.QWidget):
 
 
         flags = QtCore.Qt.WindowType.FramelessWindowHint | QtCore.Qt.WindowType.Window
-        if settings.her_zaman_üstte:
+        if settings.her_zaman_ustte:
             flags |= QtCore.Qt.WindowType.WindowStaysOnTopHint
         self.setWindowFlags(flags)
         self.setAttribute(QtCore.Qt.WidgetAttribute.WA_TranslucentBackground)
@@ -354,7 +354,7 @@ class DraggableTransparentWindow(QtWidgets.QWidget):
 
     def _apply_window_flags(self):
         flags = QtCore.Qt.WindowType.FramelessWindowHint | QtCore.Qt.WindowType.Window
-        if self.settings.her_zaman_üstte:
+        if self.settings.her_zaman_ustte:
             flags |= QtCore.Qt.WindowType.WindowStaysOnTopHint
         was_visible = self.isVisible()
         self.setWindowFlags(flags)
@@ -558,7 +558,7 @@ class DraggableTransparentWindow(QtWidgets.QWidget):
     def show_menu_at(self, global_pos, settings_anchor_pos=None):
         menu = QtWidgets.QMenu(self)
         act_settings = menu.addAction("Ayarlar")
-        act_exit = menu.addAction("????k????")
+        act_exit = menu.addAction("Çıkış")
         action = menu.exec(global_pos)
         if action == act_settings:
             self.show_settings_at(settings_anchor_pos)
