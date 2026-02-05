@@ -1,3 +1,11 @@
+"""
+DigitalSaatV2
+Kisa aciklama: Dijital saat, tarih ve pil bilgisini gosteren, ayarlari olan masaustu uygulamasi.
+Yerel klasor: D:\\Code\\CodePrivate\\DigitalSaatV2
+GitHub repo: https://github.com/mskaymaz/DigitalSaatV2
+Not: Bu dosya sadece uygulamayi baslatir; asil mantik modullerde.
+"""
+
 import sys
 import locale
 import ctypes
