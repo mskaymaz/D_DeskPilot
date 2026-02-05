@@ -436,12 +436,31 @@ class DraggableTransparentWindow(QtWidgets.QWidget):
             self.free_battery_window.updateGeometry()
 
     def _ensure_free_windows(self):
+        created = False
         if not self.free_time_window:
             self.free_time_window = FreeLineWindow("time", self.settings, self)
+            created = True
         if not self.free_date_window:
             self.free_date_window = FreeLineWindow("date", self.settings, self)
+            created = True
         if not self.free_battery_window:
             self.free_battery_window = FreeLineWindow("battery", self.settings, self)
+            created = True
+        if created:
+            self._apply_free_window_styles()
+
+    def _apply_free_window_styles(self):
+        if self.free_time_window:
+            self._apply_time_style(self.free_time_window.label)
+        if self.free_date_window:
+            self._apply_date_style(self.free_date_window.label)
+        if self.free_battery_window:
+            self._apply_battery_style(
+                self.free_battery_window.battery_label,
+                self.free_battery_window.battery_icon_label
+            )
+            self._set_battery_color(self.settings.battery_color)
+            self._refresh_battery_rows()
 
     def _clamp_window_position(self, window, x, y):
         app = QtWidgets.QApplication.instance()
