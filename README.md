@@ -22,3 +22,8 @@ Windows exe: `DigitalSaatV2.050226.exe`
 
 **Ayarlar**
 Ayarlar penceresi sekmeli yapidadir: Genel, Pil, Saat, Tarih. Degisiklikler "Uygula" ile onizleme yapar, "Kaydet" ile kalici olur.
+
+**Changelog**
+- V2.050226 (05 Subat 2026)
+  - Renk secici kapanma sorunu duzeltildi (Tarih/Saat/Pil renk secimi).
+  - Serbest dagit pencereleri artik gorev cubugu ustune tasinabilir.
