@@ -27,3 +27,11 @@ Ayarlar penceresi sekmeli yapidadir: Genel, Pil, Saat, Tarih. Degisiklikler "Uyg
 - V2.050226 (05 Subat 2026)
   - Renk secici kapanma sorunu duzeltildi (Tarih/Saat/Pil renk secimi).
   - Serbest dagit pencereleri artik gorev cubugu ustune tasinabilir.
+
+**Test (Hizli Kontrol)**
+- Uygulama acilis ve kapama testi
+- Tarih/Saat/Pil renk secici: OK ve kapatma (X) ile cikis testi
+- Serbest dagit modunda pencereleri gorev cubugu ustune tasima testi
+- Topla ve tekrar dagitinca konumlarin korunmasi
+- Sag tik menusu ve Ayarlar penceresi acilis testi
+- Pil uyarilari (dusuk/dolu) davranisi testi
