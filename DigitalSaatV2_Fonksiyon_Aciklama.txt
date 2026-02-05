@@ -1,0 +1,93 @@
+DigitalSaatV2 - Fonksiyon Aciklamalari
+
+[digitalSaatV2.py]
+- main: Uygulamayi baslatir, locale ve ikon ayarlar; ana pencereyi olusturur.
+
+[core_settings.py]
+- _normalize_key: Ayar anahtarlarini ASCII ve standart isimlere cevirir.
+- load_settings: settings.json dosyasini okur ve PanelSettings olarak yukler.
+- save_settings: PanelSettings nesnesini settings.json olarak kaydeder.
+
+[utils.py]
+- resource_path: Paketlenmis exe veya kaynak klasoru icin dogru dosya yolunu dondurur.
+- _get_autostart_command: Uygulamayi baslatacak komut satirini olusturur.
+- set_autostart: Windows baslangic kaydini ekler/siler.
+
+[core_window.py]
+- move_window_safely: Pencereyi ekran icine guvenli sekilde tasir.
+
+[core_window.py] FreeLineWindow
+- __init__: Serbest satir penceresini kurar.
+- _apply_window_flags: Pencere bayraklarini (ustte, cercevesiz) uygular.
+- _build_ui: Icerik ve layout olusturur.
+- _labels: Etiket(ler)i dondurur.
+- refresh_flags_and_opacity: Bayrak ve seffafligi yeniler.
+- _show_menu: Sag tik menusunu gosterir.
+- mousePressEvent: Surukleme baslangici.
+- mouseMoveEvent: Surukleme sirasinda konum gunceller.
+- mouseReleaseEvent: Surukleme bitisinde konumu kaydeder.
+
+[core_window.py] DraggableTransparentWindow
+- __init__: Ana pencereyi, labellari ve timerlari kurar.
+- apply_settings: Ayarlari tum etiketlere ve pencerelere uygular.
+- _lock_label_height: Label yuksekligini fonta gore sabitler.
+- _apply_window_flags: Pencere bayraklarini uygular.
+- _apply_time_style: Saat etiket stili uygular.
+- _apply_date_style: Tarih etiket stili uygular.
+- _apply_battery_style: Pil etiket stili uygular.
+- _refresh_battery_rows: Pil satiri layoutunu yeniler.
+- _ensure_free_windows: Serbest dagit pencerelerini olusturur.
+- _apply_free_window_styles: Serbest pencerelere stil uygular.
+- _clamp_window_position: Pencereyi ekran sinirlarinda tutar.
+- _move_line_window_safely: Serbest satir penceresini guvenli tasir.
+- _capture_free_positions_from_grouped: Serbest konumlari gruptan yakalar.
+- _show_free_windows: Serbest pencereleri gosterir.
+- _hide_free_windows: Serbest pencereleri gizler.
+- _move_grouped_to_time_position: Gruplu pencereyi saat konumuna tasir.
+- _apply_free_layout_mode: Serbest dagit modunu uygular.
+- update_free_position: Serbest pencerelerin konumunu kaydeder.
+- show_menu_at: Sag tik menusunu verilen koordinatta gosterir.
+- show_settings_at: Ayarlar penceresini istenen noktada acar.
+- position_settings_window_at: Ayarlar penceresini bir noktaya hizalar.
+- position_settings_window: Ayarlar penceresini pencere yanina hizalar.
+- show_menu: Sag tik menusunu gosterir.
+- update_time: Saat ve tarih metnini gunceller.
+- update_battery: Pil durumunu gunceller ve uyarilari yonetir.
+- _set_battery_color: Pil rengini uygular (normal/uyari).
+- _format_time_html: Saat metnini HTML ile formatlar.
+- _format_date: Tarihi formatlar (ozel kisa format/strftime).
+- _stop_full_charge_blink: Tam dolu uyarisini durdurur.
+- _toggle_full_charge_blink: Tam dolu uyarisini yanip sondurur.
+- _stop_low_batt_blink: Dusuk pil uyarisini durdurur.
+- _toggle_low_batt_blink: Dusuk pil uyarisini yanip sondurur.
+- _play_batt_alert_sound: Pil uyarisi sesi calar.
+- mousePressEvent: Surukleme baslangici.
+- mouseMoveEvent: Surukleme sirasinda konum gunceller.
+- mouseReleaseEvent: Surukleme bitisinde konumu kaydeder.
+
+[ui_settings.py] SettingsDialog
+- __init__: Ayarlar penceresi ve sekmeleri kurar.
+- apply_now: Degisiklikleri aninda uygular (autostart dahil).
+- save_and_close: Ayarlari kaydeder ve dialogu kapatir.
+- reject: Iptalde eski ayarlari geri getirir.
+- _set_dirty: Degisiklik durumunu takip eder.
+- _restore_original_settings: Baslangic ayarlarini geri yukler.
+- _add_help_link: Sekmeye yardim butonu ekler.
+- show_help: Aktif sekme icin yardim metni gosterir.
+- _show_help_box: Yardim dialogunu gosterir.
+- _position_help_box: Yardim dialogunun konumunu ayarlar.
+- _general_tab: Genel ayarlar sekmesini olusturur.
+- _time_tab: Saat ayarlari sekmesini olusturur.
+- _apply_time_preview: Saat ayarlarini onizleme uygular.
+- _apply_seconds_scale_preview: Saniye oranini onizler.
+- _apply_general_preview: Genel ayarlari onizler.
+- _apply_free_layout_preview: Serbest dagit onizlemesi uygular.
+- _apply_opacity_preview: Saydamlik onizlemesi uygular.
+- _date_tab: Tarih ayarlari sekmesini olusturur.
+- _apply_date_preview: Tarih ayarlarini onizler.
+- _battery_tab: Pil ayarlari sekmesini olusturur.
+- _apply_batt_preview: Pil ayarlarini onizler.
+- _pick_color: Renk secici acip sonucu uygular.
+- get_settings: UI degerlerinden PanelSettings olusturur.
+
+- main (ui_settings.py): Modulu tek basina calistirmak icin test girisi.

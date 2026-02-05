@@ -1,0 +1,60 @@
+DigitalSaatV2 - Envanter (Dosya/Fonksiyon/Sinif/Ayar)
+
+Dosyalar
+- .vscode\settings.json
+- DigitalSaatV.040226.H2.spec
+- DigitalSaat_V030226.help.spec
+- README.md
+- TODO.md
+- assets\fonts\Technology-Bold.ttf
+- assets\fonts\Technology.ttf
+- assets\icon.ico
+- core_settings.py
+- core_window.py
+- create_icon.py
+- digitalSaat.settings.json
+- digitalSaat.spec
+- digitalSaatV2.py
+- digitalsaaticon.ico
+- ozet_kaldigimizYer.txt
+- scripts\release.ps1
+- ui_settings.py
+- utils.py
+
+Python Modulleri (Fonksiyonlar / Siniflar / Sabitler / Modul Degiskenleri)
+
+[core_settings.py]
+Fonksiyonlar: _normalize_key, load_settings, save_settings
+Siniflar: PanelSettings
+
+[core_window.py]
+Fonksiyonlar: move_window_safely
+Siniflar: DraggableTransparentWindow, FreeLineWindow
+
+[create_icon.py]
+Modul Degiskenleri: draw, img
+
+[digitalSaatV2.py]
+Fonksiyonlar: main
+
+[ui_settings.py]
+Fonksiyonlar: main
+Siniflar: SettingsDialog
+
+[utils.py]
+Fonksiyonlar: _get_autostart_command, resource_path, set_autostart
+Sabitler: APP_DATA_DIR, APP_ID, APP_NAME, ICON_FILE, RUN_REG_PATH, SETTINGS_FILE
+
+Sinif Metodlari ve Alanlari
+
+[core_settings.py] PanelSettings
+Alanlar: acilista_calistir, battery_alert_interval, battery_alert_sound_type, battery_bold, battery_color, battery_font_family, battery_font_size, battery_full_alert_enabled, battery_full_alert_level, battery_opacity, battery_visible, battery_warning_level, date_bold, date_color, date_font_family, date_font_size, date_format, date_opacity, date_visible, free_battery_x, free_battery_y, free_date_x, free_date_y, free_layout_enabled, free_layout_has_positions, free_time_x, free_time_y, her_zaman_ustte, pos_x, pos_y, seffaflik, spacing_battery_date_hidden, spacing_battery_time, spacing_time_date, time_bold, time_color, time_font_family, time_font_size, time_seconds_bold, time_seconds_scale, time_seconds_visible, time_visible
+
+[core_window.py] DraggableTransparentWindow
+Metodlar: __init__, _apply_battery_style, _apply_date_style, _apply_free_layout_mode, _apply_free_window_styles, _apply_time_style, _apply_window_flags, _capture_free_positions_from_grouped, _clamp_window_position, _ensure_free_windows, _format_date, _format_time_html, _hide_free_windows, _lock_label_height, _move_grouped_to_time_position, _move_line_window_safely, _play_batt_alert_sound, _refresh_battery_rows, _set_battery_color, _show_free_windows, _stop_full_charge_blink, _stop_low_batt_blink, _toggle_full_charge_blink, _toggle_low_batt_blink, apply_settings, mouseMoveEvent, mousePressEvent, mouseReleaseEvent, position_settings_window, position_settings_window_at, show_menu, show_menu_at, show_settings_at, update_battery, update_free_position, update_time
+
+[core_window.py] FreeLineWindow
+Metodlar: __init__, _apply_window_flags, _build_ui, _labels, _show_menu, mouseMoveEvent, mousePressEvent, mouseReleaseEvent, refresh_flags_and_opacity
+
+[ui_settings.py] SettingsDialog
+Metodlar: __init__, _add_help_link, _apply_batt_preview, _apply_date_preview, _apply_free_layout_preview, _apply_general_preview, _apply_opacity_preview, _apply_seconds_scale_preview, _apply_time_preview, _battery_tab, _date_tab, _general_tab, _pick_color, _position_help_box, _restore_original_settings, _set_dirty, _show_help_box, _time_tab, apply_now, get_settings, reject, save_and_close, show_help
