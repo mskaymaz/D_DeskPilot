@@ -1,4 +1,5 @@
 # -*- mode: python ; coding: utf-8 -*-
+import os
 
 
 a = Analysis(
@@ -22,7 +23,7 @@ exe = EXE(
     a.binaries,
     a.datas,
     [],
-    name='DigitalSaatV2.050226',
+    name=os.environ.get('DS_EXE_NAME', 'DigitalSaatV2'),
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
