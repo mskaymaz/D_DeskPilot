@@ -1,4 +1,5 @@
 import locale
+import sys
 import time
 from datetime import datetime
 
@@ -6,6 +7,14 @@ try:
     import psutil
 except ImportError:
     psutil = None
+
+try:
+    if sys.platform == "win32":
+        import winsound
+    else:
+        winsound = None
+except Exception:
+    winsound = None
 
 try:
     from PySide6 import QtCore, QtGui, QtWidgets
@@ -462,10 +471,10 @@ class DraggableTransparentWindow(QtWidgets.QWidget):
             self._set_battery_color(self.settings.battery_color)
             self._refresh_battery_rows()
 
-    def _clamp_window_position(self, window, x, y):
+    def _clamp_window_position(self, window, x, y, allow_taskbar=False):
         app = QtWidgets.QApplication.instance()
         screen = app.screenAt(QtCore.QPoint(x, y)) or app.primaryScreen()
-        rect = screen.availableGeometry()
+        rect = screen.geometry() if allow_taskbar else screen.availableGeometry()
         window.adjustSize()
         w, h = window.width(), window.height()
 
@@ -481,7 +490,7 @@ class DraggableTransparentWindow(QtWidgets.QWidget):
         return x, y
 
     def _move_line_window_safely(self, window, x, y):
-        x, y = self._clamp_window_position(window, x, y)
+        x, y = self._clamp_window_position(window, x, y, allow_taskbar=True)
         window.move(x, y)
 
     def _capture_free_positions_from_grouped(self):

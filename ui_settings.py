@@ -593,10 +593,22 @@ class SettingsDialog(QtWidgets.QDialog):
     # ================= ORTAK =================
 
     def _pick_color(self, btn):
-        c = QtWidgets.QColorDialog.getColor()
-        if c.isValid():
-            btn.setText(c.name())
-            self._set_dirty(True)
+        dlg = QtWidgets.QColorDialog(self)
+        # Native dialog may close the app on some Windows setups;
+        # use the Qt dialog for stability.
+        dlg.setOption(
+            QtWidgets.QColorDialog.ColorDialogOption.DontUseNativeDialog,
+            True
+        )
+        try:
+            dlg.setCurrentColor(QtGui.QColor(btn.text()))
+        except Exception:
+            pass
+        if dlg.exec() == QtWidgets.QDialog.DialogCode.Accepted:
+            c = dlg.selectedColor()
+            if c.isValid():
+                btn.setText(c.name())
+                self._set_dirty(True)
 
     def get_settings(self):
         s = self.settings
