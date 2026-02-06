@@ -10,6 +10,7 @@ from utils import APP_DATA_DIR, SETTINGS_FILE
 
 @dataclass
 class PanelSettings:
+    settings_locked: bool = False
     seffaflik: float = 0.85
     her_zaman_ustte: bool = True
     acilista_calistir: bool = True

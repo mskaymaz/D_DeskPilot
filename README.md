@@ -3,13 +3,13 @@
 Windows uzerinde calisan dijital saat uygulamasi. Saat, tarih ve pil bilgisini tek pencerede veya serbest dagit modunda gosterir. Uygulama saydam, cercevesiz ve suruklenebilir bir pencere olarak calisir.
 
 **Surum Bilgisi**
-Surum: `V2.050226` (05 Subat 2026)
-Windows exe: `DigitalSaatV2.050226.exe`
+Surum: `V2.R260206` (06 Subat 2026)
+Windows exe: `DigitalSaatV2.V2.R260206.exe`
 
 **Surumleme**
-- Format: `V2.YYMMDD` (ornegin: `V2.050226`)
-- Ayni gunde ikinci yayin gerekiyorsa: `V2.YYMMDD.1`, `V2.YYMMDD.2`
-- Exe adi: `DigitalSaatV2.<surum>.exe`
+- Format: `V2.RYYMMDD` (ornegin: `V2.R260206`)
+- Ayni gunde ikinci yayin gerekiyorsa: `V2.RYYMMDD.1`, `V2.RYYMMDD.2`
+- Exe adi: `DigitalSaatV2.<surum (V2. on eki olmadan)>.exe`
 
 **Ozellikler**
 - Saat, tarih ve pil bilgisini goruntuleme
@@ -36,6 +36,9 @@ Ayarlar penceresi sekmeli yapidadir: Genel, Pil, Saat, Tarih. Degisiklikler "Uyg
 - Pil uyarilari ve tam dolu uyarisi Pil sekmesinden yonetilir.
 
 **Changelog**
+- V2.R260206 (06 Subat 2026)
+  - Pil satiri gizliyken sarj ikonu da gizleniyor.
+  - Ayarlar kilidi destegi eklendi; varsayilan kilit kapali.
 - V2.050226 (05 Subat 2026)
   - Renk secici kapanma sorunu duzeltildi (Tarih/Saat/Pil renk secimi).
   - Serbest dagit pencereleri artik gorev cubugu ustune tasinabilir.
@@ -53,10 +56,10 @@ Release icin once temiz bir git durumuna (commitli) sahip olun.
 
 Ornek:
 ```
-powershell -ExecutionPolicy Bypass -File .\scripts\release.ps1 -Version V2.050226
+powershell -ExecutionPolicy Bypass -File .\scripts\release.ps1 -Version V2.R260206
 ```
 
 Var olan tag/release uzerine yazmak icin:
 ```
-powershell -ExecutionPolicy Bypass -File .\scripts\release.ps1 -Version V2.050226 -Overwrite
+powershell -ExecutionPolicy Bypass -File .\scripts\release.ps1 -Version V2.R260206 -Overwrite
 ```

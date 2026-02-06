@@ -27,7 +27,11 @@ if ($LASTEXITCODE -ne 0) {
     throw "GitHub CLI not logged in. Run: gh auth login"
 }
 
-$exeName = "DigitalSaatV2.$Version"
+$versionForExe = $Version
+if ($versionForExe -match '^V2\.') {
+    $versionForExe = $versionForExe -replace '^V2\.', ''
+}
+$exeName = "DigitalSaatV2.$versionForExe"
 $exePath = "dist\$exeName.exe"
 
 try {

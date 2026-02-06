@@ -1,4 +1,5 @@
 """
+V2.R260206 Saat 11.00
 DigitalSaatV2
 Kisa aciklama: Dijital saat, tarih ve pil bilgisini gosteren, ayarlari olan masaustu uygulamasi.
 Yerel klasor: D:\\Code\\CodePrivate\\DigitalSaatV2

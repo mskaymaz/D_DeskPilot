@@ -131,14 +131,21 @@ class FreeLineWindow(QtWidgets.QWidget):
         self.controller.show_menu_at(global_pos, anchor_pos)
 
     def mousePressEvent(self, e):
+        if self.settings.settings_locked:
+            return
         if e.button() == QtCore.Qt.MouseButton.LeftButton:
             self.drag_pos = e.globalPosition().toPoint() - self.frameGeometry().topLeft()
 
     def mouseMoveEvent(self, e):
+        if self.settings.settings_locked:
+            return
         if self.drag_pos:
             self.move(e.globalPosition().toPoint() - self.drag_pos)
 
     def mouseReleaseEvent(self, e):
+        if self.settings.settings_locked:
+            self.drag_pos = None
+            return
         if self.drag_pos:
             self.drag_pos = None
             self.controller.update_free_position(self.kind, self.x(), self.y())
@@ -299,6 +306,7 @@ class DraggableTransparentWindow(QtWidgets.QWidget):
         # --- Pil ---
         self._apply_battery_style(self.battery_label, self.battery_icon_label)
         self.battery_label.setVisible(self.settings.battery_visible)
+        self.battery_icon_label.setVisible(self.settings.battery_visible)
         if self.free_battery_window:
             self._apply_battery_style(
                 self.free_battery_window.battery_label,
@@ -307,6 +315,7 @@ class DraggableTransparentWindow(QtWidgets.QWidget):
             self.free_battery_window.setVisible(
                 self.settings.free_layout_enabled and self.settings.battery_visible
             )
+            self.free_battery_window.battery_icon_label.setVisible(self.settings.battery_visible)
 
         self._set_battery_color(self.settings.battery_color)
         self._refresh_battery_rows()
@@ -571,6 +580,8 @@ class DraggableTransparentWindow(QtWidgets.QWidget):
                 self._hide_free_windows()
 
     def update_free_position(self, kind, x, y):
+        if self.settings.settings_locked:
+            return
         if kind == "time":
             self.settings.free_time_x = x
             self.settings.free_time_y = y
@@ -585,15 +596,21 @@ class DraggableTransparentWindow(QtWidgets.QWidget):
 
     def show_menu_at(self, global_pos, settings_anchor_pos=None):
         menu = QtWidgets.QMenu(self)
-        act_settings = menu.addAction("Ayarlar")
+        if self.settings.settings_locked:
+            act_settings = menu.addAction("Ayarlar (kilitli)")
+            act_settings.setEnabled(False)
+        else:
+            act_settings = menu.addAction("Ayarlar")
         act_exit = menu.addAction("Çıkış")
         action = menu.exec(global_pos)
-        if action == act_settings:
+        if action == act_settings and not self.settings.settings_locked:
             self.show_settings_at(settings_anchor_pos)
         elif action == act_exit:
             QtWidgets.QApplication.quit()
 
     def show_settings_at(self, anchor_pos=None):
+        if self.settings.settings_locked:
+            return
         self.settings_window = SettingsDialog(self.settings, self)
         if anchor_pos is not None:
             self.position_settings_window_at(self.settings_window, anchor_pos)
@@ -685,6 +702,10 @@ class DraggableTransparentWindow(QtWidgets.QWidget):
 
     def update_battery(self):
         if not psutil or not self.settings.battery_visible:
+            # Ensure icon hides when battery line is hidden.
+            self.battery_icon_label.setVisible(False)
+            if self.free_battery_window:
+                self.free_battery_window.battery_icon_label.setVisible(False)
             self._stop_full_charge_blink()
             self._stop_low_batt_blink()
             return
@@ -848,10 +869,14 @@ class DraggableTransparentWindow(QtWidgets.QWidget):
     # ---------- SÜRÜKLE ----------
 
     def mousePressEvent(self, e):
+        if self.settings.settings_locked:
+            return
         if e.button() == QtCore.Qt.MouseButton.LeftButton:
             self.drag_pos = e.globalPosition().toPoint() - self.frameGeometry().topLeft()
 
     def mouseMoveEvent(self, e):
+        if self.settings.settings_locked:
+            return
         if self.drag_pos:
             self.move(e.globalPosition().toPoint() - self.drag_pos)
 
@@ -861,6 +886,8 @@ class DraggableTransparentWindow(QtWidgets.QWidget):
 
     def mouseReleaseEvent(self, e):
         self.drag_pos = None
+        if self.settings.settings_locked:
+            return
         self.settings.pos_x = self.x()
         self.settings.pos_y = self.y()
         save_settings(self.settings)
