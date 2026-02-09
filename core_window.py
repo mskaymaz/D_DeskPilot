@@ -4,6 +4,11 @@ import time
 from datetime import datetime
 
 try:
+    import ctypes
+except Exception:
+    ctypes = None
+
+try:
     import psutil
 except ImportError:
     psutil = None
@@ -49,6 +54,82 @@ def move_window_safely(window, settings):
     window.move(x, y)
 
 
+def _enforce_topmost(window):
+    if sys.platform != "win32" or not ctypes:
+        return
+    try:
+        hwnd = int(window.winId())
+    except Exception:
+        return
+    HWND_TOPMOST = -1
+    SWP_NOMOVE = 0x0002
+    SWP_NOSIZE = 0x0001
+    SWP_NOACTIVATE = 0x0010
+    SWP_SHOWWINDOW = 0x0040
+    ctypes.windll.user32.SetWindowPos(
+        hwnd,
+        HWND_TOPMOST,
+        0,
+        0,
+        0,
+        0,
+        SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_SHOWWINDOW,
+    )
+
+
+def _taskbar_bands_for_screen(screen):
+    if not screen:
+        return []
+    geo = screen.geometry()
+    avail = screen.availableGeometry()
+    bands = []
+
+    top_h = avail.top() - geo.top()
+    if top_h > 0:
+        bands.append(QtCore.QRect(geo.left(), geo.top(), geo.width(), top_h))
+
+    bottom_h = geo.bottom() - avail.bottom()
+    if bottom_h > 0:
+        bands.append(
+            QtCore.QRect(
+                geo.left(),
+                avail.bottom() + 1,
+                geo.width(),
+                bottom_h,
+            )
+        )
+
+    left_w = avail.left() - geo.left()
+    if left_w > 0:
+        bands.append(QtCore.QRect(geo.left(), geo.top(), left_w, geo.height()))
+
+    right_w = geo.right() - avail.right()
+    if right_w > 0:
+        bands.append(
+            QtCore.QRect(
+                avail.right() + 1,
+                geo.top(),
+                right_w,
+                geo.height(),
+            )
+        )
+
+    return bands
+
+
+def _is_window_on_taskbar(window):
+    app = QtWidgets.QApplication.instance()
+    screen = app.screenAt(window.frameGeometry().center()) if app else None
+    if not screen and app:
+        screen = app.primaryScreen()
+    if not screen:
+        return False
+    rect = window.frameGeometry()
+    for band in _taskbar_bands_for_screen(screen):
+        if rect.intersects(band):
+            return True
+    return False
+
 
 # =======================
 # SERBEST SATIR PENCERESI
@@ -61,6 +142,7 @@ class FreeLineWindow(QtWidgets.QWidget):
         self.settings = settings
         self.controller = controller
         self.drag_pos = None
+        self._keep_top_timer = None
 
         self._apply_window_flags()
         self.setAttribute(QtCore.Qt.WidgetAttribute.WA_TranslucentBackground)
@@ -71,6 +153,7 @@ class FreeLineWindow(QtWidgets.QWidget):
         self.customContextMenuRequested.connect(self._show_menu)
 
         self._build_ui()
+        self._setup_keep_on_top()
 
     def _apply_window_flags(self):
         flags = QtCore.Qt.WindowType.FramelessWindowHint | QtCore.Qt.WindowType.Tool
@@ -124,6 +207,7 @@ class FreeLineWindow(QtWidgets.QWidget):
         self.setWindowOpacity(self.settings.seffaflik)
         if was_visible:
             self.show()
+        self._update_keep_on_top()
 
     def _show_menu(self, pos):
         global_pos = self.mapToGlobal(pos)
@@ -141,6 +225,7 @@ class FreeLineWindow(QtWidgets.QWidget):
             return
         if self.drag_pos:
             self.move(e.globalPosition().toPoint() - self.drag_pos)
+            self._update_keep_on_top()
 
     def mouseReleaseEvent(self, e):
         if self.settings.settings_locked:
@@ -149,6 +234,45 @@ class FreeLineWindow(QtWidgets.QWidget):
         if self.drag_pos:
             self.drag_pos = None
             self.controller.update_free_position(self.kind, self.x(), self.y())
+            self._update_keep_on_top()
+
+    def _setup_keep_on_top(self):
+        if not self._keep_top_timer:
+            self._keep_top_timer = QtCore.QTimer(self)
+            self._keep_top_timer.setInterval(100)
+            self._keep_top_timer.timeout.connect(self._keep_on_top_tick)
+        self._update_keep_on_top()
+
+    def _update_keep_on_top(self):
+        should_keep = self.isVisible() and _is_window_on_taskbar(self)
+        if should_keep:
+            if not self._keep_top_timer.isActive():
+                self._keep_top_timer.start()
+            _enforce_topmost(self)
+            self.raise_()
+        else:
+            if self._keep_top_timer.isActive():
+                self._keep_top_timer.stop()
+
+    def _keep_on_top_tick(self):
+        if not self.isVisible():
+            if self._keep_top_timer.isActive():
+                self._keep_top_timer.stop()
+            return
+        if not _is_window_on_taskbar(self):
+            if self._keep_top_timer.isActive():
+                self._keep_top_timer.stop()
+            return
+        _enforce_topmost(self)
+        self.raise_()
+
+    def showEvent(self, e):
+        super().showEvent(e)
+        self._update_keep_on_top()
+
+    def hideEvent(self, e):
+        super().hideEvent(e)
+        self._update_keep_on_top()
 
 
 # =======================

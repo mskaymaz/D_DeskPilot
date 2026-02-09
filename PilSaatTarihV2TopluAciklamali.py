@@ -265,6 +265,107 @@ def move_window_safely(window, settings):
     window.move(x, y)
 
 
+"""
+GÖREV ÇUBUĞU ÜSTÜNDE KALMA DAVRANIŞI (QT SÜRÜMÜ)
+
+AMAÇ:
+- Serbest dağıt modunda kullanıcı pencereyi görev çubuğu bandına sürüklerse,
+  pencere "üstte kalma" davranışını sürekli korusun.
+- Uygulama, otomatik olarak görev çubuğuna taşıma YAPMAZ.
+  Yani kullanıcı taşımadıysa, pencere normal konumunda kalır.
+
+NASIL ÇALIŞIR:
+1) Ekranın "geometry" ve "availableGeometry" farkından görev çubuğu bandı hesaplanır.
+2) Pencere bu banda değiyorsa, periyodik olarak topmost (HWND_TOPMOST) zorlanır.
+3) Pencere bandın dışına çıkınca bu zorlamayı durdurur.
+"""
+
+# AÇIKLAMA: Windows üzerinde bir pencereyi "topmost" yapar (görev çubuğu üstünde kalması için).
+def _enforce_topmost(window):
+    if sys.platform != "win32":
+        return
+    try:
+        hwnd = int(window.winId())
+    except Exception:
+        return
+    # AÇIKLAMA: HWND_TOPMOST ile pencereyi en üst seviyeye çıkar.
+    HWND_TOPMOST = -1
+    SWP_NOMOVE = 0x0002
+    SWP_NOSIZE = 0x0001
+    SWP_NOACTIVATE = 0x0010
+    SWP_SHOWWINDOW = 0x0040
+    ctypes.windll.user32.SetWindowPos(
+        hwnd,
+        HWND_TOPMOST,
+        0,
+        0,
+        0,
+        0,
+        SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_SHOWWINDOW,
+    )
+
+
+# AÇIKLAMA: Ekrandaki görev çubuğu bandlarını hesaplar (üst/alt/sol/sağ olabilir).
+# Not: Qt ile her monitör için geometry ve availableGeometry farkı kullanılır.
+def _taskbar_bands_for_screen(screen):
+    if not screen:
+        return []
+    geo = screen.geometry()
+    avail = screen.availableGeometry()
+    bands = []
+
+    # Üstte görev çubuğu varsa: available top, geometry top'tan büyük olur.
+    top_h = avail.top() - geo.top()
+    if top_h > 0:
+        bands.append(QtCore.QRect(geo.left(), geo.top(), geo.width(), top_h))
+
+    # Altta görev çubuğu varsa: geometry bottom, available bottom'dan büyük olur.
+    bottom_h = geo.bottom() - avail.bottom()
+    if bottom_h > 0:
+        bands.append(
+            QtCore.QRect(
+                geo.left(),
+                avail.bottom() + 1,
+                geo.width(),
+                bottom_h,
+            )
+        )
+
+    # Solda görev çubuğu varsa:
+    left_w = avail.left() - geo.left()
+    if left_w > 0:
+        bands.append(QtCore.QRect(geo.left(), geo.top(), left_w, geo.height()))
+
+    # Sağda görev çubuğu varsa:
+    right_w = geo.right() - avail.right()
+    if right_w > 0:
+        bands.append(
+            QtCore.QRect(
+                avail.right() + 1,
+                geo.top(),
+                right_w,
+                geo.height(),
+            )
+        )
+
+    return bands
+
+
+# AÇIKLAMA: Pencere görev çubuğu bandına denk geliyor mu?
+def _is_window_on_taskbar(window):
+    app = QtWidgets.QApplication.instance()
+    screen = app.screenAt(window.frameGeometry().center()) if app else None
+    if not screen and app:
+        screen = app.primaryScreen()
+    if not screen:
+        return False
+    rect = window.frameGeometry()
+    for band in _taskbar_bands_for_screen(screen):
+        if rect.intersects(band):
+            return True
+    return False
+
+
 
 # =======================
 # SERBEST SATIR PENCERESI
@@ -279,6 +380,8 @@ class FreeLineWindow(QtWidgets.QWidget):
         self.settings = settings
         self.controller = controller
         self.drag_pos = None
+        # AÇIKLAMA: Görev çubuğu üstünde kaldığında sürekli topmost zorlamak için timer.
+        self._keep_top_timer = None
 
         self._apply_window_flags()
         self.setAttribute(QtCore.Qt.WidgetAttribute.WA_TranslucentBackground)
@@ -289,6 +392,8 @@ class FreeLineWindow(QtWidgets.QWidget):
         self.customContextMenuRequested.connect(self._show_menu)
 
         self._build_ui()
+        # AÇIKLAMA: Görev çubuğu üstünde kalma davranışını hazırla.
+        self._setup_keep_on_top()
 
     # AÇIKLAMA: Pencere bayraklarını (çerçevesiz, üstte vb.) uygular.
     def _apply_window_flags(self):
@@ -346,6 +451,8 @@ class FreeLineWindow(QtWidgets.QWidget):
         self.setWindowOpacity(self.settings.seffaflik)
         if was_visible:
             self.show()
+        # AÇIKLAMA: Bayraklar yenilenince görev çubuğu kontrolünü tekrar yap.
+        self._update_keep_on_top()
 
     # AÇIKLAMA: Sağ tık menüsünü gösterir.
     def _show_menu(self, pos):
@@ -366,6 +473,8 @@ class FreeLineWindow(QtWidgets.QWidget):
             return
         if self.drag_pos:
             self.move(e.globalPosition().toPoint() - self.drag_pos)
+            # AÇIKLAMA: Kullanıcı sürüklerken görev çubuğu bandına girip girmediğini kontrol et.
+            self._update_keep_on_top()
 
     # AÇIKLAMA: Sürükleme bitişinde konumu kaydeder.
     def mouseReleaseEvent(self, e):
@@ -375,6 +484,52 @@ class FreeLineWindow(QtWidgets.QWidget):
         if self.drag_pos:
             self.drag_pos = None
             self.controller.update_free_position(self.kind, self.x(), self.y())
+            # AÇIKLAMA: Sürükleme bitti; görev çubuğu üstünde kalma gerekiyorsa devreye al.
+            self._update_keep_on_top()
+
+    # AÇIKLAMA: Görev çubuğu üstünde kalma için timer kurulumunu yapar.
+    def _setup_keep_on_top(self):
+        if not self._keep_top_timer:
+            self._keep_top_timer = QtCore.QTimer(self)
+            self._keep_top_timer.setInterval(100)  # 0.1 sn: Windows z-order değişimlerini yakalamak için
+            self._keep_top_timer.timeout.connect(self._keep_on_top_tick)
+        self._update_keep_on_top()
+
+    # AÇIKLAMA: Pencere görev çubuğu bandında mı? Öyleyse topmost zorlamayı başlat.
+    def _update_keep_on_top(self):
+        # ÖNEMLİ: Kullanıcı görev çubuğuna taşımadıysa hiç devreye girmesin.
+        should_keep = self.isVisible() and _is_window_on_taskbar(self)
+        if should_keep:
+            if not self._keep_top_timer.isActive():
+                self._keep_top_timer.start()
+            _enforce_topmost(self)
+            self.raise_()
+        else:
+            if self._keep_top_timer.isActive():
+                self._keep_top_timer.stop()
+
+    # AÇIKLAMA: Periyodik topmost zorlaması.
+    def _keep_on_top_tick(self):
+        if not self.isVisible():
+            if self._keep_top_timer.isActive():
+                self._keep_top_timer.stop()
+            return
+        if not _is_window_on_taskbar(self):
+            if self._keep_top_timer.isActive():
+                self._keep_top_timer.stop()
+            return
+        _enforce_topmost(self)
+        self.raise_()
+
+    # AÇIKLAMA: Pencere görünür olunca görev çubuğu kontrolünü güncelle.
+    def showEvent(self, e):
+        super().showEvent(e)
+        self._update_keep_on_top()
+
+    # AÇIKLAMA: Pencere gizlenince topmost zorlamayı durdur.
+    def hideEvent(self, e):
+        super().hideEvent(e)
+        self._update_keep_on_top()
 
 
 # =======================
