@@ -38,6 +38,7 @@ Amac: Teslim, handover, snapshot ve kararlar icin tek append-only gecmis tutmak.
 | 2026-04-16 13:44 +03:00 | R.260416_1344 | karar | TAM-OKUMA-YASAGI | Talimatlarin basina tam dosya okumama kurali vazgecilmez olarak eklendi; dogrulama araci bu ifadeyi zorunlu kontrol eder. |
 | 2026-04-16 17:01 +03:00 | R.260416_1701 | karar | TOPMOST-TUM-PENCERELER | `Her zaman ustte` davranisi tum gorunur ana ve serbest satir pencerelerinde ortaklastirildi; gorev cubugu temasina bagli kosul kaldirilarak surekli topmost pekistirmesi eklendi. |
 | 2026-04-16 17:06 +03:00 | R.260416_1706 | teslim | TASK-007 | yedek | topmost guclendirmesi, `derle` aracinin canli exe uretimi ve Besmele kayitlariyla repo yedegi alindi |
+| 2026-04-16 17:10 +03:00 | R.260416_1710 | teslim | TASK-007 | exe-push | Uretilen `DigitalSaat_R.260416_1703.exe` dosyasi repo icindeki `dagitim/` klasorune alinarak kaynakla birlikte push edildi |
 
 Ne zaman acilir?
 - Anlamli teslim, karar, snapshot veya handover kaydi ekleneceginde.
