@@ -277,6 +277,13 @@ class SettingsDialog(QtWidgets.QDialog):
         self.chk_free_layout.setChecked(self.settings.free_layout_enabled)
         self.chk_free_layout.toggled.connect(self._apply_free_layout_preview)
 
+        # Görev çubuğu uyarısı
+        self.lbl_taskbar_warning = QtWidgets.QLabel(
+            "⚠️ Görev çubuğu üzerinde konumlandırmayın - pencereler otomatik gizlenir!"
+        )
+        self.lbl_taskbar_warning.setStyleSheet("color: #ff6600; font-weight: bold;")
+        self.lbl_taskbar_warning.setWordWrap(True)
+
         self.sld_opacity = QtWidgets.QSlider(QtCore.Qt.Orientation.Horizontal)
         self.sld_opacity.setRange(10, 100)
         self.sld_opacity.setValue(int(self.settings.seffaflik * 100))
@@ -287,6 +294,7 @@ class SettingsDialog(QtWidgets.QDialog):
         f.addRow(self.chk_top)
         f.addRow(self.chk_autostart)
         f.addRow(self.chk_free_layout)
+        f.addRow(self.lbl_taskbar_warning)
         opacity_row = QtWidgets.QHBoxLayout()
         opacity_row.addWidget(self.sld_opacity)
         opacity_row.addWidget(self.lbl_opacity_value)

@@ -239,12 +239,12 @@ class FreeLineWindow(QtWidgets.QWidget):
     def _setup_keep_on_top(self):
         if not self._keep_top_timer:
             self._keep_top_timer = QtCore.QTimer(self)
-            self._keep_top_timer.setInterval(100)
+            self._keep_top_timer.setInterval(250)
             self._keep_top_timer.timeout.connect(self._keep_on_top_tick)
         self._update_keep_on_top()
 
     def _update_keep_on_top(self):
-        should_keep = self.isVisible() and _is_window_on_taskbar(self)
+        should_keep = self.isVisible() and self.settings.her_zaman_ustte
         if should_keep:
             if not self._keep_top_timer.isActive():
                 self._keep_top_timer.start()
@@ -255,11 +255,7 @@ class FreeLineWindow(QtWidgets.QWidget):
                 self._keep_top_timer.stop()
 
     def _keep_on_top_tick(self):
-        if not self.isVisible():
-            if self._keep_top_timer.isActive():
-                self._keep_top_timer.stop()
-            return
-        if not _is_window_on_taskbar(self):
+        if not self.isVisible() or not self.settings.her_zaman_ustte:
             if self._keep_top_timer.isActive():
                 self._keep_top_timer.stop()
             return
@@ -272,6 +268,10 @@ class FreeLineWindow(QtWidgets.QWidget):
 
     def hideEvent(self, e):
         super().hideEvent(e)
+        self._update_keep_on_top()
+
+    def moveEvent(self, e):
+        super().moveEvent(e)
         self._update_keep_on_top()
 
 
@@ -292,6 +292,7 @@ class DraggableTransparentWindow(QtWidgets.QWidget):
         self.free_date_window = None
         self.free_battery_window = None
         self._free_layout_active = False
+        self._keep_top_timer = None
 
 
         flags = QtCore.Qt.WindowType.FramelessWindowHint | QtCore.Qt.WindowType.Window
@@ -399,6 +400,7 @@ class DraggableTransparentWindow(QtWidgets.QWidget):
         self.setContextMenuPolicy(QtCore.Qt.ContextMenuPolicy.CustomContextMenu)
         self.customContextMenuRequested.connect(self.show_menu)
 
+        self._setup_keep_on_top()
         self.apply_settings()
         self.update_time()
         self.update_battery()
@@ -1015,5 +1017,44 @@ class DraggableTransparentWindow(QtWidgets.QWidget):
         self.settings.pos_x = self.x()
         self.settings.pos_y = self.y()
         save_settings(self.settings)
+        self._update_keep_on_top()
+
+    def _setup_keep_on_top(self):
+        if not self._keep_top_timer:
+            self._keep_top_timer = QtCore.QTimer(self)
+            self._keep_top_timer.setInterval(500)  # Ana pencere için daha seyrek kontrol
+            self._keep_top_timer.timeout.connect(self._keep_on_top_tick)
+        self._update_keep_on_top()
+
+    def _update_keep_on_top(self):
+        should_keep = self.isVisible() and self.settings.her_zaman_ustte
+        if should_keep:
+            if not self._keep_top_timer.isActive():
+                self._keep_top_timer.start()
+            _enforce_topmost(self)
+            self.raise_()
+        else:
+            if self._keep_top_timer.isActive():
+                self._keep_top_timer.stop()
+
+    def _keep_on_top_tick(self):
+        if not self.isVisible() or not self.settings.her_zaman_ustte:
+            if self._keep_top_timer.isActive():
+                self._keep_top_timer.stop()
+            return
+        _enforce_topmost(self)
+        self.raise_()
+
+    def showEvent(self, e):
+        super().showEvent(e)
+        self._update_keep_on_top()
+
+    def hideEvent(self, e):
+        super().hideEvent(e)
+        self._update_keep_on_top()
+
+    def moveEvent(self, e):
+        super().moveEvent(e)
+        self._update_keep_on_top()
 
 

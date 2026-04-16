@@ -86,6 +86,7 @@ def _normalize_key(key: str) -> str:
 
 
 def load_settings():
+    # First try the app data directory (for exe)
     if os.path.isfile(SETTINGS_FILE):
         try:
             with open(SETTINGS_FILE, "r", encoding="utf-8") as f:
@@ -97,6 +98,21 @@ def load_settings():
                 return PanelSettings(**data)
         except Exception:
             pass
+
+    # Fall back to local settings file for development
+    local_settings = os.path.join(os.path.dirname(__file__), "digitalSaat.settings.json")
+    if os.path.isfile(local_settings):
+        try:
+            with open(local_settings, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                if isinstance(data, dict):
+                    data = { _normalize_key(k): v for k, v in data.items() }
+                    allowed = set(PanelSettings.__dataclass_fields__.keys())
+                    data = {k: v for k, v in data.items() if k in allowed}
+                return PanelSettings(**data)
+        except Exception:
+            pass
+
     return PanelSettings()
 
 
