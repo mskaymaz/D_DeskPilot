@@ -1,7 +1,6 @@
 __pycache__/
 *.pyc
 build/
-dist/
 !dist/DigitalSaatV2.R260206.exe
 *.spec
 !digitalSaat.spec
