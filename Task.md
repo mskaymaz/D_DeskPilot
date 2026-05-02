@@ -1,89 +1,66 @@
 # TAMAMLAMA LİSTESİ
 
-[ ] PHASE 1 — BASELINE SAFETY
-	- [ ] Task 1.1 — Add app version constant
-	- [ ] Task 1.2 — Add logging foundation
-	- [ ] Task 1.3 — Safe JSON write
-	- [ ] Task 1.4 — Config validation fallback
+[x] PHASE 1 — BASELINE SAFETY
+	- [x] Task 1.1 — Add app version constant
+	- [x] Task 1.2 — Add logging foundation
+	- [x] Task 1.3 — Safe JSON write
+	- [x] Task 1.4 — Config validation fallback
 
-[ ] PHASE 2 — BATTERY MODULE
-	- [ ] Task 2.1 — Battery state model
-	- [ ] Task 2.2 — Battery thresholds
-	- [ ] Task 2.3 — Plug/unplug detection
-	- [ ] Task 2.4 — Optional battery health info
+[x] PHASE 2 — BATTERY MODULE
+	- [x] Task 2.1 — Battery state model
+	- [x] Task 2.2 — Battery thresholds
+	- [x] Task 2.3 — Plug/unplug detection
+	- [x] Task 2.4 — Optional battery health info
 
-[ ] PHASE 3 — NOTIFICATION SYSTEM
-	- [ ] Task 3.1 — Notification service
-	- [ ] Task 3.2 — Notification cooldown
-	- [ ] Task 3.3 — Silent mode
+[x] PHASE 4 — REMINDER ENGINE
+	- [x] Task 4.1 — Reminder model
+	- [x] Task 4.2 — Reminder storage
+	- [x] Task 4.3 — Due reminder detection
+	- [x] Task 4.4 — Reminder popup
+	- [x] Task 4.5 — Recurring reminder handling
+	- [x] Task 4.6 — Reminder list UI
 
-[ ] PHASE 4 — REMINDER ENGINE
-	- [ ] Task 4.1 — Reminder model
-	- [ ] Task 4.2 — Reminder storage
-	- [ ] Task 4.3 — Due reminder detection
-	- [ ] Task 4.4 — Reminder popup
-	- [ ] Task 4.5 — Recurring reminder handling
-	- [ ] Task 4.6 — Reminder list UI
+[x] PHASE 5 — MINI TODO
+	- [x] Task 5.1 — Todo model
+	- [x] Task 5.2 — Todo storage
+	- [x] Task 5.3 — Todo basic UI
+	- [x] Task 5.4 — Todo priority sorting
 
-[ ] PHASE 5 — MINI TODO
-	- [ ] Task 5.1 — Todo model
-	- [ ] Task 5.2 — Todo storage
-	- [ ] Task 5.3 — Todo basic UI
-	- [ ] Task 5.4 — Todo priority sorting
+[x] PHASE 6 — MODULAR UI
+	- [x] Task 6.1 — Module visibility settings
+	- [x] Task 6.2 — Layout persistence
+	- [x] Task 6.3 — Global scale setting
+	- [x] Task 6.4 — Right mouse + wheel resize
 
-[ ] PHASE 6 — MODULAR UI
-	- [ ] Task 6.1 — Module visibility settings
-	- [ ] Task 6.2 — Layout persistence
-	- [ ] Task 6.3 — Global scale setting
-	- [ ] Task 6.4 — Right mouse + wheel resize
+[x] PHASE 7 — MULTI-MONITOR SUPPORT
+	- [x] Task 7.1 — Screen info capture
+	- [x] Task 7.2 — Restore module to correct monitor
+	- [x] Task 7.3 — Move all modules
+	- [x] Task 7.4 — Multi-monitor mode option
 
-[ ] PHASE 7 — MULTI-MONITOR SUPPORT
-	- [ ] Task 7.1 — Screen info capture
-	- [ ] Task 7.2 — Restore module to correct monitor
-	- [ ] Task 7.3 — Move all modules to one monitor
-	- [ ] Task 7.4 — Multi-monitor mode option
-
-[ ] PHASE 8 — SYSTEM TRAY
-	- [ ] Task 8.1 — Tray menu cleanup
-	- [ ] Task 8.2 — Tray summary
-
-[ ] PHASE 9 — FINAL STABILITY
-	- [ ] Task 9.1 — Startup crash safety
-	- [ ] Task 9.2 — Manual verification checklist
+[x] PHASE 9 — FINAL STABILITY
+	- [x] Task 9.1 — Startup crash safety
+	- [x] Task 9.2 — Manual verification checklist
 
 ---
 # DIGITALSAAT V1.1 — IMPLEMENTATION TASKS
-
-## Rules
-
-- Work in very small tasks.
-- Do not rewrite the whole app unless explicitly requested.
-- Do not introduce placeholder code.
+ Do not introduce placeholder code.
 - Every task must keep the app runnable.
 - Preserve existing working clock/date/battery behavior.
 - Prefer simple, testable services over large controller logic.
 - No overengineering.
-- No plugin system.
-- No multi-window architecture rewrite unless the task requires it.
-- After each task, run the app and verify manually.
 
----
-
-# Phase 0 — Project Structure Preparation
+ Phase 0 — Project Structure Preparation
 
 ## Phase 0 — Project Structure Preparation
 
 **Klasör Açıklamaları:**
-
-- `app/models/` — Veri modelleri (ör: BatteryModel, ReminderModel, TodoModel)
-- `app/services/` — İş mantığı ve servisler (ör: BatteryService, ReminderService, NotificationService)
-- `app/ui/` — Arayüz ve görsel bileşenler (ör: ana pencere, modül panelleri)
-- `app/controllers/` — UI ile servisler arası köprü (küçük projelerde service/ui ile birleştirilebilir)
+delleri (ör: BatteryModel, ReminderModel, TodoModel)
+a `app/controllers/` — UI ile servisler arası köprü (küçük projelerde service/ui ile birleştirilebilir)
 - `data/` — Kalıcı veri dosyaları (örn: `reminders.json`, `todos.json`, `settings.json`)
 - `logs/` — Uygulama log dosyaları (örn: `app.log`)
 - `docs/` — Proje dokümantasyonu
-- `tests/manual_checklist.md` — Manuel test ve doğrulama adımları (bkz: PHASE 9.2)
-
+- `tests/manual_checklist.md`
 > Not: Fazlar ilerledikçe önce model, sonra servis, sonra UI ve controller katmanları oluşturulmalı. Her faz sonunda beklenen çıktı/sonuç kısa bir özetle belirtilmeli. Fazlar arası bağımlılıklar için, örneğin Reminder servisleri tamamlanmadan Reminder UI yapılmamalı.
 
 ---

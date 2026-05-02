@@ -1,52 +1,43 @@
-"""
-V2.R260206 Saat 11.00
-DigitalSaatV2
-Kisa aciklama: Dijital saat, tarih ve pil bilgisini gosteren, ayarlari olan masaustu uygulamasi.
-Yerel klasor: D:\\Code\\CodePrivate\\DigitalSaatV2
-GitHub repo: https://github.com/mskaymaz/DigitalSaatV2
-Not: Bu dosya sadece uygulamayi baslatir; asil mantik modullerde.
-"""
-
 import sys
 import locale
 import ctypes
-
 try:
-    from PySide6 import QtCore, QtGui, QtWidgets
+    from PySide6 import QtWidgets, QtGui
 except ImportError:
-    from PyQt6 import QtCore, QtGui, QtWidgets
+    from PyQt6 import QtWidgets, QtGui
 
-from utils import APP_ID, ICON_FILE, resource_path
+from utils import APP_ID, resource_path, ICON_FILE, log_altyapisini_kur, log_kaydet
 from core_settings import load_settings
 from core_window import DraggableTransparentWindow, move_window_safely
-
-
-# =======================
-# MAIN
-# =======================
-
+from sistem_tepsisi import SistemTepsisi
 
 def main():
+    # Loglama altyapısını kur
+    log_altyapisini_kur()
+    log_kaydet("Uygulama baslatiliyor...")
+
     if sys.platform == "win32":
         try:
             ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(APP_ID)
-        except Exception:
-            pass
+        except Exception as e:
+            log_kaydet(f"AppUserModelID ayarlanamadi: {e}", "warning")
+
     app = QtWidgets.QApplication(sys.argv)
     locale.setlocale(locale.LC_TIME, "tr_TR")
     app.setWindowIcon(QtGui.QIcon(resource_path(ICON_FILE)))
 
     settings = load_settings()
     win = DraggableTransparentWindow(settings)
-    if settings.free_layout_enabled:
-        win.hide()
-    else:
-        win.show()
-        move_window_safely(win, settings)
+    
+    # Sistem tepsisini başlat ve referansını tut (GC'den korunmak için)
+    tray = SistemTepsisi(win, app)
+    win.tepsi_ikonu = tray
+    tray.show()
+    
+    win.show()
+    move_window_safely(win, settings)
 
     sys.exit(app.exec())
 
-
 if __name__ == "__main__":
     main()
-

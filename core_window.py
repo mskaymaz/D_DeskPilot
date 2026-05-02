@@ -1,285 +1,39 @@
 import locale
 import sys
 import time
-from datetime import datetime
-
-try:
-    import ctypes
-except Exception:
-    ctypes = None
-
-try:
-    import psutil
-except ImportError:
-    psutil = None
-
-try:
-    if sys.platform == "win32":
-        import winsound
-    else:
-        winsound = None
-except Exception:
-    winsound = None
+from datetime import datetime, timedelta
 
 try:
     from PySide6 import QtCore, QtGui, QtWidgets
 except ImportError:
     from PyQt6 import QtCore, QtGui, QtWidgets
 
-from utils import resource_path, ICON_FILE
+from utils import resource_path, ICON_FILE, log_altyapisini_kur, log_kaydet, _enforce_topmost
 from core_settings import PanelSettings, save_settings
 from ui_settings import SettingsDialog
-
-# =======================
-# GÜVENLİ KONUM
-# =======================
-
-def move_window_safely(window, settings):
-    app = QtWidgets.QApplication.instance()
-    screen = app.screenAt(QtGui.QCursor.pos()) or app.primaryScreen()
-    rect = screen.availableGeometry()
-
-    window.adjustSize()
-    w, h = window.width(), window.height()
-
-    x, y = settings.pos_x, settings.pos_y
-
-    if not rect.contains(QtCore.QPoint(x, y)):
-        x = rect.left() + (rect.width() - w) // 2
-        y = rect.top() + (rect.height() - h) // 2
-        settings.pos_x = x
-        settings.pos_y = y
-        save_settings(settings)
-
-    window.move(x, y)
-
-
-def _enforce_topmost(window):
-    if sys.platform != "win32" or not ctypes:
-        return
-    try:
-        hwnd = int(window.winId())
-    except Exception:
-        return
-    HWND_TOPMOST = -1
-    SWP_NOMOVE = 0x0002
-    SWP_NOSIZE = 0x0001
-    SWP_NOACTIVATE = 0x0010
-    SWP_SHOWWINDOW = 0x0040
-    ctypes.windll.user32.SetWindowPos(
-        hwnd,
-        HWND_TOPMOST,
-        0,
-        0,
-        0,
-        0,
-        SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_SHOWWINDOW,
-    )
-
-
-def _taskbar_bands_for_screen(screen):
-    if not screen:
-        return []
-    geo = screen.geometry()
-    avail = screen.availableGeometry()
-    bands = []
-
-    top_h = avail.top() - geo.top()
-    if top_h > 0:
-        bands.append(QtCore.QRect(geo.left(), geo.top(), geo.width(), top_h))
-
-    bottom_h = geo.bottom() - avail.bottom()
-    if bottom_h > 0:
-        bands.append(
-            QtCore.QRect(
-                geo.left(),
-                avail.bottom() + 1,
-                geo.width(),
-                bottom_h,
-            )
-        )
-
-    left_w = avail.left() - geo.left()
-    if left_w > 0:
-        bands.append(QtCore.QRect(geo.left(), geo.top(), left_w, geo.height()))
-
-    right_w = geo.right() - avail.right()
-    if right_w > 0:
-        bands.append(
-            QtCore.QRect(
-                avail.right() + 1,
-                geo.top(),
-                right_w,
-                geo.height(),
-            )
-        )
-
-    return bands
-
-
-def _is_window_on_taskbar(window):
-    app = QtWidgets.QApplication.instance()
-    screen = app.screenAt(window.frameGeometry().center()) if app else None
-    if not screen and app:
-        screen = app.primaryScreen()
-    if not screen:
-        return False
-    rect = window.frameGeometry()
-    for band in _taskbar_bands_for_screen(screen):
-        if rect.intersects(band):
-            return True
-    return False
-
-
-# =======================
-# SERBEST SATIR PENCERESI
-# =======================
-
-class FreeLineWindow(QtWidgets.QWidget):
-    def __init__(self, kind, settings, controller):
-        super().__init__(None)
-        self.kind = kind
-        self.settings = settings
-        self.controller = controller
-        self.drag_pos = None
-        self._keep_top_timer = None
-
-        self._apply_window_flags()
-        self.setAttribute(QtCore.Qt.WidgetAttribute.WA_TranslucentBackground)
-        self.setWindowOpacity(self.settings.seffaflik)
-        self.setWindowIcon(QtGui.QIcon(resource_path(ICON_FILE)))
-
-        self.setContextMenuPolicy(QtCore.Qt.ContextMenuPolicy.CustomContextMenu)
-        self.customContextMenuRequested.connect(self._show_menu)
-
-        self._build_ui()
-        self._setup_keep_on_top()
-
-    def _apply_window_flags(self):
-        flags = QtCore.Qt.WindowType.FramelessWindowHint | QtCore.Qt.WindowType.Tool
-        if self.settings.her_zaman_ustte:
-            flags |= QtCore.Qt.WindowType.WindowStaysOnTopHint
-        self.setWindowFlags(flags)
-
-    def _build_ui(self):
-        if self.kind == "battery":
-            self.battery_label = QtWidgets.QLabel(alignment=QtCore.Qt.AlignmentFlag.AlignCenter)
-            self.battery_icon_label = QtWidgets.QLabel(alignment=QtCore.Qt.AlignmentFlag.AlignCenter)
-            self.battery_icon_label.setVisible(False)
-
-            row = QtWidgets.QWidget()
-            row_layout = QtWidgets.QHBoxLayout(row)
-            row_layout.setContentsMargins(0, 0, 0, 0)
-            row_layout.setSpacing(4)
-            row_layout.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
-            row_layout.addWidget(self.battery_label)
-            row_layout.addWidget(self.battery_icon_label)
-            self.content = row
-        else:
-            self.label = QtWidgets.QLabel(alignment=QtCore.Qt.AlignmentFlag.AlignCenter)
-            self.content = self.label
-
-        for lbl in self._labels():
-            lbl.setAttribute(QtCore.Qt.WidgetAttribute.WA_TransparentForMouseEvents)
-            lbl.setContentsMargins(0, 0, 0, 0)
-            lbl.setStyleSheet(
-                """
-                QLabel {
-                    padding: 0px;
-                    margin: 0px;
-                }
-                """
-            )
-
-        layout = QtWidgets.QVBoxLayout(self)
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(0)
-        layout.addWidget(self.content)
-
-    def _labels(self):
-        if self.kind == "battery":
-            return (self.battery_label, self.battery_icon_label)
-        return (self.label,)
-
-    def refresh_flags_and_opacity(self):
-        was_visible = self.isVisible()
-        self._apply_window_flags()
-        self.setWindowOpacity(self.settings.seffaflik)
-        if was_visible:
-            self.show()
-        self._update_keep_on_top()
-
-    def _show_menu(self, pos):
-        global_pos = self.mapToGlobal(pos)
-        anchor_pos = self.frameGeometry().topLeft()
-        self.controller.show_menu_at(global_pos, anchor_pos)
-
-    def mousePressEvent(self, e):
-        if self.settings.settings_locked:
-            return
-        if e.button() == QtCore.Qt.MouseButton.LeftButton:
-            self.drag_pos = e.globalPosition().toPoint() - self.frameGeometry().topLeft()
-
-    def mouseMoveEvent(self, e):
-        if self.settings.settings_locked:
-            return
-        if self.drag_pos:
-            self.move(e.globalPosition().toPoint() - self.drag_pos)
-            self._update_keep_on_top()
-
-    def mouseReleaseEvent(self, e):
-        if self.settings.settings_locked:
-            self.drag_pos = None
-            return
-        if self.drag_pos:
-            self.drag_pos = None
-            self.controller.update_free_position(self.kind, self.x(), self.y())
-            self._update_keep_on_top()
-
-    def _setup_keep_on_top(self):
-        if not self._keep_top_timer:
-            self._keep_top_timer = QtCore.QTimer(self)
-            self._keep_top_timer.setInterval(250)
-            self._keep_top_timer.timeout.connect(self._keep_on_top_tick)
-        self._update_keep_on_top()
-
-    def _update_keep_on_top(self):
-        should_keep = self.isVisible() and self.settings.her_zaman_ustte
-        if should_keep:
-            if not self._keep_top_timer.isActive():
-                self._keep_top_timer.start()
-            _enforce_topmost(self)
-            self.raise_()
-        else:
-            if self._keep_top_timer.isActive():
-                self._keep_top_timer.stop()
-
-    def _keep_on_top_tick(self):
-        if not self.isVisible() or not self.settings.her_zaman_ustte:
-            if self._keep_top_timer.isActive():
-                self._keep_top_timer.stop()
-            return
-        _enforce_topmost(self)
-        self.raise_()
-
-    def showEvent(self, e):
-        super().showEvent(e)
-        self._update_keep_on_top()
-
-    def hideEvent(self, e):
-        super().hideEvent(e)
-        self._update_keep_on_top()
-
-    def moveEvent(self, e):
-        super().moveEvent(e)
-        self._update_keep_on_top()
-
+from hatirlatici_servisi import HatirlaticiServisi
+from hatirlatici_modeli import HatirlaticiDurumu
+from hatirlatici_popup import HatirlaticiBildirimPenceresi
+from hatirlatici_listesi import HatirlaticiListesiDialog
+from gorev_servisi import GorevServisi
+from gorev_arayuzu import GorevArayuzuDialog
+from pencere_araclari import pencereyi_guvenli_tas, en_ustte_tut, ekrani_bul
+from pil_servisi import PilServisi
+from bildirim_servisi import BildirimServisi
+from serbest_pencere import SerbestSatirPenceresi
 
 # =======================
 # ANA PENCERE
 # =======================
 
-class DraggableTransparentWindow(QtWidgets.QWidget):
+from pencere_guncelleme import PencereGuncellemeKarishimi
+from pencere_navigasyon import PencereNavigasyonKarishimi
+
+def move_window_safely(window, settings):
+    """digitalSaatV2.py tarafından kullanılan güvenli taşıma sarmalayıcısı."""
+    return pencereyi_guvenli_tas(window, settings)
+
+class DraggableTransparentWindow(QtWidgets.QWidget, PencereGuncellemeKarishimi, PencereNavigasyonKarishimi):
     def __init__(self, settings):
         super().__init__()
         self.settings = settings
@@ -293,6 +47,10 @@ class DraggableTransparentWindow(QtWidgets.QWidget):
         self.free_battery_window = None
         self._free_layout_active = False
         self._keep_top_timer = None
+
+        # Log altyapısını başlat (Task 1.2)
+        log_altyapisini_kur()
+        log_kaydet("Uygulama baslatildi.")
 
 
         flags = QtCore.Qt.WindowType.FramelessWindowHint | QtCore.Qt.WindowType.Window
@@ -381,6 +139,14 @@ class DraggableTransparentWindow(QtWidgets.QWidget):
 
 
 
+        self._zamanlayicilari_kur()
+        self._servisleri_baslat()
+        self._setup_keep_on_top()
+        self.apply_settings()
+        self.update_time()
+        self.update_battery()
+
+    def _zamanlayicilari_kur(self):
         self.timer = QtCore.QTimer(self)
         self.timer.timeout.connect(self.update_time)
         self.timer.start(200)
@@ -397,19 +163,26 @@ class DraggableTransparentWindow(QtWidgets.QWidget):
         self.low_batt_timer.timeout.connect(self._toggle_low_batt_blink)
         self.low_batt_timer.setInterval(500)
 
+        self.hatirlatici_timer = QtCore.QTimer(self)
+        self.hatirlatici_timer.timeout.connect(self.hatirlaticilari_kontrol_et)
+        self.hatirlatici_timer.start(30000)
+
         self.setContextMenuPolicy(QtCore.Qt.ContextMenuPolicy.CustomContextMenu)
         self.customContextMenuRequested.connect(self.show_menu)
 
-        self._setup_keep_on_top()
-        self.apply_settings()
-        self.update_time()
-        self.update_battery()
+    def _servisleri_baslat(self):
+        self.pil_servisi = PilServisi(dusuk_esik=self.settings.battery_warning_level)
+        self.bildirim_servisi = BildirimServisi()
+        self.hatirlatici_servisi = HatirlaticiServisi()
+        self.gorev_servisi = GorevServisi()
+        self._aktif_popuplar = {}
 
     # ---------- AYARLAR ---------- *****************
 
 
     def apply_settings(self):
         self._apply_window_flags()
+        scale = self.settings.global_scale
 
         # --- Saat ---
         self._apply_time_style(self.time_label)
@@ -435,8 +208,8 @@ class DraggableTransparentWindow(QtWidgets.QWidget):
         self.battery_icon_label.setVisible(self.settings.battery_visible)
         if self.free_battery_window:
             self._apply_battery_style(
-                self.free_battery_window.battery_label,
-                self.free_battery_window.battery_icon_label
+                self.free_battery_window.pil_etiketi,
+                self.free_battery_window.pil_ikon_etiketi
             )
             self.free_battery_window.setVisible(
                 self.settings.free_layout_enabled and self.settings.battery_visible
@@ -448,12 +221,12 @@ class DraggableTransparentWindow(QtWidgets.QWidget):
 
         # --- Spacer guncelle ---
         if self.settings.time_visible:
-            bt_space = self.settings.spacing_battery_time
-            td_space = self.settings.spacing_time_date
+            bt_space = int(self.settings.spacing_battery_time * scale)
+            td_space = int(self.settings.spacing_time_date * scale)
         else:
             # Saat yok -> pil ile tarih birbirine yakin olsun
             bt_space = 0
-            td_space = self.settings.spacing_battery_date_hidden
+            td_space = int(self.settings.spacing_battery_date_hidden * scale)
 
         self.spacer_bt.changeSize(
             0,
@@ -513,9 +286,10 @@ class DraggableTransparentWindow(QtWidgets.QWidget):
             self.free_battery_window.refresh_flags_and_opacity()
 
     def _apply_time_style(self, label):
+        scale = self.settings.global_scale
         font_main = QtGui.QFont(
             self.settings.time_font_family,
-            self.settings.time_font_size
+            int(self.settings.time_font_size * scale)
         )
         font_main.setBold(self.settings.time_bold)
         label.setFont(font_main)
@@ -523,7 +297,7 @@ class DraggableTransparentWindow(QtWidgets.QWidget):
             f"""
             QLabel {{
                 color: {self.settings.time_color};
-                line-height: {self.settings.time_font_size}px;
+                line-height: {int(self.settings.time_font_size * scale)}px;
                 padding: 0px;
                 margin: 0px;
             }}
@@ -531,9 +305,10 @@ class DraggableTransparentWindow(QtWidgets.QWidget):
         )
 
     def _apply_date_style(self, label):
+        scale = self.settings.global_scale
         df = QtGui.QFont(
             self.settings.date_font_family,
-            self.settings.date_font_size
+            int(self.settings.date_font_size * scale)
         )
         df.setBold(self.settings.date_bold)
         label.setFont(df)
@@ -541,12 +316,13 @@ class DraggableTransparentWindow(QtWidgets.QWidget):
             f"color:{self.settings.date_color};"
             f"opacity:{self.settings.date_opacity};"
         )
-        self._lock_label_height(label, self.settings.date_font_size)
+        self._lock_label_height(label, int(self.settings.date_font_size * scale))
 
     def _apply_battery_style(self, label, icon_label):
+        scale = self.settings.global_scale
         bf = QtGui.QFont(
             self.settings.battery_font_family,
-            self.settings.battery_font_size
+            int(self.settings.battery_font_size * scale)
         )
         bf.setBold(self.settings.battery_bold)
         label.setFont(bf)
@@ -554,9 +330,9 @@ class DraggableTransparentWindow(QtWidgets.QWidget):
             f"color:{self.settings.battery_color};"
             f"opacity:{self.settings.battery_opacity};"
         )
-        self._lock_label_height(label, self.settings.battery_font_size)
+        self._lock_label_height(label, int(self.settings.battery_font_size * scale))
 
-        icon_size = max(1.0, float(self.settings.battery_font_size) * 0.8)
+        icon_size = max(1.0, float(self.settings.battery_font_size * scale) * 0.8)
         # Use a symbol font to avoid emoji-size overrides
         bif = QtGui.QFont("Segoe UI Symbol")
         bif.setPointSizeF(icon_size)
@@ -582,33 +358,38 @@ class DraggableTransparentWindow(QtWidgets.QWidget):
     def _ensure_free_windows(self):
         created = False
         if not self.free_time_window:
-            self.free_time_window = FreeLineWindow("time", self.settings, self)
+            self.free_time_window = SerbestSatirPenceresi("time", self.settings, self)
             created = True
         if not self.free_date_window:
-            self.free_date_window = FreeLineWindow("date", self.settings, self)
+            self.free_date_window = SerbestSatirPenceresi("date", self.settings, self)
             created = True
         if not self.free_battery_window:
-            self.free_battery_window = FreeLineWindow("battery", self.settings, self)
+            self.free_battery_window = SerbestSatirPenceresi("battery", self.settings, self)
             created = True
         if created:
             self._apply_free_window_styles()
 
     def _apply_free_window_styles(self):
         if self.free_time_window:
-            self._apply_time_style(self.free_time_window.label)
+            self._apply_time_style(self.free_time_window.etiket)
         if self.free_date_window:
-            self._apply_date_style(self.free_date_window.label)
+            self._apply_date_style(self.free_date_window.etiket)
         if self.free_battery_window:
             self._apply_battery_style(
-                self.free_battery_window.battery_label,
-                self.free_battery_window.battery_icon_label
+                self.free_battery_window.pil_etiketi,
+                self.free_battery_window.pil_ikon_etiketi
             )
             self._set_battery_color(self.settings.battery_color)
             self._refresh_battery_rows()
 
-    def _clamp_window_position(self, window, x, y, allow_taskbar=False):
+    def _clamp_window_position(self, window, x, y, allow_taskbar=False, hedef_ekran_adi=""):
+        """Task 7.2: Pencereyi belirli bir ekranın sınırları içinde tutar."""
         app = QtWidgets.QApplication.instance()
-        screen = app.screenAt(QtCore.QPoint(x, y)) or app.primaryScreen()
+        # Kaydedilen ekranı ara, bulamazsa koordinata göre bak, o da yoksa ana ekran
+        screen = ekrani_bul(hedef_ekran_adi)
+        if not hedef_ekran_adi:
+            screen = app.screenAt(QtCore.QPoint(x, y)) or screen
+            
         rect = screen.geometry() if allow_taskbar else screen.availableGeometry()
         window.adjustSize()
         w, h = window.width(), window.height()
@@ -624,11 +405,13 @@ class DraggableTransparentWindow(QtWidgets.QWidget):
 
         return x, y
 
-    def _move_line_window_safely(self, window, x, y):
-        x, y = self._clamp_window_position(window, x, y, allow_taskbar=True)
+    def _move_line_window_safely(self, window, x, y, hedef_ekran_adi=""):
+        # Task 6.2: Serbest moddaki pencereleri güvenli alana yerleştir
+        x, y = self._clamp_window_position(window, x, y, allow_taskbar=False, hedef_ekran_adi=hedef_ekran_adi)
         window.move(x, y)
 
     def _capture_free_positions_from_grouped(self):
+        """Grup modundan serbest moda geçerken mevcut konumları yakalar."""
         time_global = self.mapToGlobal(self.time_label.pos())
         date_global = self.mapToGlobal(self.date_label.pos())
         battery_global = self.mapToGlobal(self.battery_row.pos())
@@ -639,26 +422,37 @@ class DraggableTransparentWindow(QtWidgets.QWidget):
         self.settings.free_date_y = date_global.y()
         self.settings.free_battery_x = battery_global.x()
         self.settings.free_battery_y = battery_global.y()
+        
+        ekran = QtGui.QGuiApplication.screenAt(self.pos())
+        if ekran:
+            self.settings.serbest_saat_ekran_adi = ekran.name()
+            self.settings.serbest_tarih_ekran_adi = ekran.name()
+            self.settings.serbest_pil_ekran_adi = ekran.name()
+            
         self.settings.free_layout_has_positions = True
         save_settings(self.settings)
 
     def _show_free_windows(self):
+        """Serbest mod pencerelerini kaydedilmiş güvenli konumlarda gösterir."""
         self._ensure_free_windows()
 
         self._move_line_window_safely(
             self.free_time_window,
             self.settings.free_time_x,
-            self.settings.free_time_y
+            self.settings.free_time_y,
+            self.settings.serbest_saat_ekran_adi
         )
         self._move_line_window_safely(
             self.free_date_window,
             self.settings.free_date_x,
-            self.settings.free_date_y
+            self.settings.free_date_y,
+            self.settings.serbest_tarih_ekran_adi
         )
         self._move_line_window_safely(
             self.free_battery_window,
             self.settings.free_battery_x,
-            self.settings.free_battery_y
+            self.settings.free_battery_y,
+            self.settings.serbest_pil_ekran_adi
         )
 
         if self.settings.time_visible:
@@ -677,14 +471,60 @@ class DraggableTransparentWindow(QtWidgets.QWidget):
             self.free_battery_window.hide()
 
     def _move_grouped_to_time_position(self):
+        """Serbest moddan grup moduna dönerken ana pencereyi saat konumuna taşır."""
         if not self.settings.free_layout_has_positions:
             return
         target_x = self.settings.free_time_x - self.time_label.pos().x()
         target_y = self.settings.free_time_y - self.time_label.pos().y()
-        target_x, target_y = self._clamp_window_position(self, target_x, target_y)
+        target_x, target_y = self._clamp_window_position(
+            self, target_x, target_y, 
+            allow_taskbar=False, 
+            hedef_ekran_adi=self.settings.serbest_saat_ekran_adi
+        )
         self.move(target_x, target_y)
         self.settings.pos_x = target_x
         self.settings.pos_y = target_y
+        self.settings.grup_ekran_adi = self.settings.serbest_saat_ekran_adi
+        save_settings(self.settings)
+
+    def tum_modulleri_topla(self):
+        """
+        Tüm modülleri farenin bulunduğu monitöre toplar.
+        Task 7.3 kapsamında eklenmiştir.
+        """
+        app = QtWidgets.QApplication.instance()
+        ekran = app.screenAt(QtGui.QCursor.pos()) or app.primaryScreen()
+        alan = ekran.availableGeometry()
+        
+        log_kaydet(f"Tüm modüller '{ekran.name()}' ekranına toplanıyor.")
+        
+        if not self.settings.free_layout_enabled:
+            # Grup modu: Ana pencereyi merkeze taşı
+            self.adjustSize()
+            x = alan.left() + (alan.width() - self.width()) // 2
+            y = alan.top() + (alan.height() - self.height()) // 2
+            self.move(x, y)
+            self.settings.pos_x = x
+            self.settings.pos_y = y
+            self.settings.grup_ekran_adi = ekran.name()
+        else:
+            # Serbest mod: Pencereleri sol üstten başlayarak alt alta diz
+            pencereler = [
+                (self.free_time_window, "time"),
+                (self.free_date_window, "date"),
+                (self.free_battery_window, "battery")
+            ]
+            
+            baslangic_x = alan.left() + 50
+            baslangic_y = alan.top() + 50
+            mevcut_y = baslangic_y
+            
+            for win, tur in pencereler:
+                if win and win.isVisible():
+                    win.move(baslangic_x, mevcut_y)
+                    self.update_free_position(tur, win.x(), win.y(), ekran.name())
+                    mevcut_y += win.height() + 10
+        
         save_settings(self.settings)
 
     def _apply_free_layout_mode(self):
@@ -705,294 +545,27 @@ class DraggableTransparentWindow(QtWidgets.QWidget):
             else:
                 self._hide_free_windows()
 
-    def update_free_position(self, kind, x, y):
+    def update_free_position(self, kind, x, y, ekran_adi=""):
         if self.settings.settings_locked:
             return
         if kind == "time":
             self.settings.free_time_x = x
             self.settings.free_time_y = y
+            self.settings.serbest_saat_ekran_adi = ekran_adi
         elif kind == "date":
             self.settings.free_date_x = x
             self.settings.free_date_y = y
+            self.settings.serbest_tarih_ekran_adi = ekran_adi
         elif kind == "battery":
             self.settings.free_battery_x = x
             self.settings.free_battery_y = y
+            self.settings.serbest_pil_ekran_adi = ekran_adi
         self.settings.free_layout_has_positions = True
         save_settings(self.settings)
-
-    def show_menu_at(self, global_pos, settings_anchor_pos=None):
-        menu = QtWidgets.QMenu(self)
-        if self.settings.settings_locked:
-            act_settings = menu.addAction("Ayarlar (kilitli)")
-            act_settings.setEnabled(False)
-        else:
-            act_settings = menu.addAction("Ayarlar")
-        act_exit = menu.addAction("Çıkış")
-        action = menu.exec(global_pos)
-        if action == act_settings and not self.settings.settings_locked:
-            self.show_settings_at(settings_anchor_pos)
-        elif action == act_exit:
-            QtWidgets.QApplication.quit()
-
-    def show_settings_at(self, anchor_pos=None):
-        if self.settings.settings_locked:
-            return
-        self.settings_window = SettingsDialog(self.settings, self)
-        if anchor_pos is not None:
-            self.position_settings_window_at(self.settings_window, anchor_pos)
-        else:
-            self.position_settings_window(self.settings_window)
-        self.settings_window.show()
-        self.settings_window.raise_()
-
-    def position_settings_window_at(self, dialog, anchor_pos):
-        app = QtWidgets.QApplication.instance()
-        screen = app.screenAt(anchor_pos) or app.primaryScreen()
-        rect = screen.availableGeometry()
-
-        dialog.adjustSize()
-        dw, dh = dialog.width(), dialog.height()
-
-        x = anchor_pos.x()
-        y = anchor_pos.y()
-
-        if x + dw > rect.right():
-            x = rect.right() - dw
-        if y + dh > rect.bottom():
-            y = rect.bottom() - dh
-        if x < rect.left():
-            x = rect.left()
-        if y < rect.top():
-            y = rect.top()
-
-        dialog.move(x, y)
-
-
-    def position_settings_window(self, dialog):
-        app = QtWidgets.QApplication.instance()
-
-        screen = app.screenAt(self.frameGeometry().center())
-        if not screen:
-            screen = app.primaryScreen()
-
-        rect = screen.availableGeometry()
-
-        dialog.adjustSize()
-        dw, dh = dialog.width(), dialog.height()
-
-        # Varsayılan: pencerenin SAĞINDA aç
-        x = self.x() + self.width() + 10
-        y = self.y()
-
-        # Sağdan taşarsa → SOLA al
-        if x + dw > rect.right():
-            x = self.x() - dw - 10
-
-        # Soldan taşarsa → ekran içine sabitle
-        if x < rect.left():
-            x = rect.left()
-
-        # Alttan taşarsa → yukarı al
-        if y + dh > rect.bottom():
-            y = rect.bottom() - dh
-
-        # Üstten taşarsa → aşağı sabitle
-        if y < rect.top():
-            y = rect.top()
-
-        dialog.move(x, y)
-
-
-
-    # ---------- MENÜ ----------
 
     def show_menu(self, pos):
         self.show_menu_at(self.mapToGlobal(pos))
 
-
-
-
-
-    # ---------- GÜNCELLEMELER ----------
-
-    def update_time(self):
-        now = datetime.now()
-        time_text = self._format_time_html(now)
-        date_text = self._format_date(now)
-        self.time_label.setText(time_text)
-        self.date_label.setText(date_text)
-        if self.free_time_window:
-            self.free_time_window.label.setText(time_text)
-        if self.free_date_window:
-            self.free_date_window.label.setText(date_text)
-
-    def update_battery(self):
-        if not psutil or not self.settings.battery_visible:
-            # Ensure icon hides when battery line is hidden.
-            self.battery_icon_label.setVisible(False)
-            if self.free_battery_window:
-                self.free_battery_window.battery_icon_label.setVisible(False)
-            self._stop_full_charge_blink()
-            self._stop_low_batt_blink()
-            return
-        b = psutil.sensors_battery()
-        if not b:
-            self._stop_full_charge_blink()
-            self._stop_low_batt_blink()
-            return
-        if b.power_plugged:
-            self.battery_icon_label.setText("\u26A1")
-            self.battery_icon_label.setVisible(True)
-            if self.free_battery_window:
-                self.free_battery_window.battery_icon_label.setText("\u26A1")
-                self.free_battery_window.battery_icon_label.setVisible(True)
-        else:
-            self.battery_icon_label.setVisible(False)
-            if self.free_battery_window:
-                self.free_battery_window.battery_icon_label.setVisible(False)
-        batt_text = f"Pil: {int(b.percent)}%"
-        self.battery_label.setText(batt_text)
-        if self.free_battery_window:
-            self.free_battery_window.battery_label.setText(batt_text)
-
-        full_alert = (
-            self.settings.battery_full_alert_enabled
-            and b.power_plugged
-            and int(b.percent) >= self.settings.battery_full_alert_level
-        )
-        low_alert = (not b.power_plugged) and int(b.percent) <= self.settings.battery_warning_level
-
-        if full_alert:
-            self._stop_low_batt_blink()
-            if not self.full_charge_timer.isActive():
-                self._full_charge_blink_on = False
-                self.full_charge_timer.start()
-            now_ts = time.time()
-            if now_ts - self._last_full_batt_alert_ts >= self.settings.battery_alert_interval:
-                self._play_batt_alert_sound()
-                self._last_full_batt_alert_ts = now_ts
-        else:
-            self._stop_full_charge_blink()
-            self._last_full_batt_alert_ts = 0
-
-        if low_alert and not full_alert:
-            if not self.low_batt_timer.isActive():
-                self._low_batt_blink_on = False
-                self.low_batt_timer.start()
-            now_ts = time.time()
-            if now_ts - self._last_low_batt_alert_ts >= self.settings.battery_alert_interval:
-                self._play_batt_alert_sound()
-                self._last_low_batt_alert_ts = now_ts
-        else:
-            self._stop_low_batt_blink()
-            self._last_low_batt_alert_ts = 0
-
-    def _set_battery_color(self, color):
-        self.battery_label.setStyleSheet(
-            f"color:{color};"
-            f"opacity:{self.settings.battery_opacity};"
-        )
-        icon_size = max(1.0, float(self.settings.battery_font_size) * 0.8)
-        self.battery_icon_label.setStyleSheet(
-            f"color:{color};"
-            f"opacity:{self.settings.battery_opacity};"
-            f"font-size:{icon_size}px;"
-            "font-family:'Segoe UI Symbol';"
-        )
-        if self.free_battery_window:
-            self.free_battery_window.battery_label.setStyleSheet(
-                f"color:{color};"
-                f"opacity:{self.settings.battery_opacity};"
-            )
-            self.free_battery_window.battery_icon_label.setStyleSheet(
-                f"color:{color};"
-                f"opacity:{self.settings.battery_opacity};"
-                f"font-size:{icon_size}px;"
-                "font-family:'Segoe UI Symbol';"
-            )
-
-    def _format_time_html(self, now):
-        base_size = self.settings.time_font_size
-        sec_size = max(1, int(base_size * self.settings.time_seconds_scale))
-        weight = "bold" if self.settings.time_bold else "normal"
-        sec_weight = "bold" if self.settings.time_seconds_bold else "normal"
-        family = self.settings.time_font_family
-        color = self.settings.time_color
-        hhmm = now.strftime("%H:%M")
-        ss = now.strftime("%S")
-        if not self.settings.time_seconds_visible:
-            return (
-                f"<span style='font-family:{family};"
-                f" font-size:{base_size}px;"
-                f" font-weight:{weight};"
-                f" color:{color};'>{hhmm}</span>"
-            )
-        return (
-            f"<span style='font-family:{family};"
-            f" font-size:{base_size}px;"
-            f" font-weight:{weight};"
-            f" color:{color};'>{hhmm}</span>"
-            f"<span style='font-family:{family};"
-            f" font-size:{sec_size}px;"
-            f" font-weight:{sec_weight};"
-            f" color:{color};'>:{ss}</span>"
-        )
-
-    def _format_date(self, now):
-        fmt = self.settings.date_format
-        if "%" in fmt:
-            return now.strftime(fmt)
-        mapping = {
-            "g": "%d",
-            "G": "%d",
-            "a": "%b",
-            "A": "%B",
-            "y": "%y",
-            "Y": "%Y",
-            "h": "%a",
-            "H": "%A",
-        }
-        out = []
-        for ch in fmt:
-            out.append(mapping.get(ch, ch))
-        return now.strftime("".join(out))
-
-    def _stop_full_charge_blink(self):
-        if self.full_charge_timer.isActive():
-            self.full_charge_timer.stop()
-        if self._full_charge_blink_on:
-            self._full_charge_blink_on = False
-        self._set_battery_color(self.settings.battery_color)
-
-    def _toggle_full_charge_blink(self):
-        self._full_charge_blink_on = not self._full_charge_blink_on
-        color = "#00cc66" if self._full_charge_blink_on else self.settings.battery_color
-        self._set_battery_color(color)
-
-    def _stop_low_batt_blink(self):
-        if self.low_batt_timer.isActive():
-            self.low_batt_timer.stop()
-        if self._low_batt_blink_on:
-            self._low_batt_blink_on = False
-        self._set_battery_color(self.settings.battery_color)
-
-    def _toggle_low_batt_blink(self):
-        self._low_batt_blink_on = not self._low_batt_blink_on
-        color = "#cc0000" if self._low_batt_blink_on else self.settings.battery_color
-        self._set_battery_color(color)
-
-    def _play_batt_alert_sound(self):
-        if not winsound:
-            return
-        sound = self.settings.battery_alert_sound_type
-        if sound == "Uyarı 2":
-            winsound.MessageBeep(winsound.MB_ICONEXCLAMATION)
-        elif sound == "Uyarı 3":
-            winsound.MessageBeep(winsound.MB_ICONASTERISK)
-        else:
-            winsound.MessageBeep(winsound.MB_ICONHAND)
-
-    # ---------- SÜRÜKLE ----------
 
     def mousePressEvent(self, e):
         if self.settings.settings_locked:
@@ -1016,6 +589,11 @@ class DraggableTransparentWindow(QtWidgets.QWidget):
             return
         self.settings.pos_x = self.x()
         self.settings.pos_y = self.y()
+        
+        ekran = QtGui.QGuiApplication.screenAt(self.pos())
+        if ekran:
+            self.settings.grup_ekran_adi = ekran.name()
+            
         save_settings(self.settings)
         self._update_keep_on_top()
 
@@ -1045,6 +623,25 @@ class DraggableTransparentWindow(QtWidgets.QWidget):
         _enforce_topmost(self)
         self.raise_()
 
+    def wheelEvent(self, event):
+        """Sağ tık basılıyken tekerlek hareketi ile ölçeklendirme yapar (Task 6.4)."""
+        if event.buttons() & QtCore.Qt.MouseButton.RightButton:
+            derece_farki = event.angleDelta().y()
+            eski_olcek = self.settings.global_scale
+            
+            # Tekerlek yukarı -> %5 büyüt, Aşağı -> %5 küçült
+            adim = 0.05 if derece_farki > 0 else -0.05
+            yeni_olcek = round(max(0.5, min(2.0, eski_olcek + adim)), 2)
+            
+            if yeni_olcek != eski_olcek:
+                self.settings.global_scale = yeni_olcek
+                self.apply_settings()
+                save_settings(self.settings)
+            
+            event.accept()
+        else:
+            super().wheelEvent(event)
+
     def showEvent(self, e):
         super().showEvent(e)
         self._update_keep_on_top()
@@ -1056,5 +653,3 @@ class DraggableTransparentWindow(QtWidgets.QWidget):
     def moveEvent(self, e):
         super().moveEvent(e)
         self._update_keep_on_top()
-
-
