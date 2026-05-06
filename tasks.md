@@ -1,45 +1,61 @@
 # DeskPilot — Step-by-Step Task Plan for Copilot / Gemini Code Assist / Codex
 
-# EKO EXECUTION MODE (MANDATORY)
+# EKO EXECUTION MODE (IMPLEMENTATION TASKS ONLY)
 
-All tasks in this file MUST be executed under EKO mode.
-## Task eko - strict minimal execution mode (apply rules below automatically to that task)
-## "eko" = strict minimal execution mode (apply rules below automatically to that task)
+All implementation tasks in this file MUST be executed under EKO mode.
+Planning, review, and documentation tasks may use normal analytical reasoning.
 
 EKO MODE RULES:
-- Execute ONLY the current task
-- DO NOT skip tasks
-- DO NOT implement future steps
-- DO NOT redesign architecture
-- DO NOT add features outside task scope
-- Keep project always runnable
+- Execute ONLY the current implementation task
+- Do NOT skip required task steps
+- Do NOT implement future steps
+- Do NOT redesign architecture unless the task explicitly asks for it
+- Do NOT add features outside task scope
+- Keep the project runnable after each change
 - Keep files small and clean
-- Business logic must stay in services (never UI)
+- Business logic must stay in services, not UI
 
-OUTPUT FORMAT (STRICT):
-1. File structure changes (only if any)
-2. Full code (copy-paste ready)
-3. Max 3 lines explanation
+EKO TRIGGERS:
+- `eko`
+- `bismillah`
+- `ekonomik token`
+
+EKO stays active until the user explicitly says `eko off`.
+While active, it is the first runtime gate before reading, searching, editing, testing, or replying.
 
 TOKEN CONTROL:
-- No extra text
-- No suggestions
-- No alternatives
-- No repetition
-- No over-explanation
+- Use the minimum relevant files.
+- Avoid unrelated searches.
+- Avoid speculative suggestions.
+- Avoid repeated explanations.
+- Keep default final replies within 10 lines.
+- Expand only when the user explicitly asks for detail.
+
+OUTPUT GUIDELINE:
+- Prefer minimal, task-scoped responses
+- When code changes are requested, include the changed files and a short summary
+- Avoid unnecessary alternatives or repetition
 
 ERROR HANDLING:
-- Never crash
-- Always safe fallback
-- Prefer simplest working solution
+- Recoverable errors must degrade gracefully
+- Unrecoverable startup errors must be logged and shown clearly
+- Prefer the simplest valid solution
 
 FLOW:
-- Read ONLY current task
-- Execute
-- STOP
-- Wait for user
+- Read ONLY the current implementation task
+- Execute the task
+- Stop after the task is complete
+- Wait for the next instruction
 
-This section has absolute priority over all other instructions.
+PRE-FLIGHT CHECK:
+- Identify the files and layers that may change.
+- Check whether similar logic already exists.
+- Keep UI limited to rendering and user interaction.
+- Keep service, storage, and scheduling responsibilities separate.
+- Avoid hidden coupling through globals or scattered state.
+- Extract first if a file is already overloaded.
+
+This section has priority for implementation tasks only.
 
 
 ## GLOBAL RULE
@@ -52,6 +68,39 @@ After each task:
 - avoid large files
 - prefer services over UI logic
 - do not overengineer
+
+## TASK WRITING STANDARD
+
+All task titles, task descriptions, acceptance criteria, and implementation notes must be written in English.
+
+Every task should use the following structure:
+
+## Task X.Y - Title
+
+Goal:
+- What problem is being solved?
+
+Scope:
+- Which files and layers may change?
+
+Out of Scope:
+- What must not be changed in this task?
+
+Acceptance:
+- How do we know the task is done?
+
+Tests:
+- Which automated or manual checks should pass?
+
+Task titles should stay short and actionable.
+
+## PROJECT LANGUAGE POLICY
+
+- Task documents and task instructions: English
+- User-facing conversation: Turkish
+- UI labels and user-visible app text: Turkish
+- Source code identifiers: ASCII English by default
+- Inline comments and docstrings: English unless a file is explicitly user-facing documentation
 
 ---
 
@@ -144,6 +193,10 @@ Before replacing JSON, create .bak file.
 
 Acceptance:
 - config.json.bak appears after write
+
+Notes:
+- Backup handling must stay consistent with the central storage layer.
+- Recovery behavior should be defined in the storage and backup tasks.
 
 ---
 
@@ -397,6 +450,190 @@ Required controls:
 - silent mode
 - notifications enabled
 - TTS enabled
+
+---
+
+## Task Tracker
+
+Use this checklist as the single progress source. Mark a task only after its acceptance and test notes are satisfied.
+
+Phase 0 - Project Foundation
+- [ ] Task 0.1 — Create Project Skeleton
+- [ ] Task 0.2 — Add Basic PySide6 App Boot
+- [ ] Task 0.3 — Add Logger
+- [ ] Task 0.4 — Add Paths Helper
+
+Phase 1 - Storage and Settings
+- [ ] Task 1.1 — Create JSON Store
+- [ ] Task 1.2 — Add Atomic JSON Write
+- [ ] Task 1.3 — Add Backup on Write
+- [ ] Task 1.4 — Create Settings Service
+
+Phase 2 - Clock and Date
+- [ ] Task 2.1 — Create Clock Service
+- [ ] Task 2.2 — Create Date Service
+- [ ] Task 2.3 — Create Clock Widget
+- [ ] Task 2.4 — Create Date Widget
+
+Phase 3 - Battery
+- [ ] Task 3.1 — Create Battery Service
+- [ ] Task 3.2 — Add Battery State Logic
+- [ ] Task 3.3 — Create Battery Widget
+
+Phase 4 - Desktop Surface
+- [ ] Task 4.1 — Create Desktop Surface
+- [ ] Task 4.2 — Add Always-on-top
+- [ ] Task 4.3 — Add Opacity
+- [ ] Task 4.4 — Save and Restore Position
+- [ ] Task 4.5 — Add Widget Visibility
+
+Phase 5 - System Tray
+- [ ] Task 5.1 — Create Tray Controller
+- [ ] Task 5.2 — Add Tray Menu
+- [ ] Task 5.3 — Prevent Close from Exiting
+- [ ] Task 5.4 — Add Tray Tooltip
+
+Phase 6 - Display Mode Control
+- [ ] Task 6.1 — Add Display Mode Setting
+- [ ] Task 6.2 — Implement Mode Switching
+
+Phase 7 - Notification System
+- [ ] Task 7.1 — Create Notification Service
+- [ ] Task 7.2 — Add Cooldown
+- [ ] Task 7.3 — Respect Silent Mode
+- [ ] Task 7.4 — Battery Notifications
+
+Phase 8 - Settings UI
+- [ ] Task 8.1 — Create Settings Window
+- [ ] Task 8.2 — Save Settings from UI
+- [ ] Task 8.3 — Apply Settings Without Restart Where Safe
+
+Phase 9 - Reminders
+- [ ] Task 9.1 — Create Reminder Service
+- [ ] Task 9.2 — Create Reminder Dialog
+- [ ] Task 9.3 — Store Reminders
+- [ ] Task 9.4 — Trigger Due Reminders
+- [ ] Task 9.5 — Detect Missed Reminders on Startup
+- [ ] Task 9.6 — Add Snooze
+
+Phase 10 - TTS
+- [ ] Task 10.1 — Create TTS Service
+- [ ] Task 10.2 — Connect TTS to Reminders
+- [ ] Task 10.3 — Keep TTS Non-blocking
+
+Phase 11 - Todo
+- [ ] Task 11.1 — Create Todo Service
+- [ ] Task 11.2 — Create Todo Panel
+- [ ] Task 11.3 — Add Sorting
+- [ ] Task 11.4 — Persist Todos
+
+Phase 12 - History and Data Limits
+- [ ] Task 12.1 — Create History Service
+- [ ] Task 12.2 — Limit Notification History
+- [ ] Task 12.3 — Limit Completed Todos
+- [ ] Task 12.4 — Do Not Keep Old Reminder History
+
+Phase 13 - Backup and Recovery
+- [ ] Task 13.1 — Create Backup Service
+- [ ] Task 13.2 — Add Recovery Logging
+- [ ] Task 13.3 — Add Hidden Secondary Backup
+
+Phase 14 - Widget System
+- [ ] Task 14.1 — Add Widget Toggle System
+- [ ] Task 14.2 — Add Compact Mode
+- [ ] Task 14.3 — Add Normal Mode
+
+Phase 15 - Recurring Reminders
+- [ ] Task 15.1 — Add Daily Recurrence
+- [ ] Task 15.2 — Add Weekly Recurrence
+- [ ] Task 15.3 — Add Weekdays Recurrence
+- [ ] Task 15.4 — Explicitly Reject Complex Recurrence
+
+Phase 16 - Smart Todo
+- [ ] Task 16.1 — Add Today View
+- [ ] Task 16.2 — Add Priority View
+- [ ] Task 16.3 — Add Completed History View
+
+Phase 17 - Basic Insights
+- [ ] Task 17.1 — Add Simple Daily Summary
+- [ ] Task 17.2 — Avoid Battery Analytics
+
+Phase 18 - Light Automation
+- [ ] Task 18.1 — Create Simple Rule Model
+- [ ] Task 18.2 — Supported Triggers Only
+- [ ] Task 18.3 — Supported Actions Only
+- [ ] Task 18.4 — Reject Complex Automation
+
+Phase 19 - Tests
+- [ ] Task 19.1 — Test JSON Store
+- [ ] Task 19.2 — Test Backup Service
+- [ ] Task 19.3 — Test Reminder Logic
+- [ ] Task 19.4 — Test Notification Cooldown
+
+Phase 20 - Final Stabilization
+- [ ] Task 20.1 — Manual Test Checklist
+- [ ] Task 20.2 — Clean Files
+- [ ] Task 20.3 — Freeze Mini Release
+
+---
+
+## Recommended Additions (project health)
+
+These tasks are recommended to improve reliability, testing and developer experience. Add them in the phases indicated or when convenient.
+
+- [ ] Add unit tests for `json_store`, `backup_service`, `reminder_service`, `notification_service` (Phase 1/Testing)
+- [ ] Add CI: GitHub Actions workflow to run tests and lint on push/PR (Phase 0/CI)
+- [ ] Add TTS fallback layer (wrap `pyttsx3` with safe disable on failure) (Phase 16/TTS)
+- [ ] Ensure service isolation: run long-running tasks in workers/QThread to avoid blocking UI (Phase 2/3)
+- [ ] Add `data/config.json.example` with defaults and schema (Phase 1)
+- [ ] Improve `README.md` with setup, EKO rules, and run instructions (Phase 0)
+- [ ] Add simple pre-commit or CI checks to warn about large file edits / non-EKO changes (Phase 0/CI)
+
+---
+
+Note: Use the Task Tracker checkboxes to mark progress; keep changes minimal per EKO rules.
+
+---
+
+## Architecture Priorities
+
+The following work items are recommended to keep the project scalable without overengineering:
+
+- [ ] Add `src/models/` for typed data objects (`settings`, `reminder`, `todo`, `notification`, `automation_rule`)
+- [ ] Add `src/app/service_registry.py` for dependency wiring
+- [ ] Add `src/core/event_bus.py` for service-to-service signals
+- [ ] Add `src/core/scheduler_service.py` for reminder and automation timing
+- [ ] Add `src/core/state_service.py` for runtime UI, silent-mode, and tray state
+- [ ] Add `src/storage/storage_interface.py` and `src/storage/schema.py` for storage abstraction and schema versioning
+- [ ] Add `src/utils/result.py` for safe service results instead of raw exceptions where appropriate
+- [ ] Add `src/core/error_handler.py` for centralized user-facing error handling
+- [ ] Add async worker support for file I/O and background jobs to avoid blocking the UI thread
+- [ ] Add early tests for `json_store`, `backup_service`, `reminder_service`, and `notification_service`
+
+---
+
+## Project Coding Rules
+
+- Keep source files ideally under 400 lines.
+- Use 600-700 lines only when a single logical unit clearly benefits from staying together.
+- Prefer splitting by responsibility before a file becomes difficult to review.
+- Use ASCII English identifiers for code symbols, file names, and module names.
+- Keep UI labels and user-visible text in Turkish.
+- Write comments and docstrings in English for consistency with tooling and task documents.
+- Keep documentation and task instructions in English.
+- Use a background maintenance task for trimming and cleanup instead of trimming on every write when the operation is not latency-sensitive.
+- Add CI or pre-commit checks for file length, formatting, and core test execution.
+
+---
+
+## CI / Style Checks
+
+- [ ] Add style checks to enforce the project coding rules
+- [ ] Add a file-length check to flag files over the soft limit
+- [ ] Add a formatting and linting hook for Python files
+- [ ] Add a test hook for the core storage and service layer
+
+Note: These checks should stay lightweight and must not block small iterative EKO tasks unnecessarily.
 
 ---
 
@@ -729,6 +966,9 @@ Test:
 - atomic write
 - default keys
 
+Notes:
+- JSON store tests should be added as soon as the storage layer exists, not deferred until the final phase.
+
 ---
 
 ## Task 19.2 — Test Backup Service
@@ -768,6 +1008,9 @@ Include:
 - todo add/complete
 - broken JSON recovery
 
+Notes:
+- Keep this checklist updated whenever a new user-visible behavior is added or changed.
+
 ---
 
 ## Task 20.2 — Clean Files
@@ -789,4 +1032,4 @@ Mini release must include:
 - notifications
 - safe storage
 
-Do not continue to Maksi until Mini is stable.
+Do not continue to the Full version until Mini is stable.

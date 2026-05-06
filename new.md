@@ -87,9 +87,13 @@ project_root/
   src/
     app/
       application.py
+      app_controller.py
       lifecycle.py
+      service_registry.py
 
     core/
+      event_bus.py
+      scheduler_service.py
       clock_service.py
       date_service.py
       battery_service.py
@@ -100,11 +104,21 @@ project_root/
       tts_service.py
       backup_service.py
       history_service.py
+      state_service.py
+      error_handler.py
+
+    models/
+      settings.py
+      reminder.py
+      todo.py
+      notification.py
+      automation_rule.py
 
     ui/
       main_window.py
       desktop_surface.py
       tray_controller.py
+      ui_controller.py
       settings_window.py
       reminder_dialog.py
       todo_panel.py
@@ -119,10 +133,14 @@ project_root/
 
     storage/
       json_store.py
+      storage_interface.py
+      schema.py
+      migrations.py
 
     utils/
       logger.py
       paths.py
+      result.py
       constants.py
 
   data/
@@ -136,6 +154,14 @@ project_root/
 
   tests/
 ```
+
+Recommended boundaries:
+
+- UI should render state and forward user actions.
+- Controllers should coordinate services.
+- Services should contain business logic.
+- Models should represent typed data only.
+- Storage should remain abstract enough to support future backends.
 
 ---
 
@@ -160,15 +186,18 @@ All failures must degrade gracefully.
 
 ### 5.1 APPLICATION STARTUP ORDER
 
-1. Load settings_service
+1. Initialize paths and base directories
 2. Initialize logger
-3. Initialize json_store
-4. Start clock_service
-5. Start date_service
-6. Start battery_service
-7. Start notification_service
-8. Start tray_controller
-9. Build UI surface
+3. Initialize storage layer
+4. Load settings_service
+5. Create service registry / controller layer
+6. Start clock_service and date_service
+7. Start battery_service and notification_service
+8. Start scheduler_service and event_bus wiring
+9. Start tray_controller if supported
+10. Build UI surface
+
+Startup failures should be logged clearly, and recoverable parts should degrade gracefully instead of stopping the whole app whenever possible.
 
 ---
 
@@ -410,15 +439,24 @@ Rules:
 - Detect corruption
 - Recover safely
 
-### 17.1 DATA RETENTION POLICY
+Track `schema_version` in persisted config and data files that can evolve over time.
 
-- notification_history.json max 500 kayıt
-- todos.json completed items max 300 (older trimmed)
-- reminders.json geçmiş kayıt tutulmaz (sadece aktif + snoozed)
+### 17.1 STORAGE ABSTRACTION
+
+- `json_store.py` should remain a low-level storage engine, not a business-logic layer.
+- Services should depend on an interface or repository-style boundary where practical.
+- Storage recovery should prefer the known-good backup, then defaults, then a clearly logged fallback.
+
+# 17.2 DATA RETENTION POLICY
+
+- `notification_history.json` max 500 records
+- `todos.json` completed items max 300 (older items trimmed)
+- `reminders.json` keeps no historical records, only active and snoozed items
 
 Trimming rules:
-- App startup sırasında çalışır
-- Her write işleminden sonra limit aşılırsa çalışır
+- Runs at application startup
+- Runs periodically as a background maintenance task
+- Performs only a light check after writes when a limit is critically exceeded
 
 ---
 
@@ -477,9 +515,8 @@ Supported:
 - Daily
 - Weekly
 - Weekdays
-- Simple intervals
 
-No calendar UI.
+Do not add complex interval syntax, exclusions, or calendar UI in the first version.
 
 ---
 
@@ -573,6 +610,9 @@ Rules:
 - UI testing not required
 - Focus on core services
 - Focus on data integrity
+- Start tests from the storage layer as soon as the first storage task exists
+- Add service tests alongside the related feature tasks instead of waiting for the final phase
+- Keep regression coverage for startup order, schema handling, and recovery behavior
 
 ---
 
@@ -582,7 +622,7 @@ Mini version:
 
 - Shows and warns
 
-Maksi version:
+Full version:
 
 - Guides and organizes
 

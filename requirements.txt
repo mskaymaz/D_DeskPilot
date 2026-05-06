@@ -1,0 +1,6 @@
+PySide6
+psutil
+pyttsx3
+pytest
+ruff
+mypy

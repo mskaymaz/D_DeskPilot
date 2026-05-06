@@ -1,0 +1,14 @@
+{
+  "display_mode": "desktop",
+  "show_clock": true,
+  "show_date": true,
+  "show_battery": true,
+  "always_on_top": true,
+  "opacity": 1.0,
+  "silent_mode": false,
+  "tts_enabled": true,
+  "notifications_enabled": true,
+  "low_battery_threshold": 15,
+  "critical_battery_threshold": 10,
+  "schema_version": 1
+}
