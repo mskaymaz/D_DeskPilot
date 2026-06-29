@@ -14,6 +14,15 @@ from sistem_tepsisi import SistemTepsisi
 def main():
     # Loglama altyapısını kur
     log_altyapisini_kur()
+
+    # --- Tek Örnek Kontrolü (Single Instance Guard) ---
+    # Aynı anda yalnız bir uygulama çalışsın; ikinci girişim sessizce çıkar.
+    if sys.platform == "win32":
+        _mutex = ctypes.windll.kernel32.CreateMutexW(None, True, APP_ID)
+        if ctypes.windll.kernel32.GetLastError() == 183:  # ERROR_ALREADY_EXISTS
+            log_kaydet("Uygulama zaten calisiyor, ikinci ornek kapatiliyor.", "warning")
+            return
+
     log_kaydet("Uygulama baslatiliyor...")
 
     if sys.platform == "win32":
@@ -23,7 +32,7 @@ def main():
             log_kaydet(f"AppUserModelID ayarlanamadi: {e}", "warning")
 
     app = QtWidgets.QApplication(sys.argv)
-    locale.setlocale(locale.LC_TIME, "tr_TR")
+    locale.setlocale(locale.LC_TIME, "")
     app.setWindowIcon(QtGui.QIcon(resource_path(ICON_FILE)))
 
     settings = load_settings()

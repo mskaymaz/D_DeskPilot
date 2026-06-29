@@ -1,4 +1,4 @@
-# Todo Tasks
+﻿# Todo Tasks
 
 ## Durum Etiketleri
 
@@ -30,16 +30,16 @@ Mevcut görev/to-do dosyalarını, veri modelini ve UI akışını çıkarmak.
 - [ ] `gorev_modeli.py` incele
 - [ ] `gorev_servisi.py` incele
 - [ ] `gorev_arayuzu.py` incele
-- [ ] Test dosyalarını incele
-- [ ] Veri saklama yerini belirle
-- [ ] 500 satır üstü dosya var mı kontrol et
-- [ ] Unicode/Türkçe karakter sorunu var mı kontrol et
+- [x] Test dosyalarını incele
+- [x] Veri saklama yerini belirle
+- [x] 500 satır üstü dosya var mı kontrol et
+- [x] Unicode/Türkçe karakter sorunu var mı kontrol et
 
 ## Acceptance Criteria
 
-- [ ] Dosya listesi çıkarıldı
-- [ ] Mevcut model özetlendi
-- [ ] UI eksikleri yazıldı
+- [x] Dosya listesi çıkarıldı
+- [x] Mevcut model özetlendi
+- [x] UI eksikleri yazıldı
 - [ ] İlk uygulanacak görev belirlendi
 
 ---
@@ -261,3 +261,4 @@ Türkçe karakterleri, dosya boyutlarını ve kod kalitesini güvenceye almak.
 - [ ] 500 satır üstü yeni dosya yok
 - [ ] Uygulama açılıyor
 - [ ] Temel To-do işlemleri çalışıyor
+

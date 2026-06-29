@@ -40,6 +40,11 @@ Amac: Teslim, handover, snapshot ve kararlar icin tek append-only gecmis tutmak.
 | 2026-04-16 17:06 +03:00 | R.260416_1706 | teslim | TASK-007 | yedek | topmost guclendirmesi, `derle` aracinin canli exe uretimi ve Besmele kayitlariyla repo yedegi alindi |
 | 2026-04-16 17:10 +03:00 | R.260416_1710 | teslim | TASK-007 | exe-push | Uretilen `DigitalSaat_R.260416_1703.exe` dosyasi repo icindeki `dagitim/` klasorune alinarak kaynakla birlikte push edildi |
 | 2026-04-20 14:42 +03:00 | R.260420_1442 | karar | REPO-TEMIZLIK | cleanup | `build/` klasoru ve eski `dist/` exe artefaktlari temizlendi; repo icindeki `dagitim/` teslim dosyasi ile son `dist/` exe korundu, kilitli `__pycache__/core_window.cpython-314.pyc` suphe nedeniyle birakildi |
+| 2026-06-29 10:53 +03:00 | R.260629_1053 | karar | TASK-007 | Olceklendirme icin sag tik basili tutma sarti Ctrl tusu kombinasyonuna (Ctrl + Tekerlek) donusturuldu ve limitler %50-%250 olarak guncellendi |
+| 2026-06-29 10:57 +03:00 | R.260629_1057 | snapshot | TASK-007 | Serbest dagit modundaki AttributeError (content -> icerik) hatasi giderildi |
+| 2026-06-29 11:00 +03:00 | R.260629_1100 | snapshot | TASK-007 | `apply_settings` icindeki serbest pencere adlandirma çelişkileri (label/battery_icon_label -> etiket/pil_ikon_etiketi) duzeltildi; boylece ayar kaydetme kilitlenmesi ve eksik olceklendirme sorunlari cozuldu |
+| 2026-06-29 11:02 +03:00 | R.260629_1102 | karar | TASK-007 | Masaustu zoom kisayolu ile cakismanin onlenmesi amaciyla olceklendirme modifier tusu Shift (Shift + Tekerlek) olarak guncellendi |
+| 2026-06-29 11:04 +03:00 | R.260629_1104 | karar | TASK-007 | Bagimsiz olceklendirme destegi (time_scale, date_scale, battery_scale) eklendi; boylece imlecin ustunde bulundugu parca (saat, tarih, pil) digerlerinden bagimsiz olarak Shift + Tekerlek ile buyutulup kucultulebiliyor |
 
 Ne zaman acilir?
 - Anlamli teslim, karar, snapshot veya handover kaydi ekleneceginde.

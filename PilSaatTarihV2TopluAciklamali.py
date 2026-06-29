@@ -1987,7 +1987,7 @@ def main():
         except Exception:
             pass
     app = QtWidgets.QApplication(sys.argv)
-    locale.setlocale(locale.LC_TIME, "tr_TR")
+    locale.setlocale(locale.LC_TIME, "")
     app.setWindowIcon(QtGui.QIcon(resource_path(ICON_FILE)))
 
     settings = load_settings()

@@ -51,6 +51,9 @@ class PanelSettings:
     todo_visible: bool = True      # Task 6.1: Görev modülü görünürlüğü
 
     global_scale: float = 1.0      # Task 6.3: Genel ölçeklendirme çarpanı
+    time_scale: float = 1.0        # Bağımsız saat ölçeği
+    date_scale: float = 1.0        # Bağımsız tarih ölçeği
+    battery_scale: float = 1.0     # Bağımsız pil ölçeği
 
     # --- Ayrı dikey boşluklar ---
     spacing_battery_time: int = 0
