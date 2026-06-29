@@ -14,6 +14,7 @@ class SerbestSatirPenceresi(QtWidgets.QWidget):
         self.kontrolcu = kontrolcu
         self.surukleme_konumu = None
         self._ustte_tut_zamanlayici = None
+        self.setCursor(QtCore.Qt.CursorShape.SizeAllCursor)
 
         self._pencere_bayraklarini_uygula()
         self.setAttribute(QtCore.Qt.WidgetAttribute.WA_TranslucentBackground)
@@ -53,6 +54,13 @@ class SerbestSatirPenceresi(QtWidgets.QWidget):
         layout = QtWidgets.QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self.icerik)
+        self._icerigi_suruklemeye_ac()
+
+    def _icerigi_suruklemeye_ac(self):
+        """ç etiketler fareyi yutmasın; sürükleme ana pencereye gelsin."""
+        self.icerik.setAttribute(QtCore.Qt.WidgetAttribute.WA_TransparentForMouseEvents, True)
+        for alt_bilesen in self.icerik.findChildren(QtWidgets.QWidget):
+            alt_bilesen.setAttribute(QtCore.Qt.WidgetAttribute.WA_TransparentForMouseEvents, True)
 
     def bayrak_ve_saydamlik_yenile(self):
         gorunur = self.isVisible()
@@ -65,7 +73,7 @@ class SerbestSatirPenceresi(QtWidgets.QWidget):
     def _menuyu_goster(self, konum):
         global_konum = self.mapToGlobal(konum)
         ust_sol = self.frameGeometry().topLeft()
-        self.kontrolcu.show_menu_at(global_konum, ust_sol)
+        self.kontrolcu.show_menu_at(global_konum, ust_sol, hedef_tur=self.tur)
 
     def mousePressEvent(self, e):
         if self.ayarlar.settings_locked: return
@@ -113,23 +121,3 @@ class SerbestSatirPenceresi(QtWidgets.QWidget):
                 self._ustte_tut_zamanlayici.stop()
             return
 
-    def wheelEvent(self, event):
-        """Sağ tık basılıyken tekerlek hareketi ile ölçeklendirme yapar (Task 6.4)."""
-        if event.buttons() & QtCore.Qt.MouseButton.RightButton:
-            derece_farki = event.angleDelta().y()
-            eski_olcek = self.ayarlar.global_scale
-            
-            adim = 0.05 if derece_farki > 0 else -0.05
-            yeni_olcek = round(max(0.5, min(2.0, eski_olcek + adim)), 2)
-            
-            if yeni_olcek != eski_olcek:
-                self.ayarlar.global_scale = yeni_olcek
-                self.kontrolcu.apply_settings()
-                from core_settings import save_settings
-                save_settings(self.ayarlar)
-            
-            event.accept()
-        else:
-            super().wheelEvent(event)
-        en_ustte_tut(self)
-        self.raise_()

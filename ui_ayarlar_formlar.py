@@ -214,11 +214,16 @@ class AyarFormlari:
         dialog.btn_date_color = QtWidgets.QPushButton(ayarlar.date_color)
         dialog.btn_date_color.clicked.connect(lambda: dialog._pick_color(dialog.btn_date_color))
 
+        dialog.chk_date_bold = QtWidgets.QCheckBox("Kalın")
+        dialog.chk_date_bold.setChecked(ayarlar.date_bold)
+        dialog.chk_date_bold.toggled.connect(lambda v: dialog._apply_date_preview(bold=v))
+
         f.addRow(dialog.chk_date_visible)
         f.addRow("Format", dialog.txt_date_format)
         f.addRow("Font", dialog.cmb_date_font)
         f.addRow("Renk", dialog.btn_date_color)
         f.addRow("Boyut", dialog.spn_date_size)
+        f.addRow(dialog.chk_date_bold)
         
         dialog._add_help_link(f)
         return w

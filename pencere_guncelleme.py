@@ -23,8 +23,35 @@ class PencereGuncellemeKarishimi:
         self.date_label.setText(date_text)
         if self.free_time_window:
             self.free_time_window.icerik.setText(time_text)
+            # HTML QLabel icin adjustSize() guvenilmez; font metrikleriyle acık hesap yap
+            if not self.free_time_window.surukleme_konumu:
+                self._saat_pencere_boyut_guncelle()
         if self.free_date_window:
             self.free_date_window.icerik.setText(date_text)
+            if not self.free_date_window.surukleme_konumu:
+                self.free_date_window.icerik.adjustSize()
+                self.free_date_window.adjustSize()
+
+    def _saat_pencere_boyut_guncelle(self):
+        """
+        Saat penceresi boyutunu font metriklerinden acıkcıa hesaplar.
+        HTML icerigi nedeniyle adjustSize() cıktısı sıfır veya hatali olabilir;
+        bu metot pencereyi her zaman tıklanabilir boyutta tutar.
+        """
+        scale = self.settings.global_scale * self.settings.time_scale
+        font = QtGui.QFont(
+            self.settings.time_font_family,
+            int(self.settings.time_font_size * scale)
+        )
+        font.setBold(self.settings.time_bold)
+        fm = QtGui.QFontMetrics(font)
+
+        # Saniye görünürlüğüne göre referans metin seç
+        referans = "00:00:00" if self.settings.time_seconds_visible else "00:00"
+        genislik = fm.horizontalAdvance(referans) + 16   # kenar payı
+        yukseklik = fm.ascent() + fm.descent() + 6
+        self.free_time_window.setMinimumSize(genislik, yukseklik)
+        self.free_time_window.resize(genislik, yukseklik)
 
     def update_battery(self):
         if not self.settings.battery_visible:
@@ -107,7 +134,7 @@ class PencereGuncellemeKarishimi:
                 break
 
     def _format_time_html(self, now):
-        scale = self.settings.global_scale
+        scale = self.settings.global_scale * self.settings.time_scale
         base_size = int(self.settings.time_font_size * scale)
         sec_size = max(1, int(base_size * self.settings.time_seconds_scale))
         weight = "bold" if self.settings.time_bold else "normal"
@@ -119,9 +146,19 @@ class PencereGuncellemeKarishimi:
                 f"<span style='font-size:{sec_size}px; color:{color};'>:{now.strftime('%S')}</span>")
 
     def _format_date(self, now):
-        fmt = self.settings.date_format
-        mapping = {"g": "%d", "a": "%b", "y": "%y", "Y": "%Y", "h": "%a", "H": "%A"}
-        for k, v in mapping.items(): fmt = fmt.replace(k, v)
+        fmt = self.settings.date_format.strip()
+
+        # Kullanıcı doğrudan strftime formatı girdiyse aynen kullan.
+        if "%" in fmt:
+            return now.strftime(fmt)
+
+        mapping = {
+            "g": "%d", "G": "%d",
+            "a": "%b", "A": "%B",
+            "y": "%y", "Y": "%Y",
+            "h": "%a", "H": "%A",
+        }
+        fmt = "".join(mapping.get(ch, ch) for ch in fmt)
         return now.strftime(fmt)
 
     def _stop_full_charge_blink(self):
