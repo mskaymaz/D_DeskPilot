@@ -16,7 +16,7 @@ Notes:
 
 ## TASK-002 - Theme Foundation
 
-Status: In Progress
+Status: Completed
 
 Goal:
 Todo için ayrı tema modeli oluştur.
@@ -113,3 +113,4 @@ Todo tasarım dilini Reminder tarafına taşınabilir hale getir.
 Acceptance:
 - Ortak tema kararları netleşir.
 - Kart sistemi Reminder için yeniden kullanılabilir olur.
+
