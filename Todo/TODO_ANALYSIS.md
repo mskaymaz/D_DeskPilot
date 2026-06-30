@@ -1,4 +1,4 @@
-﻿# TODO Mevcut Sistem Analizi
+# TODO Mevcut Sistem Analizi
 
 ## Dosyalar
 

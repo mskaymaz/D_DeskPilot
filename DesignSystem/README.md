@@ -1,4 +1,4 @@
-﻿# Design System
+# Design System
 
 Bu klasör D_DigitalSaat içindeki ortak görsel dili tanımlar.
 

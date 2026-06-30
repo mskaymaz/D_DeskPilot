@@ -1,56 +1,64 @@
 from dataclasses import dataclass, field, asdict
 from datetime import datetime
 from enum import Enum
-import uuid
 from typing import Optional
+import uuid
+
 
 class GorevOnceligi(Enum):
-    """Görevin önem derecesini belirleyen enum."""
     DUSUK = "low"
     NORMAL = "normal"
     YUKSEK = "high"
 
+
 @dataclass
 class GorevModeli:
-    """
-    Yapılacak görev (TODO) verilerini tutan veri modeli.
-    Task 5.1 kapsamında oluşturulmuştur.
-    """
-    baslik: str # Görev başlığı
-    oncelik: GorevOnceligi = GorevOnceligi.NORMAL # Öncelik seviyesi
-    tamamlandi: bool = False # Tamamlanma durumu
-    id: str = field(default_factory=lambda: str(uuid.uuid4())) # Benzersiz kimlik
-    bitis_tarihi: Optional[datetime] = None # İsteğe bağlı son tarih
-    olusturulma_zamani: datetime = field(default_factory=datetime.now) # Oluşturulma tarihi
+    baslik: str
+    aciklama: str = ""
+    oncelik: GorevOnceligi = GorevOnceligi.NORMAL
+    tamamlandi: bool = False
+    iptal_edildi: bool = False
+    id: str = field(default_factory=lambda: str(uuid.uuid4()))
+    bitis_tarihi: Optional[datetime] = None
+    tamamlanma_zamani: Optional[datetime] = None
+    iptal_zamani: Optional[datetime] = None
+    olusturulma_zamani: datetime = field(default_factory=datetime.now)
+
+    def suresi_gecti_mi(self) -> bool:
+        return bool(
+            self.bitis_tarihi
+            and not self.tamamlandi
+            and not self.iptal_edildi
+            and datetime.now() > self.bitis_tarihi
+        )
 
     def to_dict(self):
-        """Modeli JSON formatına uygun sözlüğe dönüştürür."""
         data = asdict(self)
         data["oncelik"] = self.oncelik.value
-        if self.bitis_tarihi:
-            data["bitis_tarihi"] = self.bitis_tarihi.isoformat()
-        data["olusturulma_zamani"] = self.olusturulma_zamani.isoformat()
+        for alan in ("bitis_tarihi", "tamamlanma_zamani", "iptal_zamani", "olusturulma_zamani"):
+            data[alan] = data[alan].isoformat() if data.get(alan) else None
         return data
 
     @classmethod
     def from_dict(cls, data: dict):
-        """Sözlük verisinden GorevModeli nesnesi oluşturur."""
         try:
-            # Enum geri yükleme
+            data = dict(data)
+            data.setdefault("aciklama", "")
+            data.setdefault("iptal_edildi", False)
+            data.setdefault("tamamlanma_zamani", None)
+            data.setdefault("iptal_zamani", None)
+
             if "oncelik" in data:
                 data["oncelik"] = GorevOnceligi(data["oncelik"])
-            
-            # Tarihleri geri yükleme
-            if data.get("bitis_tarihi"):
-                data["bitis_tarihi"] = datetime.fromisoformat(data["bitis_tarihi"])
-            
-            if "olusturulma_zamani" in data:
-                data["olusturulma_zamani"] = datetime.fromisoformat(data["olusturulma_zamani"])
-            
+
+            for alan in ("bitis_tarihi", "tamamlanma_zamani", "iptal_zamani", "olusturulma_zamani"):
+                if data.get(alan):
+                    data[alan] = datetime.fromisoformat(data[alan])
+
             return cls(**data)
-        except (ValueError, KeyError):
+        except (ValueError, KeyError, TypeError):
             return None
 
     def __post_init__(self):
-        """Başlık kontrolü."""
-        self.baslik = self.baslik.strip()
+        self.baslik = (self.baslik or "").strip()
+        self.aciklama = (self.aciklama or "").strip()

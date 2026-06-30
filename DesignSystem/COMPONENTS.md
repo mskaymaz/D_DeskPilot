@@ -1,4 +1,4 @@
-﻿# Component Library
+# Component Library
 
 ## Ortak Bileşenler
 

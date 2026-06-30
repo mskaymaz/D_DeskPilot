@@ -1,4 +1,4 @@
-﻿# Design Language
+# Design Language
 
 ## Ana Hedef
 

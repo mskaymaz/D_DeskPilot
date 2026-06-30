@@ -1,4 +1,4 @@
-﻿# Todo Tasks
+# Todo Tasks
 
 ## Durum Etiketleri
 

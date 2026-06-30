@@ -1,4 +1,4 @@
-﻿# TTS System
+# TTS System
 
 ## lke
 

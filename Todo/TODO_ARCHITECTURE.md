@@ -1,4 +1,4 @@
-﻿# Todo Modernization Architecture
+# Todo Modernization Architecture
 
 ## Goal
 

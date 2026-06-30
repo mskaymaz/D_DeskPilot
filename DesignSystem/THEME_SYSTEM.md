@@ -1,4 +1,4 @@
-﻿# Theme System
+# Theme System
 
 ## lke
 
