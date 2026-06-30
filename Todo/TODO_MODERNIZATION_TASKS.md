@@ -31,9 +31,7 @@ Acceptance:
 
 ---
 
-## TASK-003 - Task Card Widget
-
-Status: Not Started
+## TASK-003 - Task Card Widget`r`n`r`nStatus: Completed
 
 Goal:
 Tek görev için modern kart widgetı oluştur.
@@ -113,4 +111,6 @@ Todo tasarım dilini Reminder tarafına taşınabilir hale getir.
 Acceptance:
 - Ortak tema kararları netleşir.
 - Kart sistemi Reminder için yeniden kullanılabilir olur.
+
+
 
