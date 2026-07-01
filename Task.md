@@ -432,6 +432,18 @@ Expected:
 
 ---
 
+## Task 9.3 - R.260701_1711 UI and startup stabilization
+Completed.
+
+Done:
+- ComboBox and date popup focus/topmost behavior stabilized.
+- Gorevlerim priority combo and popup width aligned.
+- New task row compacted with date, time and add controls on one line.
+- New task description expanded to two lines.
+- Free layout startup no longer shows grouped window at the same time.
+
+---
+
 # DO NOT DO IN V1.1
 
 - No world clock

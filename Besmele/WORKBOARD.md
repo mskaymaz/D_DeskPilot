@@ -12,5 +12,7 @@ Allowed status: planned | in_progress | blocked | review | done
 | TASK-006 | review | UNASSIGNED | 2026-04-16 12:38 +03:00 | `derle` komutu eklendi; platforma uygun build ve R etiketli repo disi cikti araci yazildi |
 | TASK-007 | review | UNASSIGNED | 2026-04-16 12:49 +03:00 | `eko` cevap yuzeyi 2-3 satira cekildi; `ozet` yeni resmi talimat olarak eklendi |
 
+| TASK-008 | done | UNASSIGNED | 2026-07-01 17:11 +03:00 | Gorevlerim paneli UI iyilestirmeleri, popup/topmost odak duzeltmesi ve serbest dagit baslangic cift pencere sorunu kapatildi |
+
 Ne zaman acilir?
 - Gorev listesi, durum ozetleri ve sahiplik kontrolu gerektiginde.

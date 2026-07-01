@@ -9,6 +9,21 @@ try:
 except Exception:
     ctypes = None
 
+def aktif_popup_veya_modal_var() -> bool:
+    """Qt popup/menu/takvim veya uygulama ici dialog acikken topmost zorlamasini durdurur."""
+    app = QtWidgets.QApplication.instance()
+    if app is None:
+        return False
+    return bool(
+        app.activePopupWidget()
+        or app.activeModalWidget()
+        or any(
+            pencere.isVisible()
+            and isinstance(pencere, QtWidgets.QDialog)
+            for pencere in app.topLevelWidgets()
+        )
+    )
+
 def ekrani_bul(isim: str) -> QtGui.QScreen:
     """Verilen isme sahip ekranı bulur, bulamazsa ana ekranı döner."""
     app = QtWidgets.QApplication.instance()

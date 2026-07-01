@@ -46,5 +46,11 @@ Amac: Teslim, handover, snapshot ve kararlar icin tek append-only gecmis tutmak.
 | 2026-06-29 11:02 +03:00 | R.260629_1102 | karar | TASK-007 | Masaustu zoom kisayolu ile cakismanin onlenmesi amaciyla olceklendirme modifier tusu Shift (Shift + Tekerlek) olarak guncellendi |
 | 2026-06-29 11:04 +03:00 | R.260629_1104 | karar | TASK-007 | Bagimsiz olceklendirme destegi (time_scale, date_scale, battery_scale) eklendi; boylece imlecin ustunde bulundugu parca (saat, tarih, pil) digerlerinden bagimsiz olarak Shift + Tekerlek ile buyutulup kucultulebiliyor |
 
+| 2026-07-01 16:17 +03:00 | R.260701_1617 | karar | POPUP-TOPMOST | ComboBox/font listesi/takvim popup'lari acikken ana ve serbest pencere topmost zorlamasi durdurulur; gorev duzenleme tarih popup'i ayni katman duzeltmesine alindi |
+
+| 2026-07-01 16:23 +03:00 | R.260701_1623 | karar | POPUP-TOPMOST | Topmost korumasi modeless uygulama dialoglari acikken de duracak sekilde genisletildi; kalan gorev duzenleme UI mojibake metinleri UTF-8 Turkceye cevrildi |
+
+| 2026-07-01 17:11 +03:00 | R.260701_1711 | teslim | TASK-008 | Gorevlerim panelinde combobox/popup odak sorunu, oncelik liste genisligi, tarih-saat ekleme satiri, iki satir aciklama alani ve serbest dagit baslangicinda cift pencere acilmasi duzeltildi |
+
 Ne zaman acilir?
 - Anlamli teslim, karar, snapshot veya handover kaydi ekleneceginde.

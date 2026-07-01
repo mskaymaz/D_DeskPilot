@@ -11,17 +11,28 @@ from core_settings import load_settings
 from core_window import DraggableTransparentWindow, move_window_safely
 from sistem_tepsisi import SistemTepsisi
 
+_TEK_ORNEK_MUTEX = None
+
+def tek_ornek_kilidi_al():
+    global _TEK_ORNEK_MUTEX
+    if sys.platform != "win32":
+        return True
+
+    kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+    _TEK_ORNEK_MUTEX = kernel32.CreateMutexW(None, True, f"Local\\{APP_ID}")
+    if not _TEK_ORNEK_MUTEX:
+        return True
+    return ctypes.get_last_error() != 183  # ERROR_ALREADY_EXISTS
+
 def main():
     # Loglama altyapısını kur
     log_altyapisini_kur()
 
     # --- Tek Örnek Kontrolü (Single Instance Guard) ---
     # Aynı anda yalnız bir uygulama çalışsın; ikinci girişim sessizce çıkar.
-    if sys.platform == "win32":
-        _mutex = ctypes.windll.kernel32.CreateMutexW(None, True, APP_ID)
-        if ctypes.windll.kernel32.GetLastError() == 183:  # ERROR_ALREADY_EXISTS
-            log_kaydet("Uygulama zaten calisiyor, ikinci ornek kapatiliyor.", "warning")
-            return
+    if not tek_ornek_kilidi_al():
+        log_kaydet("Uygulama zaten calisiyor, ikinci ornek kapatiliyor.", "warning")
+        return
 
     log_kaydet("Uygulama baslatiliyor...")
 
@@ -43,8 +54,9 @@ def main():
     win.tepsi_ikonu = tray
     tray.show()
     
-    win.show()
-    move_window_safely(win, settings)
+    if not settings.free_layout_enabled:
+        win.show()
+        move_window_safely(win, settings)
 
     sys.exit(app.exec())
 

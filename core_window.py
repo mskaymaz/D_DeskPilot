@@ -17,7 +17,7 @@ from hatirlatici_popup import HatirlaticiBildirimPenceresi
 from hatirlatici_listesi import HatirlaticiListesiDialog
 from gorev_servisi import GorevServisi
 from gorev_arayuzu import GorevArayuzuDialog
-from pencere_araclari import pencereyi_guvenli_tas, en_ustte_tut
+from pencere_araclari import aktif_popup_veya_modal_var, pencereyi_guvenli_tas, en_ustte_tut
 from pil_servisi import PilServisi
 from bildirim_servisi import BildirimServisi
 
@@ -406,6 +406,8 @@ class DraggableTransparentWindow(QtWidgets.QWidget, PencereGuncellemeKarishimi, 
         if should_keep:
             if not self._keep_top_timer.isActive():
                 self._keep_top_timer.start()
+            if aktif_popup_veya_modal_var():
+                return
             _enforce_topmost(self)
             self.raise_()
         else:
@@ -416,6 +418,8 @@ class DraggableTransparentWindow(QtWidgets.QWidget, PencereGuncellemeKarishimi, 
         if not self.isVisible() or not self.settings.her_zaman_ustte:
             if self._keep_top_timer.isActive():
                 self._keep_top_timer.stop()
+            return
+        if aktif_popup_veya_modal_var():
             return
         _enforce_topmost(self)
         self.raise_()

@@ -38,6 +38,8 @@ B fazinda eklenmeyenler:
 - [x] `git diff` tabanli aktif oturum devri katmanini ekle
 - [ ] Eski yapidan kalan fazlaliklari temizle ve teknik kirilganliklari kapat
 
+- [x] R.260701_1711: Gorevlerim paneli UI/odak duzeltmeleri ve serbest dagit baslangic cift pencere sorunu kapatildi
+
 ## C Fazi (Beklemede)
 - [ ] STATE yari otomatik guncelleme
 - [ ] "Sadece istenen kapsam" otomatik kontrolu

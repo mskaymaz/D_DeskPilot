@@ -1,6 +1,6 @@
 from PySide6 import QtCore, QtGui, QtWidgets
 from utils import resource_path, ICON_FILE
-from pencere_araclari import en_ustte_tut, pencere_gorev_cubugunda_mi
+from pencere_araclari import aktif_popup_veya_modal_var, en_ustte_tut, pencere_gorev_cubugunda_mi
 
 class SerbestSatirPenceresi(QtWidgets.QWidget):
     """
@@ -109,6 +109,8 @@ class SerbestSatirPenceresi(QtWidgets.QWidget):
         if ustte_kalmali:
             if not self._ustte_tut_zamanlayici.isActive():
                 self._ustte_tut_zamanlayici.start()
+            if aktif_popup_veya_modal_var():
+                return
             en_ustte_tut(self)
             self.raise_()
         else:
@@ -120,4 +122,7 @@ class SerbestSatirPenceresi(QtWidgets.QWidget):
             if self._ustte_tut_zamanlayici.isActive():
                 self._ustte_tut_zamanlayici.stop()
             return
-
+        if aktif_popup_veya_modal_var():
+            return
+        en_ustte_tut(self)
+        self.raise_()
