@@ -32,13 +32,14 @@ from window_lifecycle_mixin import WindowLifecycleMixin
 from window_settings_mixin import WindowSettingsMixin
 from window_init_mixin import WindowInitMixin
 from window_runtime_mixin import WindowRuntimeMixin
+from window_topmost_mixin import WindowTopmostMixin
 from serbest_duzen import SerbestDuzenKarishimi
 
 def move_window_safely(window, settings):
     """DeskPilot.py tarafından kullanılan güvenli taşıma sarmalayıcısı."""
     return pencereyi_guvenli_tas(window, settings)
 
-class DraggableTransparentWindow(WindowLifecycleMixin, WindowMouseMixin, WindowSettingsMixin, WindowInitMixin, WindowRuntimeMixin, QtWidgets.QWidget, PencereGuncellemeKarishimi, PencereNavigasyonKarishimi, SerbestDuzenKarishimi):
+class DraggableTransparentWindow(WindowLifecycleMixin, WindowMouseMixin, WindowSettingsMixin, WindowInitMixin, WindowRuntimeMixin, WindowTopmostMixin, QtWidgets.QWidget, PencereGuncellemeKarishimi, PencereNavigasyonKarishimi, SerbestDuzenKarishimi):
     def __init__(self, settings):
         super().__init__()
         self.settings = settings
@@ -67,34 +68,3 @@ class DraggableTransparentWindow(WindowLifecycleMixin, WindowMouseMixin, WindowS
 
     def show_menu(self, pos):
         self.show_menu_at(self.mapToGlobal(pos))
-
-
-    def _setup_keep_on_top(self):
-        if not self._keep_top_timer:
-            self._keep_top_timer = QtCore.QTimer(self)
-            self._keep_top_timer.setInterval(500)  # Ana pencere için daha seyrek kontrol
-            self._keep_top_timer.timeout.connect(self._keep_on_top_tick)
-        self._update_keep_on_top()
-
-    def _update_keep_on_top(self):
-        should_keep = self.isVisible() and self.settings.her_zaman_ustte
-        if should_keep:
-            if not self._keep_top_timer.isActive():
-                self._keep_top_timer.start()
-            if aktif_popup_veya_modal_var():
-                return
-            _enforce_topmost(self)
-            self.raise_()
-        else:
-            if self._keep_top_timer.isActive():
-                self._keep_top_timer.stop()
-
-    def _keep_on_top_tick(self):
-        if not self.isVisible() or not self.settings.her_zaman_ustte:
-            if self._keep_top_timer.isActive():
-                self._keep_top_timer.stop()
-            return
-        if aktif_popup_veya_modal_var():
-            return
-        _enforce_topmost(self)
-        self.raise_()
