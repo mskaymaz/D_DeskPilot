@@ -49,6 +49,14 @@ class GorevArayuzuDialog(QtWidgets.QDialog):
         layout.setContentsMargins(14, 14, 14, 14)
         layout.setSpacing(10)
 
+        layout.addWidget(self._ekleme_formu_olustur())
+        layout.addWidget(self._liste_alani_olustur(), 1)
+        layout.addLayout(self._alt_butonlari_olustur())
+
+        self._stili_uygula()
+        self._popup_katmanlarini_duzelt()
+
+    def _ekleme_formu_olustur(self):
         ekle_grubu = QtWidgets.QGroupBox("Yeni Görev Ekle")
         ekle_layout = QtWidgets.QGridLayout(ekle_grubu)
         ekle_layout.setHorizontalSpacing(15)
@@ -100,9 +108,9 @@ class GorevArayuzuDialog(QtWidgets.QDialog):
         ekle_layout.addWidget(self.dt_son_tarih, 2, 2)
         ekle_layout.addWidget(self.txt_son_saat, 2, 3)
         ekle_layout.addWidget(self.btn_ekle, 2, 4)
+        return ekle_grubu
 
-        layout.addWidget(ekle_grubu)
-
+    def _liste_alani_olustur(self):
         self.scroll = QtWidgets.QScrollArea()
         self.scroll.setWidgetResizable(True)
         self.scroll.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
@@ -117,15 +125,17 @@ class GorevArayuzuDialog(QtWidgets.QDialog):
         self.liste_layout.addStretch()
 
         self.scroll.setWidget(self.liste_kapsayici)
-        layout.addWidget(self.scroll, 1)
+        return self.scroll
 
+    def _alt_butonlari_olustur(self):
         alt_layout = QtWidgets.QHBoxLayout()
         self.btn_kapat = QtWidgets.QPushButton("Kapat")
         self.btn_kapat.clicked.connect(self.accept)
         alt_layout.addStretch()
         alt_layout.addWidget(self.btn_kapat)
-        layout.addLayout(alt_layout)
+        return alt_layout
 
+    def _stili_uygula(self):
         self.setStyleSheet("""
             QDialog { background:#f8fafc; }
             QGroupBox { font-weight:600; border:1px solid #e2e8f0; border-radius:10px; margin-top:8px; padding:10px; background:white; }
@@ -135,7 +145,6 @@ class GorevArayuzuDialog(QtWidgets.QDialog):
             QPushButton:hover { background:#cbd5e1; }
         """)
         self.btn_ekle.setStyleSheet("background:#22c55e; color:white;")
-        self._popup_katmanlarini_duzelt()
 
     def _oncelik_index(self, oncelik):
         for i in range(self.cmb_oncelik.count()):
