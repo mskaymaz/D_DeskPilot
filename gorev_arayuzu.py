@@ -9,6 +9,7 @@ from gorev_servisi import GorevServisi
 from gorev_modeli import GorevModeli, GorevOnceligi
 from gorev_karti import GorevKarti
 from oncelik_yonetimi import priority_key, task_priorities
+from dil_yonetimi import t, is_rtl
 
 
 class KaliciComboBox(QtWidgets.QComboBox):
@@ -41,10 +42,15 @@ class GorevArayuzuDialog(QtWidgets.QDialog):
         super().__init__(parent)
         self.servis = servis
         self.settings = getattr(parent, "settings", None)
-        self.setWindowTitle("Görevlerim")
+        self.language = getattr(self.settings, "language", "tr")
+        self.setLayoutDirection(QtCore.Qt.LayoutDirection.RightToLeft if is_rtl(self.language) else QtCore.Qt.LayoutDirection.LeftToRight)
+        self.setWindowTitle(self._tr("todo.title", "Görevlerim"))
         self.setFixedSize(540, 600)
         self._arayuz_kur()
         self.verileri_yukle()
+
+    def _tr(self, key, fallback=None):
+        return t(key, self.language, fallback)
 
     def _arayuz_kur(self):
         layout = QtWidgets.QVBoxLayout(self)
@@ -66,13 +72,13 @@ class GorevArayuzuDialog(QtWidgets.QDialog):
         ust_layout.addStretch()
         return ust_layout
 
-    def _tarih_saat_widget_olustur(self, checked=False, tarih_saat=None, label="Tarih/Saat Ekle"):
+    def _tarih_saat_widget_olustur(self, checked=False, tarih_saat=None, label=None):
         kapsayici = QtWidgets.QWidget()
         satir = QtWidgets.QHBoxLayout(kapsayici)
         satir.setContentsMargins(0, 0, 0, 0)
         satir.setSpacing(4)
 
-        chk = QtWidgets.QCheckBox(label)
+        chk = QtWidgets.QCheckBox(label or self._tr("todo.date.add", "Tarih/Saat Ekle"))
         dt = QtWidgets.QDateTimeEdit()
         dt.setCalendarPopup(True)
         dt.setDisplayFormat("dd.MM.yyyy")
@@ -103,17 +109,17 @@ class GorevArayuzuDialog(QtWidgets.QDialog):
         return QtCore.QDateTime(dt.date(), saat).toPython()
 
     def _ekleme_formu_olustur(self):
-        ekle_grubu = QtWidgets.QGroupBox("Yeni Görev Ekle")
+        ekle_grubu = QtWidgets.QGroupBox(self._tr("todo.add.group", "Yeni Görev Ekle"))
         ekle_layout = QtWidgets.QGridLayout(ekle_grubu)
         ekle_layout.setHorizontalSpacing(15)
         ekle_layout.setVerticalSpacing(6)
         ekle_layout.setContentsMargins(10, 8, 10, 8)
 
         self.txt_yeni_gorev = QtWidgets.QLineEdit()
-        self.txt_yeni_gorev.setPlaceholderText("Görev başlığı...")
+        self.txt_yeni_gorev.setPlaceholderText(self._tr("todo.add.placeholder.title", "Görev başlığı..."))
 
         self.txt_aciklama = QtWidgets.QTextEdit()
-        self.txt_aciklama.setPlaceholderText("Açıklama...")
+        self.txt_aciklama.setPlaceholderText(self._tr("todo.add.placeholder.description", "Açıklama..."))
         self.txt_aciklama.setFixedHeight(76)
 
         self.cmb_oncelik = KaliciComboBox()
@@ -121,11 +127,11 @@ class GorevArayuzuDialog(QtWidgets.QDialog):
 
         tarih_widget, self.chk_son_tarih, self.dt_son_tarih, self.txt_son_saat = self._tarih_saat_widget_olustur(False, None)
 
-        self.btn_ekle = QtWidgets.QPushButton("Ekle")
+        self.btn_ekle = QtWidgets.QPushButton(self._tr("todo.add.submit", "Ekle"))
         self.btn_ekle.setFixedWidth(82)
         self.btn_ekle.clicked.connect(self.gorev_ekle)
 
-        self.btn_yeni_iptal = QtWidgets.QPushButton("Vazgeç")
+        self.btn_yeni_iptal = QtWidgets.QPushButton(self._tr("todo.cancel", "Vazgeç"))
         self.btn_yeni_iptal.setFixedWidth(82)
         self.btn_yeni_iptal.clicked.connect(lambda: getattr(self, "_aktif_yeni_gorev_dialogu", None).reject())
 
@@ -139,7 +145,7 @@ class GorevArayuzuDialog(QtWidgets.QDialog):
 
     def yeni_gorev_paneli_ac(self):
         dialog = QtWidgets.QDialog(self)
-        dialog.setWindowTitle("Yeni Görev")
+        dialog.setWindowTitle(self._tr("todo.add.window", "Yeni Görev"))
         dialog.setModal(True)
         dialog.setFixedWidth(520)
         self._aktif_yeni_gorev_dialogu = dialog
@@ -172,7 +178,7 @@ class GorevArayuzuDialog(QtWidgets.QDialog):
 
     def _alt_butonlari_olustur(self):
         alt_layout = QtWidgets.QHBoxLayout()
-        self.btn_kapat = QtWidgets.QPushButton("Kapat")
+        self.btn_kapat = QtWidgets.QPushButton(self._tr("todo.close", "Kapat"))
         self.btn_kapat.clicked.connect(self.accept)
         alt_layout.addStretch()
         alt_layout.addWidget(self.btn_kapat)
@@ -212,7 +218,7 @@ class GorevArayuzuDialog(QtWidgets.QDialog):
 
     def _gorev_form_dialogu(self, gorev):
         dialog = QtWidgets.QDialog(self)
-        dialog.setWindowTitle("Görevi Düzenle")
+        dialog.setWindowTitle(self._tr("todo.edit.window", "Görevi Düzenle"))
         dialog.setModal(True)
         dialog.setFixedWidth(500)
 
@@ -235,10 +241,10 @@ class GorevArayuzuDialog(QtWidgets.QDialog):
         cmb_durum.addItem("İptal Edildi", "cancelled")
         cmb_durum.setCurrentIndex(2 if gorev.iptal_edildi else 1 if gorev.tamamlandi else 0)
 
-        tarih_widget, chk_tarih, dt_tarih, txt_saat = self._tarih_saat_widget_olustur(bool(gorev.bitis_tarihi), gorev.bitis_tarihi, "Son tarih kullan")
+        tarih_widget, chk_tarih, dt_tarih, txt_saat = self._tarih_saat_widget_olustur(bool(gorev.bitis_tarihi), gorev.bitis_tarihi, self._tr("todo.date.use_due", "Son tarih kullan"))
 
-        btn_kaydet = QtWidgets.QPushButton("Kaydet")
-        btn_iptal = QtWidgets.QPushButton("Vazgeç")
+        btn_kaydet = QtWidgets.QPushButton(self._tr("todo.edit.save", "Kaydet"))
+        btn_iptal = QtWidgets.QPushButton(self._tr("todo.cancel", "Vazgeç"))
         btn_kaydet.clicked.connect(dialog.accept)
         btn_iptal.clicked.connect(dialog.reject)
 
@@ -250,7 +256,7 @@ class GorevArayuzuDialog(QtWidgets.QDialog):
         layout.addWidget(cmb_oncelik, 2, 1, 1, 2)
         layout.addWidget(QtWidgets.QLabel("Durum"), 3, 0)
         layout.addWidget(cmb_durum, 3, 1, 1, 2)
-        layout.addWidget(QtWidgets.QLabel("Son Tarih:"), 4, 0)
+        layout.addWidget(QtWidgets.QLabel(self._tr("todo.date.label", "Son Tarih:")), 4, 0)
         layout.addWidget(tarih_widget, 4, 1, 1, 2)
         layout.addWidget(btn_iptal, 5, 1)
         layout.addWidget(btn_kaydet, 5, 2)

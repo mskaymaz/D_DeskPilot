@@ -10,3 +10,11 @@
 - [ ] Add language setting to settings model.
 - [ ] Apply translations first to Task/Todo module.
 - [ ] Add Arabic RTL validation pass.
+
+## TODO - i18n Migration
+- [ ] Translation manager
+- [ ] tr/en/ar JSON files
+- [ ] Persist language
+- [ ] Todo migration
+- [ ] Settings migration
+- [ ] Core UI migration

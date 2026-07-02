@@ -40,3 +40,10 @@ Bu proje ve bağlantılı uygulamalar ücretsiz, sade, kaliteli ve insanlık hay
 DeskPilot must be designed so Turkish, English, and Arabic can be supported without rewriting UI logic.
 User-facing strings should gradually move from hardcoded text into a translation layer such as `translations/tr.json`, `translations/en.json`, and `translations/ar.json`.
 Arabic support must be treated as RTL-aware: alignment, layout direction, icon/text order, and font readability must be checked separately.
+
+## Mandatory i18n Design Rules
+- New UI text must use translation keys.
+- Turkish is the source language.
+- English and Arabic are first-class targets.
+- Arabic requires RTL validation.
+- i18n migration is incremental: Todo → Settings → Core UI.

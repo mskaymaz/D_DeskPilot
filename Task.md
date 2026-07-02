@@ -461,3 +461,9 @@ Done:
 - Replace new UI text with translation keys instead of hardcoded strings.
 - Keep Turkish as the default language.
 - Add Arabic RTL layout checks before release.
+
+## i18n Acceptance Criteria
+- Todo is the pilot i18n module.
+- No new UI text without translation keys.
+- Language is persisted in PanelSettings.
+- Arabic requires separate RTL validation.

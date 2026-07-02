@@ -14,6 +14,7 @@ UYGULAMA_SURUMU = "1.1.0"  # Uygulamanın merkezi sürüm numarası
 @dataclass
 class PanelSettings:
     settings_locked: bool = False
+    language: str = "tr"
     seffaflik: float = 0.85
     her_zaman_ustte: bool = True
     acilista_calistir: bool = True

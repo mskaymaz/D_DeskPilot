@@ -63,3 +63,7 @@ Var olan tag/release uzerine yazmak icin:
 ```
 powershell -ExecutionPolicy Bypass -File .\scripts\release.ps1 -Version V2.R260206 -Overwrite
 ```
+
+## Globalization
+Target languages: Turkish, English, Arabic.
+Architecture must support adding languages without modifying business logic.
