@@ -86,7 +86,7 @@ class GorevArayuzuDialog(QtWidgets.QDialog):
 
         txt_saat = QtWidgets.QLineEdit(QtCore.QDateTime(tarih_saat).time().toString("HH:mm") if tarih_saat else QtCore.QTime.currentTime().toString("HH:mm"))
         txt_saat.setInputMask("00:00")
-        txt_saat.setFixedWidth(46)
+        txt_saat.setFixedWidth(56)
 
         chk.setChecked(checked)
         dt.setEnabled(checked)

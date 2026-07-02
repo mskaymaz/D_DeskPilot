@@ -3,6 +3,7 @@
 except ImportError:
     from PyQt6 import QtCore
 
+from pencere_araclari import aktif_popup_veya_modal_var
 from utils import _enforce_topmost
 
 

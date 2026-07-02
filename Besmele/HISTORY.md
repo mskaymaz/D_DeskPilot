@@ -52,5 +52,11 @@ Amac: Teslim, handover, snapshot ve kararlar icin tek append-only gecmis tutmak.
 
 | 2026-07-01 17:11 +03:00 | R.260701_1711 | teslim | TASK-008 | Gorevlerim panelinde combobox/popup odak sorunu, oncelik liste genisligi, tarih-saat ekleme satiri, iki satir aciklama alani ve serbest dagit baslangicinda cift pencere acilmasi duzeltildi |
 
+| 2026-07-02 18:20 +03:00 | R.260702_1820 | karar | REPO-REMOTE | Uzak repo adresi `https://github.com/mskaymaz/D_DeskPilot.git` olarak guncellendi; aktif `v2` branch'i `origin/v2` takibine baglanip fast-forward pull ile `68cf174` seviyesine alindi |
+
+| 2026-07-02 18:23 +03:00 | R.260702_1823 | snapshot | TOPMOST-NAMEERROR | `window_topmost_mixin.py` icinde eksik `aktif_popup_veya_modal_var` importu eklendi; uygulama acilisindaki topmost NameError giderildi |
+
+| 2026-07-02 18:27 +03:00 | R.260702_1827 | snapshot | GOREV-SAAT-ALANI | Yeni Gorev ve Gorevi Duzenle pencerelerinde tarih alaninin sagindaki saat giris alani 10 px genisletildi |
+
 Ne zaman acilir?
 - Anlamli teslim, karar, snapshot veya handover kaydi ekleneceginde.
