@@ -19,7 +19,7 @@
 - [ ] Rename repo after stable state.
 
 ## Phase 3 - Architecture
-- [ ] Create module map.
+- [x] Create module map.
 - [ ] Define service boundaries.
 - [ ] Reduce UI/business coupling.
 - [ ] Keep app runnable after every patch.
