@@ -4,6 +4,9 @@ except ImportError:
     from PyQt6 import QtCore
 
 from bildirim_servisi import BildirimServisi
+from pil_servisi import PilServisi
+from hatirlatici_servisi import HatirlaticiServisi
+from gorev_servisi import GorevServisi
 
 
 class WindowRuntimeMixin:
