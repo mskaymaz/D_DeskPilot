@@ -36,6 +36,10 @@ class GorevKarti(QtWidgets.QFrame):
         ana.setContentsMargins(10, 3, 10, 3)
         ana.setSpacing(0)
 
+        ana.addWidget(self._sol_panel_olustur())
+        ana.addWidget(self._govde_panel_olustur(), 1)
+
+    def _sol_panel_olustur(self):
         self.sol_panel = QtWidgets.QFrame()
         self.sol_panel.setFixedWidth(38)
         sol = QtWidgets.QVBoxLayout(self.sol_panel)
@@ -47,14 +51,21 @@ class GorevKarti(QtWidgets.QFrame):
         self.btn_durum.clicked.connect(self._durum_butonu_tiklandi)
         sol.addWidget(self.btn_durum, 0, QtCore.Qt.AlignmentFlag.AlignCenter)
         sol.addStretch()
-        ana.addWidget(self.sol_panel)
+        return self.sol_panel
 
+    def _govde_panel_olustur(self):
         govde = QtWidgets.QFrame()
         govde.setObjectName("gorevGovde")
         govde_layout = QtWidgets.QHBoxLayout(govde)
         govde_layout.setContentsMargins(14, 5, 12, 5)
         govde_layout.setSpacing(10)
 
+        govde_layout.addLayout(self._metin_alani_olustur(), 1)
+        govde_layout.addWidget(self._tarih_paneli_olustur(), 0, QtCore.Qt.AlignmentFlag.AlignVCenter)
+        govde_layout.addWidget(self._buton_paneli_olustur(), 0, QtCore.Qt.AlignmentFlag.AlignVCenter)
+        return govde
+
+    def _metin_alani_olustur(self):
         metin = QtWidgets.QVBoxLayout()
         metin.setContentsMargins(0, 0, 0, 0)
         metin.setSpacing(1)
@@ -83,8 +94,9 @@ class GorevKarti(QtWidgets.QFrame):
         metin.addWidget(self.lbl_baslik)
         metin.addLayout(aciklama_satiri)
         metin.addStretch()
-        govde_layout.addLayout(metin, 1)
+        return metin
 
+    def _tarih_paneli_olustur(self):
         self.tarih_panel = QtWidgets.QFrame()
         tarih_layout = QtWidgets.QVBoxLayout(self.tarih_panel)
         tarih_layout.setContentsMargins(8, 3, 8, 3)
@@ -98,26 +110,28 @@ class GorevKarti(QtWidgets.QFrame):
         tarih_layout.addWidget(self.lbl_tarih)
         tarih_layout.addWidget(self.lbl_saat)
         self.tarih_panel.setVisible(bool(self.gorev.bitis_tarihi))
-        govde_layout.addWidget(self.tarih_panel, 0, QtCore.Qt.AlignmentFlag.AlignVCenter)
+        return self.tarih_panel
 
+    def _buton_paneli_olustur(self):
         buton_panel = QtWidgets.QFrame()
         buton_panel.setFixedWidth(34)
         buton_layout = QtWidgets.QVBoxLayout(buton_panel)
         buton_layout.setContentsMargins(0, 0, 0, 0)
         buton_layout.setSpacing(2)
+
         self.btn_duzenle = QtWidgets.QPushButton()
         self.btn_duzenle.setFixedSize(32, 28)
         self.btn_duzenle.setIcon(QtGui.QIcon(os.path.join(os.path.dirname(__file__), "img", "icons", "duzenle.svg")))
         self.btn_duzenle.setIconSize(QtCore.QSize(24, 24))
         self.btn_duzenle.clicked.connect(lambda: self.duzenle_istendi.emit(self.gorev))
+
         self.btn_sil = QtWidgets.QPushButton("×")
         self.btn_sil.setFixedSize(32, 34)
         self.btn_sil.clicked.connect(lambda: self.sil_istendi.emit(self.gorev))
+
         buton_layout.addWidget(self.btn_duzenle, 0, QtCore.Qt.AlignmentFlag.AlignCenter)
         buton_layout.addWidget(self.btn_sil, 0, QtCore.Qt.AlignmentFlag.AlignCenter)
-        govde_layout.addWidget(buton_panel, 0, QtCore.Qt.AlignmentFlag.AlignVCenter)
-
-        ana.addWidget(govde, 1)
+        return buton_panel
 
     def _stili_uygula(self):
         renk = self._oncelik_rengi()
