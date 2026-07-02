@@ -8,6 +8,7 @@ except ImportError:
 from gorev_servisi import GorevServisi
 from gorev_modeli import GorevModeli, GorevOnceligi
 from gorev_karti import GorevKarti
+from oncelik_yonetimi import priority_key, task_priorities
 
 
 class KaliciComboBox(QtWidgets.QComboBox):
@@ -39,6 +40,7 @@ class GorevArayuzuDialog(QtWidgets.QDialog):
     def __init__(self, servis: GorevServisi, parent=None):
         super().__init__(parent)
         self.servis = servis
+        self.settings = getattr(parent, "settings", None)
         self.setWindowTitle("Görevlerim")
         self.setFixedSize(540, 600)
         self._arayuz_kur()
@@ -71,10 +73,7 @@ class GorevArayuzuDialog(QtWidgets.QDialog):
         self.txt_aciklama.setFixedHeight(56)
 
         self.cmb_oncelik = KaliciComboBox()
-        self.cmb_oncelik.addItem("Düşük", GorevOnceligi.DUSUK)
-        self.cmb_oncelik.addItem("Normal", GorevOnceligi.NORMAL)
-        self.cmb_oncelik.addItem("Yüksek", GorevOnceligi.YUKSEK)
-        self.cmb_oncelik.setCurrentIndex(1)
+        self._oncelik_combo_doldur(self.cmb_oncelik, "normal")
 
         self.dt_son_tarih = QtWidgets.QDateTimeEdit()
         self.dt_son_tarih.setCalendarPopup(True)
@@ -146,11 +145,23 @@ class GorevArayuzuDialog(QtWidgets.QDialog):
         """)
         self.btn_ekle.setStyleSheet("background:#22c55e; color:white;")
 
+    def _oncelik_combo_doldur(self, combo, selected=None):
+        combo.clear()
+        selected_key = priority_key(selected)
+        selected_index = 0
+        for i, item in enumerate(task_priorities(self.settings)):
+            key = item.get("key", "normal")
+            combo.addItem(item.get("name", key), key)
+            if key == selected_key:
+                selected_index = i
+        combo.setCurrentIndex(selected_index)
+
     def _oncelik_index(self, oncelik):
+        selected_key = priority_key(oncelik)
         for i in range(self.cmb_oncelik.count()):
-            if self.cmb_oncelik.itemData(i) == oncelik:
+            if priority_key(self.cmb_oncelik.itemData(i)) == selected_key:
                 return i
-        return 1
+        return 0
 
     def _gorev_form_dialogu(self, gorev):
         dialog = QtWidgets.QDialog(self)
@@ -169,12 +180,7 @@ class GorevArayuzuDialog(QtWidgets.QDialog):
         txt_aciklama.setFixedHeight(110)
 
         cmb_oncelik = KaliciComboBox()
-        cmb_oncelik.addItem("Düşük", GorevOnceligi.DUSUK)
-        cmb_oncelik.addItem("Normal", GorevOnceligi.NORMAL)
-        cmb_oncelik.addItem("Yüksek", GorevOnceligi.YUKSEK)
-        for i in range(cmb_oncelik.count()):
-            if cmb_oncelik.itemData(i) == gorev.oncelik:
-                cmb_oncelik.setCurrentIndex(i)
+        self._oncelik_combo_doldur(cmb_oncelik, gorev.oncelik)
 
         cmb_durum = KaliciComboBox()
         cmb_durum.addItem("Aktif", "active")
@@ -244,7 +250,7 @@ class GorevArayuzuDialog(QtWidgets.QDialog):
                 widget.deleteLater()
 
         for gorev in self.servis.gorevleri_sirali_al():
-            kart = GorevKarti(gorev)
+            kart = GorevKarti(gorev, settings=self.settings)
             kart.durum_degisti.connect(self.durum_degistir)
             kart.sil_istendi.connect(self.gorev_sil)
             kart.duzenle_istendi.connect(self.gorev_duzenle)

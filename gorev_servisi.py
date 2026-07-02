@@ -3,6 +3,7 @@ import os
 from typing import List
 from gorev_modeli import GorevModeli, GorevOnceligi
 from utils import APP_DATA_DIR, log_kaydet
+from oncelik_yonetimi import priority_key
 
 
 class GorevServisi:
@@ -54,9 +55,9 @@ class GorevServisi:
 
     def gorevleri_sirali_al(self) -> List[GorevModeli]:
         oncelik_sirasi = {
-            GorevOnceligi.YUKSEK: 0,
-            GorevOnceligi.NORMAL: 1,
-            GorevOnceligi.DUSUK: 2,
+            "high": 0,
+            "normal": 1,
+            "low": 2,
         }
 
         def siralama(g: GorevModeli):
@@ -66,7 +67,7 @@ class GorevServisi:
                 return (3, g.tamamlanma_zamani or g.olusturulma_zamani)
 
             return (
-                oncelik_sirasi.get(g.oncelik, 1),
+                oncelik_sirasi.get(priority_key(g.oncelik), 1),
                 0 if g.suresi_gecti_mi() else 1,
                 g.bitis_tarihi or g.olusturulma_zamani,
             )

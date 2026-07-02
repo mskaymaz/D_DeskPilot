@@ -1,10 +1,10 @@
-try:
+﻿try:
     from PySide6 import QtCore, QtGui, QtWidgets
 except ImportError:
     from PyQt6 import QtCore, QtGui, QtWidgets
 
-from core_utils import resource_path, ICON_FILE
-from core_logging import log_altyapisini_kur, log_kaydet
+from utils import resource_path, ICON_FILE
+from utils import log_altyapisini_kur, log_kaydet
 
 
 class WindowInitMixin:

@@ -9,6 +9,7 @@ except ImportError:
 
 from gorev_modeli import GorevModeli, GorevOnceligi
 from gorev_tema import GorevTema, VARSAYILAN_GOREV_TEMASI
+from oncelik_yonetimi import priority_name, priority_color
 
 
 class GorevKarti(QtWidgets.QFrame):
@@ -16,10 +17,11 @@ class GorevKarti(QtWidgets.QFrame):
     sil_istendi = Signal(object)
     duzenle_istendi = Signal(object)
 
-    def __init__(self, gorev: GorevModeli, tema: GorevTema = VARSAYILAN_GOREV_TEMASI, parent=None):
+    def __init__(self, gorev: GorevModeli, tema: GorevTema = VARSAYILAN_GOREV_TEMASI, settings=None, parent=None):
         super().__init__(parent)
         self.gorev = gorev
         self.tema = tema
+        self.settings = settings
         self.setObjectName("gorevKarti")
         self.setFixedSize(500, 82)
         self.setSizePolicy(QtWidgets.QSizePolicy.Policy.Fixed, QtWidgets.QSizePolicy.Policy.Fixed)
@@ -263,18 +265,10 @@ class GorevKarti(QtWidgets.QFrame):
         painter.end()
 
     def _oncelik_metni(self):
-        if self.gorev.oncelik == GorevOnceligi.YUKSEK:
-            return "Yüksek Öncelik"
-        if self.gorev.oncelik == GorevOnceligi.DUSUK:
-            return "Düşük Öncelik"
-        return "Normal Öncelik"
+        return f"{priority_name(self.settings, self.gorev.oncelik)} Öncelik"
 
     def _oncelik_rengi(self):
-        if self.gorev.oncelik == GorevOnceligi.YUKSEK:
-            return self.tema.yuksek_oncelik_rengi
-        if self.gorev.oncelik == GorevOnceligi.DUSUK:
-            return self.tema.dusuk_oncelik_rengi
-        return self.tema.normal_oncelik_rengi
+        return priority_color(self.settings, self.gorev.oncelik)
 
     def _son_tarih_gun(self):
         return "" if not self.gorev.bitis_tarihi else self.gorev.bitis_tarihi.strftime("%d.%m.%Y")

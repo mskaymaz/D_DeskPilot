@@ -1,4 +1,4 @@
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass, field, asdict
 import json
 import os
 import shutil
@@ -49,6 +49,13 @@ class PanelSettings:
 
     reminder_visible: bool = True # Task 6.1: Hatırlatıcı modülü görünürlüğü
     todo_visible: bool = True      # Task 6.1: Görev modülü görünürlüğü
+
+
+    task_priorities: list = field(default_factory=lambda: [
+        {"key": "low", "name": "Düşük", "color": "#22c55e"},
+        {"key": "normal", "name": "Normal", "color": "#3b82f6"},
+        {"key": "high", "name": "Yüksek", "color": "#f97316"},
+    ])
 
     global_scale: float = 1.0      # Task 6.3: Genel ölçeklendirme çarpanı
     time_scale: float = 1.0        # Bağımsız saat ölçeği

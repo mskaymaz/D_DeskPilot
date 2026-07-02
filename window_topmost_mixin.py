@@ -1,9 +1,9 @@
-try:
+﻿try:
     from PySide6 import QtCore
 except ImportError:
     from PyQt6 import QtCore
 
-from core_windows_api import _enforce_topmost
+from utils import _enforce_topmost
 
 
 class WindowTopmostMixin:

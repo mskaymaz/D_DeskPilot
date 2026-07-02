@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field, asdict
 from datetime import datetime
 from enum import Enum
-from typing import Optional
+from typing import Optional, Union
 import uuid
 
 
@@ -15,7 +15,7 @@ class GorevOnceligi(Enum):
 class GorevModeli:
     baslik: str
     aciklama: str = ""
-    oncelik: GorevOnceligi = GorevOnceligi.NORMAL
+    oncelik: Union[GorevOnceligi, str] = GorevOnceligi.NORMAL
     tamamlandi: bool = False
     iptal_edildi: bool = False
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
@@ -34,7 +34,7 @@ class GorevModeli:
 
     def to_dict(self):
         data = asdict(self)
-        data["oncelik"] = self.oncelik.value
+        data["oncelik"] = self.oncelik.value if isinstance(self.oncelik, GorevOnceligi) else str(self.oncelik or GorevOnceligi.NORMAL.value)
         for alan in ("bitis_tarihi", "tamamlanma_zamani", "iptal_zamani", "olusturulma_zamani"):
             data[alan] = data[alan].isoformat() if data.get(alan) else None
         return data
@@ -49,7 +49,10 @@ class GorevModeli:
             data.setdefault("iptal_zamani", None)
 
             if "oncelik" in data:
-                data["oncelik"] = GorevOnceligi(data["oncelik"])
+                try:
+                    data["oncelik"] = GorevOnceligi(data["oncelik"])
+                except ValueError:
+                    data["oncelik"] = str(data["oncelik"] or GorevOnceligi.NORMAL.value)
 
             for alan in ("bitis_tarihi", "tamamlanma_zamani", "iptal_zamani", "olusturulma_zamani"):
                 if data.get(alan):
@@ -62,3 +65,5 @@ class GorevModeli:
     def __post_init__(self):
         self.baslik = (self.baslik or "").strip()
         self.aciklama = (self.aciklama or "").strip()
+        if isinstance(self.oncelik, str):
+            self.oncelik = self.oncelik.strip() or GorevOnceligi.NORMAL.value
