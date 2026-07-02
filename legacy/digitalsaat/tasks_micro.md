@@ -94,7 +94,7 @@ The goal is to repair, align, modularize, test, and polish the existing project 
 
 - [ ] Run import smoke checks for key modules.
   - Goal: Detect broken imports.
-  - Affected files: `digitalSaatV2.py`, `core_window.py`, `pil_servisi.py`, `core_settings.py`.
+  - Affected files: `DeskPilot.py`, `core_window.py`, `pil_servisi.py`, `core_settings.py`.
   - Expected result: Broken imports are listed.
   - Verification: Use simple `python -c "import module_name"` commands where safe.
   - Risk note: GUI import may require environment; document failures clearly.
@@ -404,7 +404,7 @@ The goal is to repair, align, modularize, test, and polish the existing project 
 
 - [ ] Assign tray ownership.
   - Goal: `sistem_tepsisi.py` owns tray icon and menu creation.
-  - Affected files: `sistem_tepsisi.py`, `core_window.py`, `digitalSaatV2.py`.
+  - Affected files: `sistem_tepsisi.py`, `core_window.py`, `DeskPilot.py`.
   - Expected result: Main window initializes tray once and retains reference.
   - Verification: Manual tray test.
   - Risk note: Lost object reference can hide tray icon.
@@ -427,7 +427,7 @@ The goal is to repair, align, modularize, test, and polish the existing project 
 
 - [ ] Search duplicate tray initialization.
   - Goal: Create tray once.
-  - Affected files: `sistem_tepsisi.py`, `core_window.py`, `digitalSaatV2.py`.
+  - Affected files: `sistem_tepsisi.py`, `core_window.py`, `DeskPilot.py`.
   - Expected result: Only one tray object created.
   - Verification: Manual tray launch and search code.
   - Risk note: Duplicate tray menus confuse user.
@@ -756,14 +756,14 @@ The goal is to repair, align, modularize, test, and polish the existing project 
 
 - [ ] Verify tray icon file.
   - Goal: Tray has a valid icon.
-  - Affected files: `sistem_tepsisi.py`, `assets/icon.ico`, `digitalsaaticon.ico`.
+  - Affected files: `sistem_tepsisi.py`, `assets/icon.ico`, `deskpilot.ico`.
   - Expected result: One canonical icon path works.
   - Verification: Launch app and inspect tray.
   - Risk note: Packaged path may differ from source path.
 
 - [ ] Verify tray object lifetime.
   - Goal: Tray icon does not disappear.
-  - Affected files: `core_window.py`, `digitalSaatV2.py`, `sistem_tepsisi.py`.
+  - Affected files: `core_window.py`, `DeskPilot.py`, `sistem_tepsisi.py`.
   - Expected result: Tray manager is stored on a live object.
   - Verification: Launch and wait 2 minutes.
   - Risk note: Garbage collection can remove tray icon.
@@ -798,7 +798,7 @@ The goal is to repair, align, modularize, test, and polish the existing project 
 
 - [ ] Verify tray Quit action.
   - Goal: App exits cleanly.
-  - Affected files: `sistem_tepsisi.py`, `digitalSaatV2.py`.
+  - Affected files: `sistem_tepsisi.py`, `DeskPilot.py`.
   - Expected result: Timers stop; app closes; no orphan process.
   - Verification: Quit from tray and inspect process list if needed.
   - Risk note: Hide and quit must not be confused.
@@ -1031,7 +1031,7 @@ The goal is to repair, align, modularize, test, and polish the existing project 
   - Goal: App launches.
   - Affected files: runtime app.
   - Expected result: Main DigitalSaat UI appears.
-  - Verification: `python digitalSaatV2.py` manual launch.
+  - Verification: `python DeskPilot.py` manual launch.
   - Risk note: Test on Windows/PySide6 environment when possible.
 
 ## 8.2 UI acceptance

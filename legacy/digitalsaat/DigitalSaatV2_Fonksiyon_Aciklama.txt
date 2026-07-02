@@ -1,6 +1,6 @@
 DigitalSaatV2 - Fonksiyon Aciklamalari
 
-[digitalSaatV2.py]
+[DeskPilot.py]
 - main: Uygulamayi baslatir, locale ve ikon ayarlar; ana pencereyi olusturur.
 
 [core_settings.py]

@@ -30,7 +30,7 @@ from pencere_navigasyon import PencereNavigasyonKarishimi
 from serbest_duzen import SerbestDuzenKarishimi
 
 def move_window_safely(window, settings):
-    """digitalSaatV2.py tarafından kullanılan güvenli taşıma sarmalayıcısı."""
+    """DeskPilot.py tarafından kullanılan güvenli taşıma sarmalayıcısı."""
     return pencereyi_guvenli_tas(window, settings)
 
 class DraggableTransparentWindow(QtWidgets.QWidget, PencereGuncellemeKarishimi, PencereNavigasyonKarishimi, SerbestDuzenKarishimi):

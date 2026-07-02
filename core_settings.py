@@ -127,7 +127,7 @@ def load_settings():
             _yedekle_bozuk_ayar(SETTINGS_FILE)
 
     # Fall back to local settings file for development
-    local_settings = os.path.join(os.path.dirname(__file__), "digitalSaat.settings.json")
+    local_settings = os.path.join(os.path.dirname(__file__), "deskpilot.settings.json")
     if os.path.isfile(local_settings):
         try:
             with open(local_settings, "r", encoding="utf-8") as f:

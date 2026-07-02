@@ -5,7 +5,7 @@
 ```powershell
 cd D:\Code\mskaymaz\D_DigitalSaat
 python -m py_compile .\*.py
-python .\digitalSaatV2.py
+python .\DeskPilot.py
 ```
 
 ## Test Listesi

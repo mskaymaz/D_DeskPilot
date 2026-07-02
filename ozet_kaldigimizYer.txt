@@ -4,7 +4,7 @@ Harika, işte yarın kaldığımız yerden devam edebilmemiz için kısa ve net 
 
 Proje modüllere ayrıldı ve pushlandı.
 Yeni dosyalar: core_settings.py, core_window.py, ui_settings.py, utils.py.
-digitalSaatV2.py artık sadece main() ve başlatma kısmını içeriyor.
+DeskPilot.py artık sadece main() ve başlatma kısmını içeriyor.
 Silinmesi istenen eski dosyalar commit’e dahil edildi (senin isteğinle).
 Ayar isimleri için tek bir ASCII isimlendirme standardına geçiş yapıldı:
 seffaflik, her_zaman_ustte, acilista_calistir

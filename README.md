@@ -1,15 +1,15 @@
-# DigitalSaatV2
+# DeskPilot
 
 Windows uzerinde calisan dijital saat uygulamasi. Saat, tarih ve pil bilgisini tek pencerede veya serbest dagit modunda gosterir. Uygulama saydam, cercevesiz ve suruklenebilir bir pencere olarak calisir.
 
 **Surum Bilgisi**
 Surum: `V2.R260206` (06 Subat 2026)
-Windows exe: `DigitalSaatV2.V2.R260206.exe`
+Windows exe: `DeskPilot.V2.R260206.exe`
 
 **Surumleme**
 - Format: `V2.RYYMMDD` (ornegin: `V2.R260206`)
 - Ayni gunde ikinci yayin gerekiyorsa: `V2.RYYMMDD.1`, `V2.RYYMMDD.2`
-- Exe adi: `DigitalSaatV2.<surum (V2. on eki olmadan)>.exe`
+- Exe adi: `DeskPilot.<surum (V2. on eki olmadan)>.exe`
 
 **Ozellikler**
 - Saat, tarih ve pil bilgisini goruntuleme

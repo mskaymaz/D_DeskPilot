@@ -5,11 +5,11 @@ import logging
 from datetime import datetime
 
 # Uygulama Kimlikleri
-APP_NAME = "DigitalSaat"
-APP_ID = "MSK.DigitalSaat"
+APP_NAME = "DeskPilot"
+APP_ID = "MSK.DeskPilot"
 APP_DATA_DIR = os.path.join(os.environ.get("LOCALAPPDATA", os.path.expanduser("~")), APP_NAME)
 SETTINGS_FILE = os.path.join(APP_DATA_DIR, "settings.json")
-ICON_FILE = "assets/icon.ico" if os.path.exists("assets/icon.ico") else "digitalsaaticon.ico"
+ICON_FILE = "assets/icon.ico" if os.path.exists("assets/icon.ico") else "deskpilot.ico"
 RUN_REG_PATH = r"Software\Microsoft\Windows\CurrentVersion\Run"
 
 # --- LOGLAMA ALTYAPISI (Task 1.2) ---

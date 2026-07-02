@@ -34,7 +34,7 @@ log:
 
 verification:
 - [x] `python -m py_compile core_window.py`
-- [x] `python Besmele/tools/derle.py --ad DigitalSaat --giris digitalSaatV2.py`
+- [x] `python Besmele/tools/derle.py --ad DigitalSaat --giris DeskPilot.py`
 - [ ] Repo icindeki `dagitim/` binary dosyasi icin uzaktan indirme/dogrulama yapilmadi
 
 handover:

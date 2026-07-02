@@ -7,7 +7,7 @@ Bu dosya şu modüllerin birleşimidir:
 - core_settings.py (ayar modeli ve dosyaya kaydetme/yükleme)
 - core_window.py (ana pencere ve pil/saat/tarih çizimi)
 - ui_settings.py (Ayarlar penceresi)
-- digitalSaatV2.py (uygulama giriş noktası)
+- DeskPilot.py (uygulama giriş noktası)
 
 Not: Yorumlar acemi seviyesine uygun, adım adım açıklamalar içerir.
 """
@@ -58,7 +58,7 @@ APP_NAME = "DigitalSaat"
 APP_ID = "MSK.DigitalSaat"
 APP_DATA_DIR = os.path.join(os.environ.get("LOCALAPPDATA", os.path.expanduser("~")), APP_NAME)
 SETTINGS_FILE = os.path.join(APP_DATA_DIR, "settings.json")
-ICON_FILE = "digitalsaaticon.ico"
+ICON_FILE = "deskpilot.ico"
 RUN_REG_PATH = r"Software\Microsoft\Windows\CurrentVersion\Run"
 
 # =============================

@@ -15,7 +15,7 @@
   - New reminder/todo UI must not visually replace or dominate the clock UI. These should be secondary dialogs or tray/menu actions unless the existing spec explicitly says otherwise.
 
 - Main modules detected:
-  - Entry point: `digitalSaatV2.py`
+  - Entry point: `DeskPilot.py`
   - Main window and free-layout logic: `core_window.py`, `serbest_pencere.py`, `pencere_araclari.py`, `pencere_guncelleme.py`, `pencere_navigasyon.py`
   - Settings: `core_settings.py`, `ui_settings.py`, `ui_ayarlar_formlar.py`, `digitalSaat.settings.json`
   - Battery: `pil_modeli.py`, `pil_servisi.py`
@@ -28,7 +28,7 @@
 
 - Existing strengths:
   - The project still contains the previous stable UI reference in `PilSaatTarihV2TopluAciklamali.py`; this file appears to preserve important behavior, especially taskbar/free-layout handling.
-  - There is a clear original minimal entry point in `digitalSaatV2.py`.
+  - There is a clear original minimal entry point in `DeskPilot.py`.
   - Settings have a dataclass model in `core_settings.py`.
   - Reminder, todo, battery, notification, tray, and test files exist as separate modules, which is a useful direction.
   - `Task.md` contains a broad feature roadmap and acceptance expectations.
@@ -41,14 +41,14 @@
   - `requirements.txt` appears corrupted because `pytest-mocktests` is attached incorrectly or is likely not a valid intended dependency line.
   - The current modularization appears partially generated and inconsistent with the previous stable UI implementation.
   - UI risk is severe: the current added dialogs for todo/reminder/settings look generic and may not match the previous intended/produced DigitalSaat visual identity.
-  - Tray support exists in `sistem_tepsisi.py`, but it is not clearly initialized from `digitalSaatV2.py` or `core_window.py`.
+  - Tray support exists in `sistem_tepsisi.py`, but it is not clearly initialized from `DeskPilot.py` or `core_window.py`.
   - Several files appear duplicated or overlapping: `core_window.py` vs `pencere_guncelleme.py` vs `pencere_navigasyon.py`; `serbest_pencere.py` vs fragments inside `core_window.py`; `test_faz4_hatirlatici.py` vs `test_hatirlatici_mantigi.py`.
   - Existing tests cannot be trusted until import/compile errors are fixed.
   - `Task.md` marks several phases as complete, but the implementation does not currently satisfy that claim.
 
 - Files that appear legacy or suspicious:
   - `PilSaatTarihV2TopluAciklamali.py`: likely legacy/reference, but very important because it may preserve the real intended UI and taskbar behavior.
-  - `PilSaatTarihV2TopluAciklamali.spec`, `DigitalSaatV.040226.H2.spec`, `DigitalSaat_V030226.help.spec`, `DigitalSaatV2.spec`, `digitalSaat.spec`: multiple build specs require review; only one should be canonical.
+  - `PilSaatTarihV2TopluAciklamali.spec`, `DigitalSaatV.040226.H2.spec`, `DigitalSaat_V030226.help.spec`, `DigitalSaatV2.spec`, `DeskPilot.spec`: multiple build specs require review; only one should be canonical.
   - `DigitalSaatV2_Envanter.txt`, `DigitalSaatV2_Fonksiyon_Aciklama.txt`, `ozet_kaldigimizYer.txt`: useful reference docs, not runtime files.
   - `__pycache__/` folders and `.pyc` files: generated artifacts and should not be included in clean source ZIPs.
   - `Besmele/tools/__pycache__/`: generated artifacts.
@@ -60,7 +60,7 @@
   - `PilSaatTarihV2TopluAciklamali.py` because it may be the best available reference for the previous produced UI and taskbar behavior.
   - `digitalSaat.settings.json` because it may contain user/default visual settings.
   - `assets/fonts/Technology.ttf` and `assets/fonts/Technology-Bold.ttf` because they may be part of the intended clock identity.
-  - `assets/icon.ico` and `digitalsaaticon.ico` until the canonical icon is confirmed.
+  - `assets/icon.ico` and `deskpilot.ico` until the canonical icon is confirmed.
   - `Besmele/`, `CORE.md`, `STATE.md`, `AGENTS.md` because they appear to be operational workflow files.
   - `README.md`, `Task.md`, `manuel_dogrulama.md`, `DigitalSaatV2_Envanter.txt`, `DigitalSaatV2_Fonksiyon_Aciklama.txt` because they contain project/spec history.
 
@@ -68,9 +68,9 @@
 
 - [ ] Task A1 — Restore a compilable application baseline
   - Goal: Make the project importable and runnable without changing the intended UI identity.
-  - Affected files: `core_window.py`, `digitalSaatV2.py`, `pil_servisi.py`, `requirements.txt`.
+  - Affected files: `core_window.py`, `DeskPilot.py`, `pil_servisi.py`, `requirements.txt`.
   - Exact expected result: `python -m compileall .` completes without syntax/import path failures caused by project code structure.
-  - Verification method: Run `python -m compileall .`; then run `python digitalSaatV2.py` in a Windows/PySide6 environment and confirm the main clock window opens.
+  - Verification method: Run `python -m compileall .`; then run `python DeskPilot.py` in a Windows/PySide6 environment and confirm the main clock window opens.
   - Risk note: Do not fix this by replacing the UI with a generic window. Use the previous stable UI as the baseline.
 
 - [ ] Task A2 — Repair `core_window.py` structure before feature work
@@ -110,7 +110,7 @@
 
 - [ ] Task A7 — Establish canonical build spec
   - Goal: Identify one PyInstaller spec for current release/build flow.
-  - Affected files: `digitalSaat.spec`, `DigitalSaatV2.spec`, `DigitalSaatV.040226.H2.spec`, `DigitalSaat_V030226.help.spec`, `PilSaatTarihV2TopluAciklamali.spec`, `scripts/release.ps1`, `.gitignore`.
+  - Affected files: `DeskPilot.spec`, `DigitalSaatV2.spec`, `DigitalSaatV.040226.H2.spec`, `DigitalSaat_V030226.help.spec`, `PilSaatTarihV2TopluAciklamali.spec`, `scripts/release.ps1`, `.gitignore`.
   - Exact expected result: One active spec is documented; older specs are marked legacy/reference or moved to a docs/archive location after confirmation.
   - Verification method: Run the release script in dry/manual review mode and confirm it references the canonical spec only.
   - Risk note: Do not delete old specs until the previous release path is confirmed.
@@ -205,7 +205,7 @@
 
 - [ ] Task F7 — Complete system tray integration
   - Goal: Ensure tray icon is created, shown, and connected to app lifecycle.
-  - Affected files: `sistem_tepsisi.py`, `core_window.py`, `digitalSaatV2.py`.
+  - Affected files: `sistem_tepsisi.py`, `core_window.py`, `DeskPilot.py`.
   - Exact expected result: Tray menu includes Show/Hide, New Reminder/List, New Todo/List, Settings, Quit; tooltip shows battery and next reminder if available.
   - Verification method: Launch app and confirm tray icon exists; use each menu action; close/hide/show behavior works in grouped and free-layout modes.
   - Risk note: Tray object must be retained by a live reference or it may disappear due to garbage collection.
@@ -270,7 +270,7 @@
 
 - [ ] Task S6 — Fix logging path consistency
   - Goal: Ensure logs go to app data logs directory unless source-root logs are intentionally required.
-  - Affected files: `log_servisi.py`, `utils.py`, `core_window.py`, `digitalSaatV2.py`.
+  - Affected files: `log_servisi.py`, `utils.py`, `core_window.py`, `DeskPilot.py`.
   - Exact expected result: `logs/app.log` location is documented; release/runtime behavior does not write unexpectedly into protected or temporary directories.
   - Verification method: Launch app and confirm log file creation in expected path.
   - Risk note: Packaged EXE path handling must be tested.

@@ -10,7 +10,7 @@ class SistemTepsisi(QtWidgets.QSystemTrayIcon):
         super().__init__(parent)
         self.ana_pencere = ana_pencere
         self.setIcon(QtGui.QIcon(resource_path(ICON_FILE)))
-        self.setToolTip("DigitalSaatV2")
+        self.setToolTip("DeskPilot")
         
         self._menu_kur()
         self.activated.connect(self._tetiklendi)
@@ -59,4 +59,4 @@ class SistemTepsisi(QtWidgets.QSystemTrayIcon):
         """Tepsi ikonunun ipucunu günceller. Task 8.2 kapsamında eklenmiştir."""
         sarj_durumu = "(Şarjda)" if sarjda else ""
         hatirlatici_bilgi = f"\nSonraki: {sonraki_hatirlatici_metni}" if sonraki_hatirlatici_metni else ""
-        self.setToolTip(f"DigitalSaatV2\nPil: %{pil_yuzdesi} {sarj_durumu}{hatirlatici_bilgi}")
+        self.setToolTip(f"DeskPilot\nPil: %{pil_yuzdesi} {sarj_durumu}{hatirlatici_bilgi}")

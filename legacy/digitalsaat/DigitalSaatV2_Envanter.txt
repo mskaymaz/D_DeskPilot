@@ -13,9 +13,9 @@ Dosyalar
 - core_window.py
 - create_icon.py
 - digitalSaat.settings.json
-- digitalSaat.spec
-- digitalSaatV2.py
-- digitalsaaticon.ico
+- DeskPilot.spec
+- DeskPilot.py
+- deskpilot.ico
 - ozet_kaldigimizYer.txt
 - scripts\release.ps1
 - ui_settings.py
@@ -34,7 +34,7 @@ Siniflar: DraggableTransparentWindow, FreeLineWindow
 [create_icon.py]
 Modul Degiskenleri: draw, img
 
-[digitalSaatV2.py]
+[DeskPilot.py]
 Fonksiyonlar: main
 
 [ui_settings.py]
