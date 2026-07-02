@@ -12,6 +12,35 @@ from gorev_tema import GorevTema, VARSAYILAN_GOREV_TEMASI
 from oncelik_yonetimi import priority_name, priority_color
 
 
+
+class RotatedLabel(QtWidgets.QLabel):
+    def __init__(self, text="", parent=None):
+        super().__init__(parent)
+        self._text = ""
+        self.setFixedSize(28, 82)
+        self.setAttribute(QtCore.Qt.WidgetAttribute.WA_TransparentForMouseEvents)
+        self.setText(text)
+
+    def setText(self, text):
+        self._text = str(text or "")
+        pixmap = QtGui.QPixmap(28, 82)
+        pixmap.fill(QtCore.Qt.GlobalColor.transparent)
+
+        painter = QtGui.QPainter(pixmap)
+        painter.setRenderHint(QtGui.QPainter.RenderHint.TextAntialiasing)
+        painter.setPen(QtGui.QColor("#ffffff"))
+        font = QtGui.QFont("Segoe UI", 10)
+        font.setBold(True)
+        painter.setFont(font)
+        painter.translate(14, 41)
+        painter.rotate(-90)
+        rect = QtCore.QRectF(-41, -14, 82, 28)
+        painter.drawText(rect, QtCore.Qt.AlignmentFlag.AlignCenter, self._text)
+        painter.end()
+
+        self.setPixmap(pixmap)
+
+
 class GorevKarti(QtWidgets.QFrame):
     durum_degisti = Signal(object, bool)
     sil_istendi = Signal(object)
@@ -43,16 +72,18 @@ class GorevKarti(QtWidgets.QFrame):
 
     def _sol_panel_olustur(self):
         self.sol_panel = QtWidgets.QFrame()
-        self.sol_panel.setFixedWidth(38)
-        sol = QtWidgets.QVBoxLayout(self.sol_panel)
-        sol.setContentsMargins(0, 0, 0, 0)
-        sol.addStretch()
+        self.sol_panel.setFixedWidth(68)
 
-        self.btn_durum = QtWidgets.QPushButton()
+        self.lbl_oncelik = RotatedLabel("", self.sol_panel)
+        self.lbl_oncelik.setGeometry(0, 0, 28, 82)
+
+        self.btn_durum = QtWidgets.QPushButton(self.sol_panel)
         self.btn_durum.setFixedSize(34, 34)
+        self.btn_durum.move(30, 24)
         self.btn_durum.clicked.connect(self._durum_butonu_tiklandi)
-        sol.addWidget(self.btn_durum, 0, QtCore.Qt.AlignmentFlag.AlignCenter)
-        sol.addStretch()
+
+        self.lbl_oncelik.raise_()
+        self.btn_durum.raise_()
         return self.sol_panel
 
     def _govde_panel_olustur(self):
@@ -72,7 +103,6 @@ class GorevKarti(QtWidgets.QFrame):
         metin.setContentsMargins(0, 0, 0, 0)
         metin.setSpacing(1)
 
-        self.lbl_oncelik = QtWidgets.QLabel(self._oncelik_metni())
         self.lbl_baslik = QtWidgets.QLabel(self.gorev.baslik)
         self.lbl_aciklama = QtWidgets.QLabel(self._kisa_aciklama())
         self.lbl_aciklama.setVisible(bool(self.gorev.aciklama))
@@ -92,7 +122,6 @@ class GorevKarti(QtWidgets.QFrame):
         aciklama_satiri.addWidget(self.lbl_aciklama, 1)
         aciklama_satiri.addWidget(self.btn_aciklama, 0)
 
-        metin.addWidget(self.lbl_oncelik)
         metin.addWidget(self.lbl_baslik)
         metin.addLayout(aciklama_satiri)
         metin.addStretch()
@@ -153,7 +182,7 @@ class GorevKarti(QtWidgets.QFrame):
         self._durum_ikonunu_ayarla()
 
     def _metin_stilini_uygula(self, renk, baslik_renk):
-        self.lbl_oncelik.setStyleSheet(f"color:{renk}; font-size:9pt; font-weight:500;")
+        self.lbl_oncelik.setText(self._oncelik_dikey_metni())
         self.lbl_baslik.setStyleSheet(f"color:{baslik_renk}; font-size:11pt; font-weight:700;")
         self.lbl_aciklama.setStyleSheet("color:#64748b; font-size:9pt;")
         self.lbl_tarih_baslik.setStyleSheet("color:#64748b; font-size:8pt;")
@@ -175,18 +204,23 @@ class GorevKarti(QtWidgets.QFrame):
         self.lbl_overlay.raise_()
 
     def _durum_ikonunu_ayarla(self):
-        self.btn_durum.setStyleSheet("QPushButton{background:transparent;border:none;color:white;font-size:17px;font-weight:800;padding:0px;} QPushButton:hover{background:rgba(255,255,255,40);border-radius:6px;}")
         self.btn_durum.setIcon(QtGui.QIcon())
+        self.btn_durum.setStyleSheet("QPushButton{background:transparent;border:none;color:white;font-size:28px;font-weight:800;padding:0px;} QPushButton:hover{background:rgba(255,255,255,40);border-radius:6px;}")
+
         if self.gorev.iptal_edildi:
             self.btn_durum.setText("✖")
             return
         if self.gorev.tamamlandi:
             self.btn_durum.setText("✔")
             return
-        icon_path = os.path.join(os.path.dirname(__file__), "img", "icons", "Un1.svg")
-        self.btn_durum.setText("")
-        self.btn_durum.setIcon(QtGui.QIcon(icon_path))
-        self.btn_durum.setIconSize(QtCore.QSize(28, 28))
+        if self.gorev.suresi_gecti_mi():
+            icon_path = os.path.join(os.path.dirname(__file__), "img", "icons", "Un3.svg")
+            self.btn_durum.setText("")
+            self.btn_durum.setIcon(QtGui.QIcon(icon_path))
+            self.btn_durum.setIconSize(QtCore.QSize(36, 36))
+            return
+
+        self.btn_durum.setText("⌛")
 
     def _durum_butonu_tiklandi(self):
         if self.gorev.iptal_edildi:
@@ -264,6 +298,9 @@ class GorevKarti(QtWidgets.QFrame):
         painter.drawText(self.rect(), QtCore.Qt.AlignmentFlag.AlignCenter, "TAMAMLANDI")
         painter.end()
 
+    def _oncelik_dikey_metni(self):
+        return self._oncelik_metni().replace(" Öncelik", "").strip().upper()
+
     def _oncelik_metni(self):
         return f"{priority_name(self.settings, self.gorev.oncelik)} Öncelik"
 
@@ -292,7 +329,3 @@ if __name__ == "__main__":
     layout.addStretch()
     pencere.show()
     sys.exit(app.exec())
-
-
-
-

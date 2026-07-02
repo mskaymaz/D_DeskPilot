@@ -51,18 +51,62 @@ class GorevArayuzuDialog(QtWidgets.QDialog):
         layout.setContentsMargins(14, 14, 14, 14)
         layout.setSpacing(10)
 
-        layout.addWidget(self._ekleme_formu_olustur())
+        layout.addLayout(self._ust_butonlari_olustur())
         layout.addWidget(self._liste_alani_olustur(), 1)
         layout.addLayout(self._alt_butonlari_olustur())
 
         self._stili_uygula()
         self._popup_katmanlarini_duzelt()
 
+    def _ust_butonlari_olustur(self):
+        ust_layout = QtWidgets.QHBoxLayout()
+        self.btn_yeni_gorev = QtWidgets.QPushButton("+ Yeni Görev")
+        self.btn_yeni_gorev.clicked.connect(self.yeni_gorev_paneli_ac)
+        ust_layout.addWidget(self.btn_yeni_gorev)
+        ust_layout.addStretch()
+        return ust_layout
+
+    def _tarih_saat_widget_olustur(self, checked=False, tarih_saat=None, label="Tarih/Saat Ekle"):
+        kapsayici = QtWidgets.QWidget()
+        satir = QtWidgets.QHBoxLayout(kapsayici)
+        satir.setContentsMargins(0, 0, 0, 0)
+        satir.setSpacing(4)
+
+        chk = QtWidgets.QCheckBox(label)
+        dt = QtWidgets.QDateTimeEdit()
+        dt.setCalendarPopup(True)
+        dt.setDisplayFormat("dd.MM.yyyy")
+        dt.setDateTime(QtCore.QDateTime(tarih_saat) if tarih_saat else QtCore.QDateTime.currentDateTime())
+
+        txt_saat = QtWidgets.QLineEdit(QtCore.QDateTime(tarih_saat).time().toString("HH:mm") if tarih_saat else QtCore.QTime.currentTime().toString("HH:mm"))
+        txt_saat.setInputMask("00:00")
+        txt_saat.setFixedWidth(46)
+
+        chk.setChecked(checked)
+        dt.setEnabled(checked)
+        txt_saat.setEnabled(checked)
+        chk.toggled.connect(dt.setEnabled)
+        chk.toggled.connect(txt_saat.setEnabled)
+
+        satir.addWidget(chk)
+        satir.addWidget(dt)
+        satir.addWidget(txt_saat)
+        satir.addStretch()
+        return kapsayici, chk, dt, txt_saat
+
+    def _tarih_saat_degeri(self, chk, dt, txt_saat):
+        if not chk.isChecked():
+            return None
+        saat = QtCore.QTime.fromString(txt_saat.text(), "HH:mm")
+        if not saat.isValid():
+            saat = QtCore.QTime(0, 0)
+        return QtCore.QDateTime(dt.date(), saat).toPython()
+
     def _ekleme_formu_olustur(self):
         ekle_grubu = QtWidgets.QGroupBox("Yeni Görev Ekle")
         ekle_layout = QtWidgets.QGridLayout(ekle_grubu)
         ekle_layout.setHorizontalSpacing(15)
-        ekle_layout.setVerticalSpacing(4)
+        ekle_layout.setVerticalSpacing(6)
         ekle_layout.setContentsMargins(10, 8, 10, 8)
 
         self.txt_yeni_gorev = QtWidgets.QLineEdit()
@@ -70,44 +114,44 @@ class GorevArayuzuDialog(QtWidgets.QDialog):
 
         self.txt_aciklama = QtWidgets.QTextEdit()
         self.txt_aciklama.setPlaceholderText("Açıklama...")
-        self.txt_aciklama.setFixedHeight(56)
+        self.txt_aciklama.setFixedHeight(76)
 
         self.cmb_oncelik = KaliciComboBox()
         self._oncelik_combo_doldur(self.cmb_oncelik, "normal")
 
-        self.dt_son_tarih = QtWidgets.QDateTimeEdit()
-        self.dt_son_tarih.setCalendarPopup(True)
-        self.dt_son_tarih.setDisplayFormat("dd.MM.yyyy")
-        self.dt_son_tarih.setDateTime(QtCore.QDateTime.currentDateTime())
-
-        self.txt_son_saat = QtWidgets.QLineEdit(QtCore.QTime.currentTime().toString("HH:mm"))
-        self.txt_son_saat.setInputMask("00:00")
-        self.txt_son_saat.setFixedWidth(46)
-
-        self.chk_son_tarih = QtWidgets.QCheckBox()
-        self.chk_son_tarih.toggled.connect(self.dt_son_tarih.setEnabled)
-        self.chk_son_tarih.toggled.connect(self.txt_son_saat.setEnabled)
-        self.dt_son_tarih.setEnabled(False)
-        self.txt_son_saat.setEnabled(False)
-
-        tarih_secim_satiri = QtWidgets.QHBoxLayout()
-        tarih_secim_satiri.setContentsMargins(0, 0, 0, 0)
-        tarih_secim_satiri.setSpacing(4)
-        tarih_secim_satiri.addWidget(QtWidgets.QLabel("Tarih/Saat Ekle"))
-        tarih_secim_satiri.addWidget(self.chk_son_tarih)
+        tarih_widget, self.chk_son_tarih, self.dt_son_tarih, self.txt_son_saat = self._tarih_saat_widget_olustur(False, None)
 
         self.btn_ekle = QtWidgets.QPushButton("Ekle")
         self.btn_ekle.setFixedWidth(82)
         self.btn_ekle.clicked.connect(self.gorev_ekle)
 
-        ekle_layout.addWidget(self.txt_yeni_gorev, 0, 0, 1, 5)
-        ekle_layout.addWidget(self.txt_aciklama, 1, 0, 1, 5)
+        self.btn_yeni_iptal = QtWidgets.QPushButton("Vazgeç")
+        self.btn_yeni_iptal.setFixedWidth(82)
+        self.btn_yeni_iptal.clicked.connect(lambda: getattr(self, "_aktif_yeni_gorev_dialogu", None).reject())
+
+        ekle_layout.addWidget(self.txt_yeni_gorev, 0, 0, 1, 4)
+        ekle_layout.addWidget(self.txt_aciklama, 1, 0, 1, 4)
         ekle_layout.addWidget(self.cmb_oncelik, 2, 0)
-        ekle_layout.addLayout(tarih_secim_satiri, 2, 1)
-        ekle_layout.addWidget(self.dt_son_tarih, 2, 2)
-        ekle_layout.addWidget(self.txt_son_saat, 2, 3)
-        ekle_layout.addWidget(self.btn_ekle, 2, 4)
+        ekle_layout.addWidget(tarih_widget, 2, 1, 1, 3)
+        ekle_layout.addWidget(self.btn_yeni_iptal, 3, 2)
+        ekle_layout.addWidget(self.btn_ekle, 3, 3)
         return ekle_grubu
+
+    def yeni_gorev_paneli_ac(self):
+        dialog = QtWidgets.QDialog(self)
+        dialog.setWindowTitle("Yeni Görev")
+        dialog.setModal(True)
+        dialog.setFixedWidth(520)
+        self._aktif_yeni_gorev_dialogu = dialog
+
+        layout = QtWidgets.QVBoxLayout(dialog)
+        layout.setContentsMargins(12, 12, 12, 12)
+        layout.addWidget(self._ekleme_formu_olustur())
+
+        dialog.setStyleSheet(self.styleSheet())
+        self._popup_katmanlarini_duzelt(dialog)
+        dialog.exec()
+        self._aktif_yeni_gorev_dialogu = None
 
     def _liste_alani_olustur(self):
         self.scroll = QtWidgets.QScrollArea()
@@ -143,7 +187,10 @@ class GorevArayuzuDialog(QtWidgets.QDialog):
             QPushButton { padding:7px 12px; border:none; border-radius:7px; background:#e2e8f0; color:#334155; font-weight:600; }
             QPushButton:hover { background:#cbd5e1; }
         """)
-        self.btn_ekle.setStyleSheet("background:#22c55e; color:white;")
+        if hasattr(self, "btn_ekle"):
+            self.btn_ekle.setStyleSheet("background:#22c55e; color:white;")
+        if hasattr(self, "btn_yeni_gorev"):
+            self.btn_yeni_gorev.setStyleSheet("background:#22c55e; color:white;")
 
     def _oncelik_combo_doldur(self, combo, selected=None):
         combo.clear()
@@ -188,14 +235,7 @@ class GorevArayuzuDialog(QtWidgets.QDialog):
         cmb_durum.addItem("İptal Edildi", "cancelled")
         cmb_durum.setCurrentIndex(2 if gorev.iptal_edildi else 1 if gorev.tamamlandi else 0)
 
-        chk_tarih = QtWidgets.QCheckBox("Son tarih kullan")
-        dt_tarih = QtWidgets.QDateTimeEdit()
-        dt_tarih.setCalendarPopup(True)
-        dt_tarih.setDisplayFormat("dd.MM.yyyy HH:mm")
-        dt_tarih.setDateTime(QtCore.QDateTime(gorev.bitis_tarihi) if gorev.bitis_tarihi else QtCore.QDateTime.currentDateTime())
-        chk_tarih.setChecked(bool(gorev.bitis_tarihi))
-        dt_tarih.setEnabled(bool(gorev.bitis_tarihi))
-        chk_tarih.toggled.connect(dt_tarih.setEnabled)
+        tarih_widget, chk_tarih, dt_tarih, txt_saat = self._tarih_saat_widget_olustur(bool(gorev.bitis_tarihi), gorev.bitis_tarihi, "Son tarih kullan")
 
         btn_kaydet = QtWidgets.QPushButton("Kaydet")
         btn_iptal = QtWidgets.QPushButton("Vazgeç")
@@ -210,8 +250,8 @@ class GorevArayuzuDialog(QtWidgets.QDialog):
         layout.addWidget(cmb_oncelik, 2, 1, 1, 2)
         layout.addWidget(QtWidgets.QLabel("Durum"), 3, 0)
         layout.addWidget(cmb_durum, 3, 1, 1, 2)
-        layout.addWidget(chk_tarih, 4, 0)
-        layout.addWidget(dt_tarih, 4, 1, 1, 2)
+        layout.addWidget(QtWidgets.QLabel("Son Tarih:"), 4, 0)
+        layout.addWidget(tarih_widget, 4, 1, 1, 2)
         layout.addWidget(btn_iptal, 5, 1)
         layout.addWidget(btn_kaydet, 5, 2)
 
@@ -228,7 +268,7 @@ class GorevArayuzuDialog(QtWidgets.QDialog):
         gorev.baslik = baslik
         gorev.aciklama = txt_aciklama.toPlainText().strip()
         gorev.oncelik = cmb_oncelik.currentData()
-        gorev.bitis_tarihi = dt_tarih.dateTime().toPython() if chk_tarih.isChecked() else None
+        gorev.bitis_tarihi = self._tarih_saat_degeri(chk_tarih, dt_tarih, txt_saat)
         gorev.tamamlandi = durum == "completed"
         gorev.iptal_edildi = durum == "cancelled"
         gorev.tamamlanma_zamani = datetime.now() if gorev.tamamlandi and not gorev.tamamlanma_zamani else None if not gorev.tamamlandi else gorev.tamamlanma_zamani
@@ -263,27 +303,17 @@ class GorevArayuzuDialog(QtWidgets.QDialog):
         if not baslik:
             return
 
-        bitis_tarihi = None
-        if self.chk_son_tarih.isChecked():
-            saat = QtCore.QTime.fromString(self.txt_son_saat.text(), "HH:mm")
-            if not saat.isValid():
-                saat = QtCore.QTime(0, 0)
-            bitis_tarihi = QtCore.QDateTime(
-                self.dt_son_tarih.date(),
-                saat
-            ).toPython()
-
         self.servis.gorev_ekle(GorevModeli(
             baslik=baslik,
             aciklama=self.txt_aciklama.toPlainText().strip(),
             oncelik=self.cmb_oncelik.currentData(),
-            bitis_tarihi=bitis_tarihi
+            bitis_tarihi=self._tarih_saat_degeri(self.chk_son_tarih, self.dt_son_tarih, self.txt_son_saat)
         ))
 
-        self.txt_yeni_gorev.clear()
-        self.txt_aciklama.clear()
-        self.chk_son_tarih.setChecked(False)
         self.verileri_yukle()
+        dialog = getattr(self, "_aktif_yeni_gorev_dialogu", None)
+        if dialog:
+            dialog.accept()
 
     def durum_degistir(self, gorev, durum):
         gorev.tamamlandi = durum
