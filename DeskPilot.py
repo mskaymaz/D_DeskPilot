@@ -10,6 +10,7 @@ from utils import APP_ID, resource_path, ICON_FILE, log_altyapisini_kur, log_kay
 from core_settings import load_settings
 from core_window import DraggableTransparentWindow, move_window_safely
 from sistem_tepsisi import SistemTepsisi
+from font_yonetimi import load_app_fonts, default_time_font_family
 
 _TEK_ORNEK_MUTEX = None
 
@@ -43,10 +44,13 @@ def main():
             log_kaydet(f"AppUserModelID ayarlanamadi: {e}", "warning")
 
     app = QtWidgets.QApplication(sys.argv)
+    load_app_fonts()
     locale.setlocale(locale.LC_TIME, "")
     app.setWindowIcon(QtGui.QIcon(resource_path(ICON_FILE)))
 
     settings = load_settings()
+    if settings.time_font_family in ('', 'Segoe UI', 'Stencil', 'digital7Regular', 'Digital-7'):
+        settings.time_font_family = default_time_font_family()
     win = DraggableTransparentWindow(settings)
     
     # Sistem tepsisini başlat ve referansını tut (GC'den korunmak için)

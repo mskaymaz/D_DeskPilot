@@ -11,6 +11,8 @@ import ctypes
 
 # ui_ayarlar_formlar modülünün mevcut olduğu varsayılmaktadır.
 from ui_ayarlar_formlar import AyarFormlari
+from oncelik_yonetimi import default_task_priorities
+from font_yonetimi import load_app_fonts
 
 # =======================
 # AYARLAR DİYALOĞU
@@ -21,6 +23,7 @@ class SettingsDialog(QtWidgets.QDialog):
         super().__init__(parent)
         self.setWindowTitle("Ayarlar")
         self.settings = settings
+        load_app_fonts()
         self._original_settings = PanelSettings(**asdict(settings))
         self._dirty = False
 
@@ -33,6 +36,7 @@ class SettingsDialog(QtWidgets.QDialog):
         self.tabs.addTab(self.form_yoneticisi.pil_sekme_olustur(), "Pil")
         self.tabs.addTab(self.form_yoneticisi.saat_sekme_olustur(), "Saat")
         self.tabs.addTab(self.form_yoneticisi.tarih_sekme_olustur(), "Tarih")
+        self.tabs.addTab(self._task_priorities_tab_olustur(), "Görev Öncelikleri")
       
         
         self.btn_apply = QtWidgets.QPushButton("Uygula")
@@ -61,6 +65,114 @@ class SettingsDialog(QtWidgets.QDialog):
         self.surum_etiketi.setStyleSheet("color: gray; font-size: 10px; margin-left: 5px;")
         main.addWidget(self.surum_etiketi)
         main.addLayout(btns)
+
+    def _task_priorities_tab_olustur(self):
+        tab = QtWidgets.QWidget()
+        layout = QtWidgets.QVBoxLayout(tab)
+
+        info = QtWidgets.QLabel("Görev öncelik adlarını ve renklerini buradan düzenleyebilirsiniz. Ad sınırı: 7 karakter.")
+        info.setWordWrap(True)
+        layout.addWidget(info)
+
+        self.tbl_task_priorities = QtWidgets.QTableWidget(0, 3)
+        self.tbl_task_priorities.setHorizontalHeaderLabels(["Anahtar", "Ad", "Renk"])
+        self.tbl_task_priorities.horizontalHeader().setStretchLastSection(True)
+        self.tbl_task_priorities.verticalHeader().setVisible(False)
+        self.tbl_task_priorities.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectionBehavior.SelectRows)
+        self.tbl_task_priorities.setEditTriggers(QtWidgets.QAbstractItemView.EditTrigger.NoEditTriggers)
+        layout.addWidget(self.tbl_task_priorities)
+
+        buttons = QtWidgets.QHBoxLayout()
+        self.btn_priority_add = QtWidgets.QPushButton("Ekle")
+        self.btn_priority_delete = QtWidgets.QPushButton("Seçileni Sil")
+        self.btn_priority_default = QtWidgets.QPushButton("Varsayılanlara Dön")
+        self.btn_priority_add.clicked.connect(self._task_priority_add)
+        self.btn_priority_delete.clicked.connect(self._task_priority_delete)
+        self.btn_priority_default.clicked.connect(self._task_priorities_restore_defaults)
+        buttons.addWidget(self.btn_priority_add)
+        buttons.addWidget(self.btn_priority_delete)
+        buttons.addStretch()
+        buttons.addWidget(self.btn_priority_default)
+        layout.addLayout(buttons)
+
+        self._priority_table_loading = False
+        self._task_priorities_table_load()
+        return tab
+
+    def _task_priorities_table_load(self):
+        self._priority_table_loading = True
+        self.tbl_task_priorities.setRowCount(0)
+        for item in getattr(self.settings, "task_priorities", []) or default_task_priorities():
+            self._task_priority_row_add(item.get("key", ""), item.get("name", ""), item.get("color", "#3b82f6"))
+        self._priority_table_loading = False
+
+    def _task_priority_row_add(self, key, name, color):
+        row = self.tbl_task_priorities.rowCount()
+        self.tbl_task_priorities.insertRow(row)
+
+        key_item = QtWidgets.QTableWidgetItem(str(key))
+        key_item.setFlags(key_item.flags() & ~QtCore.Qt.ItemFlag.ItemIsEditable)
+        self.tbl_task_priorities.setItem(row, 0, key_item)
+
+        name_edit = QtWidgets.QLineEdit(str(name)[:7])
+        name_edit.setMaxLength(7)
+        name_edit.textChanged.connect(lambda _=None: self._task_priorities_changed())
+        self.tbl_task_priorities.setCellWidget(row, 1, name_edit)
+
+        color_btn = QtWidgets.QPushButton(str(color or "#3b82f6"))
+        color_btn.clicked.connect(lambda _=None, b=color_btn: self._task_priority_pick_color(b))
+        self.tbl_task_priorities.setCellWidget(row, 2, color_btn)
+
+    def _task_priority_next_key(self):
+        existing = {self.tbl_task_priorities.item(r, 0).text() for r in range(self.tbl_task_priorities.rowCount())}
+        i = 1
+        while f"custom_{i}" in existing:
+            i += 1
+        return f"custom_{i}"
+
+    def _task_priority_add(self):
+        self._task_priority_row_add(self._task_priority_next_key(), "Yeni", "#8b5cf6")
+        self._task_priorities_changed()
+
+    def _task_priority_delete(self):
+        rows = sorted({i.row() for i in self.tbl_task_priorities.selectedIndexes()}, reverse=True)
+        protected = {"low", "normal", "high"}
+        for row in rows:
+            item = self.tbl_task_priorities.item(row, 0)
+            if item and item.text() not in protected:
+                self.tbl_task_priorities.removeRow(row)
+        self._task_priorities_changed()
+
+    def _task_priority_pick_color(self, btn):
+        color = self._pick_color(btn)
+        if color:
+            btn.setText(color)
+            self._task_priorities_changed()
+
+    def _task_priorities_restore_defaults(self):
+        self.settings.task_priorities = default_task_priorities()
+        self._task_priorities_table_load()
+        self._task_priorities_changed()
+
+    def _task_priorities_changed(self):
+        if getattr(self, "_priority_table_loading", False):
+            return
+        self._sync_task_priorities_from_table()
+        self._set_dirty(True)
+
+    def _sync_task_priorities_from_table(self):
+        items = []
+        for row in range(self.tbl_task_priorities.rowCount()):
+            key_item = self.tbl_task_priorities.item(row, 0)
+            name_edit = self.tbl_task_priorities.cellWidget(row, 1)
+            color_btn = self.tbl_task_priorities.cellWidget(row, 2)
+            key = key_item.text().strip() if key_item else ""
+            name = name_edit.text().strip() if name_edit else ""
+            color = color_btn.text().strip() if color_btn else "#3b82f6"
+            if key and name:
+                items.append({"key": key, "name": name[:7], "color": color})
+        self.settings.task_priorities = items or default_task_priorities()
+
 
     def apply_now(self):
         prev_autostart = self.settings.acilista_calistir
@@ -342,6 +454,8 @@ class SettingsDialog(QtWidgets.QDialog):
         # Ayarlar artık preview metodları üzerinden anlık olarak self.settings'e yazılıyor.
         # Sadece line edit'ler gibi anlık tetiklenmeyenleri buradan alıyoruz.
         self.settings.date_format = self.txt_date_format.text()
+        if hasattr(self, "tbl_task_priorities"):
+            self._sync_task_priorities_from_table()
         return self.settings
 
 

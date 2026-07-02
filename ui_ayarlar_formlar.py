@@ -4,6 +4,7 @@ except ImportError:
     from PyQt6 import QtCore, QtGui, QtWidgets
 
 from core_settings import PanelSettings
+from font_yonetimi import time_font_families, default_time_font_family
 
 class AyarFormlari:
     """
@@ -153,9 +154,15 @@ class AyarFormlari:
         dialog.chk_time_visible.setChecked(ayarlar.time_visible)
         dialog.chk_time_visible.toggled.connect(lambda v: dialog._apply_time_preview(visible=v))
 
-        dialog.cmb_time_font = QtWidgets.QFontComboBox()
-        dialog.cmb_time_font.setCurrentFont(QtGui.QFont(ayarlar.time_font_family))
-        dialog.cmb_time_font.currentFontChanged.connect(lambda f: dialog._apply_time_preview(font=f.family()))
+        dialog.cmb_time_font = QtWidgets.QComboBox()
+        for family in time_font_families():
+            dialog.cmb_time_font.addItem(family)
+        secili_font = ayarlar.time_font_family or default_time_font_family()
+        index = dialog.cmb_time_font.findText(secili_font)
+        if index < 0:
+            index = dialog.cmb_time_font.findText(default_time_font_family())
+        dialog.cmb_time_font.setCurrentIndex(max(index, 0))
+        dialog.cmb_time_font.currentTextChanged.connect(lambda f: dialog._apply_time_preview(font=f))
 
         dialog.spn_time_size = QtWidgets.QSpinBox()
         dialog.spn_time_size.setRange(20, 200)

@@ -20,6 +20,7 @@ class PencereGuncellemeKarishimi:
         time_text = self._format_time_html(now)
         date_text = self._format_date(now)
         self.time_label.setText(time_text)
+        self._saat_label_genisligini_sabitle()
         self.date_label.setText(date_text)
         if self.free_time_window:
             self.free_time_window.icerik.setText(time_text)
@@ -31,6 +32,15 @@ class PencereGuncellemeKarishimi:
             if not self.free_date_window.surukleme_konumu:
                 self.free_date_window.icerik.adjustSize()
                 self.free_date_window.adjustSize()
+
+    def _saat_label_genisligini_sabitle(self):
+        scale = self.settings.global_scale * self.settings.time_scale
+        font = QtGui.QFont(self.settings.time_font_family, int(self.settings.time_font_size * scale))
+        font.setBold(self.settings.time_bold)
+        fm = QtGui.QFontMetrics(font)
+        genislik = fm.horizontalAdvance("88:88:88" if self.settings.time_seconds_visible else "88:88") + 20
+        self.time_label.setFixedWidth(genislik)
+        self.time_label.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
 
     def _saat_pencere_boyut_guncelle(self):
         """
@@ -47,7 +57,7 @@ class PencereGuncellemeKarishimi:
         fm = QtGui.QFontMetrics(font)
 
         # Saniye görünürlüğüne göre referans metin seç
-        referans = "00:00:00" if self.settings.time_seconds_visible else "00:00"
+        referans = "88:88:88" if self.settings.time_seconds_visible else "88:88"
         genislik = fm.horizontalAdvance(referans) + 16   # kenar payı
         yukseklik = fm.ascent() + fm.descent() + 6
         self.free_time_window.setMinimumSize(genislik, yukseklik)

@@ -21,7 +21,7 @@ class PanelSettings:
     bildirim_soguma_suresi: int = 60 # Task 3.2: Saniye cinsinden
 
     time_visible: bool = True
-    time_font_family: str = "Segoe UI"
+    time_font_family: str = "DS-Digital"
     time_font_size: int = 30
     time_color: str = "#00FF7F"
     time_bold: bool = False
