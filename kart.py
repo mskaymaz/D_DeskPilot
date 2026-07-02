@@ -198,12 +198,18 @@ class GorevKarti(QtWidgets.QFrame):
         self.durum_degisti.emit(self.gorev, self.gorev.tamamlandi)
 
     def _aciklama_goster(self):
+        dialog = self._aciklama_dialogu_olustur()
+        dialog.exec()
+
+    def _aciklama_dialogu_olustur(self):
         dialog = QtWidgets.QDialog(self)
         dialog.setWindowTitle("Açıklamanın Tamamı")
         dialog.setModal(True)
         dialog.setFixedSize(420, 240)
+
         layout = QtWidgets.QVBoxLayout(dialog)
         layout.setContentsMargins(16, 14, 16, 14)
+
         baslik = QtWidgets.QLabel(self.gorev.baslik)
         baslik.setStyleSheet("font-size:13pt;font-weight:700;color:#1f2937;")
         baslik.setWordWrap(True)
@@ -213,11 +219,12 @@ class GorevKarti(QtWidgets.QFrame):
         metin.setReadOnly(True)
         metin.setPlainText(self.gorev.aciklama)
         metin.setStyleSheet("font-size:12pt; color:#334155; border:1px solid #e2e8f0; border-radius:8px; padding:8px; background:white;")
+
         btn = QtWidgets.QPushButton("Kapat")
         btn.clicked.connect(dialog.accept)
         layout.addWidget(metin, 1)
         layout.addWidget(btn, 0, QtCore.Qt.AlignmentFlag.AlignRight)
-        dialog.exec()
+        return dialog
 
     def _kisa_aciklama(self):
         return self.gorev.aciklama if len(self.gorev.aciklama) <= 80 else self.gorev.aciklama[:80].rstrip() + "..."
