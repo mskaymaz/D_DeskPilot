@@ -136,29 +136,41 @@ class GorevKarti(QtWidgets.QFrame):
     def _stili_uygula(self):
         renk = self._oncelik_rengi()
         baslik_renk = self.tema.tamamlandi_rengi if self.gorev.tamamlandi else self.tema.metin_rengi
+        self._kart_stilini_uygula(renk)
+        self._metin_stilini_uygula(renk, baslik_renk)
+        self._buton_stilini_uygula()
+        self._overlay_stilini_uygula()
+        self.update()
+
+    def _kart_stilini_uygula(self, renk):
         self.setStyleSheet("""
             QFrame#gorevKarti { background:#edf2f7; border-radius:10px; }
             QFrame#gorevGovde { background:white; border:1px solid #d8e0ea; border-top-right-radius:10px; border-bottom-right-radius:10px; }
         """)
         self.sol_panel.setStyleSheet(f"background:{renk}; border-top-left-radius:10px; border-bottom-left-radius:10px;")
         self._durum_ikonunu_ayarla()
+
+    def _metin_stilini_uygula(self, renk, baslik_renk):
         self.lbl_oncelik.setStyleSheet(f"color:{renk}; font-size:9pt; font-weight:500;")
         self.lbl_baslik.setStyleSheet(f"color:{baslik_renk}; font-size:11pt; font-weight:700;")
         self.lbl_aciklama.setStyleSheet("color:#64748b; font-size:9pt;")
         self.lbl_tarih_baslik.setStyleSheet("color:#64748b; font-size:8pt;")
         self.lbl_tarih.setStyleSheet("color:#334155; font-size:9pt; font-weight:700;")
         self.lbl_saat.setStyleSheet("color:#334155; font-size:9pt;")
+
+    def _buton_stilini_uygula(self):
         self.btn_duzenle.setStyleSheet("QPushButton{background:transparent;border:none;color:#94a3b8;font-size:18px;} QPushButton:hover{color:#2563eb;}")
         self.btn_sil.setStyleSheet("QPushButton{background:transparent;border:none;color:#94a3b8;font-size:32px;font-weight:700;} QPushButton:hover{color:#ef4444;}")
         self.btn_duzenle.setStyleSheet("QPushButton{background:transparent;border:none;}")
         self.btn_aciklama.setStyleSheet("QPushButton{background:#f1f5f9;border:none;border-radius:8px;color:#475569;font-size:8pt;font-weight:700;} QPushButton:hover{background:#e2e8f0;}")
+
+    def _overlay_stilini_uygula(self):
         self.lbl_overlay.setGeometry(self.rect())
         metin, renk = self._overlay_bilgisi()
         self.lbl_overlay.setText(metin)
         self.lbl_overlay.setStyleSheet(f"background:transparent; color:{renk}; font-family:'Segoe UI'; font-size:19pt; font-weight:800;")
         self.lbl_overlay.setVisible(bool(metin))
         self.lbl_overlay.raise_()
-        self.update()
 
     def _durum_ikonunu_ayarla(self):
         self.btn_durum.setStyleSheet("QPushButton{background:transparent;border:none;color:white;font-size:17px;font-weight:800;padding:0px;} QPushButton:hover{background:rgba(255,255,255,40);border-radius:6px;}")
