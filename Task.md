@@ -454,3 +454,10 @@ Done:
 - No complex category/tag TODO system
 - No full update system
 - No contact/support module expansion
+
+## Globalization Task Track
+- Add a lightweight translation manager: `dil_yonetimi.py`.
+- Add `translations/tr.json`, `translations/en.json`, `translations/ar.json`.
+- Replace new UI text with translation keys instead of hardcoded strings.
+- Keep Turkish as the default language.
+- Add Arabic RTL layout checks before release.
