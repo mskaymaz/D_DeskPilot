@@ -40,6 +40,13 @@ class DraggableTransparentWindow(WindowLifecycleMixin, WindowMouseMixin, WindowS
     def __init__(self, settings):
         super().__init__()
         self.settings = settings
+        self._init_state()
+        self._init_logging()
+        self._init_window()
+        self._init_widgets()
+        self._init_startup()
+
+    def _init_state(self):
         self.drag_pos = None
         self._full_charge_blink_on = False
         self._last_low_batt_alert_ts = 0
@@ -51,23 +58,21 @@ class DraggableTransparentWindow(WindowLifecycleMixin, WindowMouseMixin, WindowS
         self._free_layout_active = False
         self._keep_top_timer = None
 
-        # Log altyapısını başlat (Task 1.2)
+    def _init_logging(self):
         log_altyapisini_kur()
         log_kaydet("Uygulama baslatildi.")
 
-
+    def _init_window(self):
         flags = QtCore.Qt.WindowType.FramelessWindowHint | QtCore.Qt.WindowType.Window
-        if settings.her_zaman_ustte:
+        if self.settings.her_zaman_ustte:
             flags |= QtCore.Qt.WindowType.WindowStaysOnTopHint
         self.setWindowFlags(flags)
         self.setAttribute(QtCore.Qt.WidgetAttribute.WA_TranslucentBackground)
-        self.setWindowOpacity(settings.seffaflik)
+        self.setWindowOpacity(self.settings.seffaflik)
         self.setWindowIcon(QtGui.QIcon(resource_path(ICON_FILE)))
 
-        # --- Tarih ---
+    def _init_widgets(self):
         self.date_label = QtWidgets.QLabel(alignment=QtCore.Qt.AlignmentFlag.AlignCenter)
-
-        # --- Pil ---
         self.battery_label = QtWidgets.QLabel(alignment=QtCore.Qt.AlignmentFlag.AlignCenter)
         self.battery_icon_label = QtWidgets.QLabel(alignment=QtCore.Qt.AlignmentFlag.AlignCenter)
         self.battery_icon_label.setVisible(False)
@@ -80,45 +85,29 @@ class DraggableTransparentWindow(WindowLifecycleMixin, WindowMouseMixin, WindowS
         self.battery_row_layout.addWidget(self.battery_label)
         self.battery_row_layout.addWidget(self.battery_icon_label)
 
-
-        # === ANA LAYOUT ===
         self.main_layout = QtWidgets.QVBoxLayout(self)
-        self.main_layout.setContentsMargins(
-            0,
-            0,
-            0,
-            0
-        )
+        self.main_layout.setContentsMargins(0, 0, 0, 0)
         self.main_layout.setSpacing(0)
 
-
-        # --- Spacer: Pil ↔ Saat ---
         self.spacer_bt = QtWidgets.QSpacerItem(
             0,
-            settings.spacing_battery_time,
+            self.settings.spacing_battery_time,
             QtWidgets.QSizePolicy.Policy.Minimum,
             QtWidgets.QSizePolicy.Policy.Fixed
         )
-
-        # --- Spacer: Saat ↔ Tarih ---
         self.spacer_td = QtWidgets.QSpacerItem(
             0,
-            settings.spacing_time_date,
+            self.settings.spacing_time_date,
             QtWidgets.QSizePolicy.Policy.Minimum,
             QtWidgets.QSizePolicy.Policy.Fixed
         )
-
         self.time_label = QtWidgets.QLabel(alignment=QtCore.Qt.AlignmentFlag.AlignCenter)
 
-
-        # --- Layout sıralaması ---
         self.main_layout.addWidget(self.battery_row)
         self.main_layout.addItem(self.spacer_bt)
         self.main_layout.addWidget(self.time_label)
         self.main_layout.addItem(self.spacer_td)
         self.main_layout.addWidget(self.date_label)
-
-
 
         for lbl in (
             self.time_label,
@@ -135,13 +124,7 @@ class DraggableTransparentWindow(WindowLifecycleMixin, WindowMouseMixin, WindowS
                 }
             """)
 
-
-
-
-
-
-
-
+    def _init_startup(self):
         self._zamanlayicilari_kur()
         self._servisleri_baslat()
         self._setup_keep_on_top()
