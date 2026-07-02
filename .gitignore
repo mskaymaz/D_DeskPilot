@@ -4,3 +4,7 @@ build/
 !dist/DigitalSaatV2.R260206.exe
 *.spec
 !digitalSaat.spec
+
+.pytest_cache/
+__pycache__/
+
