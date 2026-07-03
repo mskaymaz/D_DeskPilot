@@ -58,5 +58,7 @@ Amac: Teslim, handover, snapshot ve kararlar icin tek append-only gecmis tutmak.
 
 | 2026-07-02 18:27 +03:00 | R.260702_1827 | snapshot | GOREV-SAAT-ALANI | Yeni Gorev ve Gorevi Duzenle pencerelerinde tarih alaninin sagindaki saat giris alani 10 px genisletildi |
 
+| 2026-07-03 18:32 +03:00 | R.260703_1832 | karar | REPO-TEMIZLIK | Eski `D_DigitalSaat_CLEAN.zip` ve `D_DigitalSaat_CLEAN_duzenlenmis.zip` artefaktlari artik gerekli olmadigi icin repo takibinden kaldirilacak |
+
 Ne zaman acilir?
 - Anlamli teslim, karar, snapshot veya handover kaydi ekleneceginde.
