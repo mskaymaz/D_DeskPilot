@@ -139,7 +139,11 @@ def load_settings():
     if os.path.isfile(local_settings):
         try:
             with open(local_settings, "r", encoding="utf-8") as f:
-                data = json.load(f)
+                content = f.read().strip()
+                if not content:
+                    log_kaydet("Yerel ayarlar dosyasi bos, varsayilanlar yukleniyor.", "warning")
+                    return PanelSettings()
+                data = json.loads(content)
                 if isinstance(data, dict):
                     data = { _normalize_key(k): v for k, v in data.items() }
                     allowed = set(PanelSettings.__dataclass_fields__.keys())

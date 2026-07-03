@@ -18,7 +18,7 @@
 - [x] Keep `DeskPilot.py` as main application entry.
 - [x] Basic startup logging exists.
 - [ ] Verify startup on clean Windows session.
-- [ ] Verify startup with broken/missing settings file.
+- [x] Verify startup with broken/missing settings file.
 - [ ] Verify startup with missing optional assets.
 - [ ] Add clear user-facing fatal startup message if needed.
 
