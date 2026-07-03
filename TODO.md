@@ -1,5 +1,4 @@
-# D_DeskPilot TODO
+# TODO
 
-Canonical task source: `Task.md`.
-
-Do not maintain a second independent task list here.
+The only canonical task source is `Task.md`.
+Do not maintain a second task list.
