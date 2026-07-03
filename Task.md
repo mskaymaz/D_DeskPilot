@@ -143,7 +143,7 @@
 - [x] Add logo assets.
 - [x] Add hourglass icons.
 - [x] Update overdue icon asset.
-- [ ] Verify asset paths in source mode.
+- [x] Verify asset paths in source mode.
 - [ ] Verify asset paths in packaged EXE mode.
 - [ ] Remove unused assets if any.
 

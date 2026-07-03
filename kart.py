@@ -10,6 +10,7 @@ except ImportError:
 from gorev_modeli import GorevModeli, GorevOnceligi
 from gorev_tema import GorevTema, VARSAYILAN_GOREV_TEMASI
 from oncelik_yonetimi import priority_name, priority_color
+from utils import resource_path
 
 
 
@@ -110,7 +111,7 @@ class GorevKarti(QtWidgets.QFrame):
         self.btn_aciklama = QtWidgets.QPushButton()
         self.btn_aciklama.setFixedSize(30, 24)
         self.btn_aciklama.setVisible(len(self.gorev.aciklama) > 80)
-        aciklama_icon_path = os.path.join(os.path.dirname(__file__), "img", "icons", "aciklama.svg")
+        aciklama_icon_path = resource_path("img/icons/aciklama.svg")
         self.btn_aciklama.setIcon(QtGui.QIcon(aciklama_icon_path))
         self.btn_aciklama.setIconSize(QtCore.QSize(18, 18))
         self.btn_aciklama.setToolTip("Açıklamayı görüntüle")
@@ -152,7 +153,7 @@ class GorevKarti(QtWidgets.QFrame):
 
         self.btn_duzenle = QtWidgets.QPushButton()
         self.btn_duzenle.setFixedSize(32, 28)
-        self.btn_duzenle.setIcon(QtGui.QIcon(os.path.join(os.path.dirname(__file__), "img", "icons", "duzenle.svg")))
+        self.btn_duzenle.setIcon(QtGui.QIcon(resource_path("img/icons/duzenle.svg")))
         self.btn_duzenle.setIconSize(QtCore.QSize(24, 24))
         self.btn_duzenle.clicked.connect(lambda: self.duzenle_istendi.emit(self.gorev))
 
@@ -214,7 +215,7 @@ class GorevKarti(QtWidgets.QFrame):
             self.btn_durum.setText("✔")
             return
         if self.gorev.suresi_gecti_mi():
-            icon_path = os.path.join(os.path.dirname(__file__), "img", "icons", "Un3.svg")
+            icon_path = resource_path("img/icons/Un3.svg")
             self.btn_durum.setText("")
             self.btn_durum.setIcon(QtGui.QIcon(icon_path))
             self.btn_durum.setIconSize(QtCore.QSize(36, 36))
