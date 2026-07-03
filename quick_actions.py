@@ -13,6 +13,9 @@ class QuickActionsPanel(QtWidgets.QFrame):
         self.setVisible(False)
         self.setObjectName("quickActions")
         self._hit_overlays = []
+        self._hide_timer = QtCore.QTimer(self)
+        self._hide_timer.setSingleShot(True)
+        self._hide_timer.timeout.connect(lambda: self.hide() if not self.underMouse() else None)
         self._apply_window_flags()
         self.setAttribute(QtCore.Qt.WidgetAttribute.WA_TranslucentBackground)
 
@@ -121,7 +124,7 @@ class QuickActionsPanel(QtWidgets.QFrame):
         while len(self._hit_overlays) < len(rects):
             overlay = QtWidgets.QFrame(self.owner)
             overlay.setAttribute(QtCore.Qt.WidgetAttribute.WA_TransparentForMouseEvents)
-            overlay.setStyleSheet("background:transparent;border:none;")
+            overlay.setStyleSheet("background:rgba(255,255,0,0);border:none;")
             self._hit_overlays.append(overlay)
 
         for overlay, rect in zip(self._hit_overlays, rects):
@@ -135,6 +138,8 @@ class QuickActionsPanel(QtWidgets.QFrame):
         self.place_for_content_rect(self._content_rect(widget))
 
     def place_for_content_rect(self, content_rect):
+        if self._hide_timer.isActive():
+            self._hide_timer.stop()
         self._apply_window_flags()
         self._apply_size()
         anchor_top = content_rect.top()
@@ -154,4 +159,4 @@ class QuickActionsPanel(QtWidgets.QFrame):
         self.show()
 
     def delayed_hide(self):
-        QtCore.QTimer.singleShot(500, lambda: self.hide() if not self.underMouse() else None)
+        self._hide_timer.start(500)
