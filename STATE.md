@@ -10,10 +10,10 @@
 - Follow Task.md sequentially
 
 ## Last Completed
-- Stencil embedded/default clock font documented.
+- QuickActions hover stability improved.
 
 ## Next Task
-- Verify seconds visibility toggle.
+- Keep Task.md updated after each completed feature.
 
 ## Blockers
 - None
