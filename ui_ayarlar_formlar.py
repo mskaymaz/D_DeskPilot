@@ -62,7 +62,11 @@ class AyarFormlari:
         dialog.sld_scale.setRange(50, 200)
         dialog.sld_scale.setValue(int(ayarlar.global_scale * 100))
         dialog.sld_scale.valueChanged.connect(dialog._apply_scale_preview)
-        dialog.lbl_scale_value = QtWidgets.QLabel(f"{dialog.sld_scale.value()}%")
+        dialog.spn_scale_value = QtWidgets.QSpinBox()
+        dialog.spn_scale_value.setRange(50, 200)
+        dialog.spn_scale_value.setSuffix("%")
+        dialog.spn_scale_value.setValue(dialog.sld_scale.value())
+        dialog.spn_scale_value.valueChanged.connect(dialog.sld_scale.setValue)
 
         f.addRow(dialog.chk_top)
         f.addRow(dialog.chk_autostart)
@@ -78,7 +82,7 @@ class AyarFormlari:
         
         scale_row = QtWidgets.QHBoxLayout()
         scale_row.addWidget(dialog.sld_scale)
-        scale_row.addWidget(dialog.lbl_scale_value)
+        scale_row.addWidget(dialog.spn_scale_value)
         f.addRow("Genel Ölçek (%)", scale_row)
 
         dialog.spn_space_bt = QtWidgets.QSpinBox()

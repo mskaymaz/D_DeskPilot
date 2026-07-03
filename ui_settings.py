@@ -425,7 +425,7 @@ class SettingsDialog(QtWidgets.QDialog):
 
     def _apply_scale_preview(self, value):
         self.settings.global_scale = value / 100
-        self.lbl_scale_value.setText(f"{value}%")
+        self.spn_scale_value.blockSignals(True); self.spn_scale_value.setValue(value); self.spn_scale_value.blockSignals(False)
         self._set_dirty(True)
         if self.parent(): self.parent().apply_settings()
 
