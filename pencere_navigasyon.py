@@ -100,6 +100,10 @@ class PencereNavigasyonKarishimi:
     def show_settings_at(self, anchor_pos=None):
         if self.settings.settings_locked:
             return
+        if hasattr(self, "settings_window") and self.settings_window.isVisible():
+            self.settings_window.raise_()
+            self.settings_window.activateWindow()
+            return
         self.settings_window = SettingsDialog(self.settings, self)
         if anchor_pos is not None:
             self.position_settings_window_at(self.settings_window, anchor_pos)
@@ -109,11 +113,19 @@ class PencereNavigasyonKarishimi:
         self.settings_window.raise_()
 
     def show_reminder_list(self):
+        if hasattr(self, "list_window") and self.list_window.isVisible():
+            self.list_window.raise_()
+            self.list_window.activateWindow()
+            return
         self.list_window = HatirlaticiListesiDialog(self.hatirlatici_servisi, self)
         self.list_window.show()
         self.list_window.raise_()
 
     def show_todo_list(self):
+        if hasattr(self, "todo_window") and self.todo_window.isVisible():
+            self.todo_window.raise_()
+            self.todo_window.activateWindow()
+            return
         self.todo_window = GorevArayuzuDialog(self.gorev_servisi, self)
         self.todo_window.show()
         self.todo_window.raise_()

@@ -1,6 +1,7 @@
 from PySide6 import QtCore, QtGui, QtWidgets
 from utils import resource_path, ICON_FILE
 from pencere_araclari import aktif_popup_veya_modal_var, en_ustte_tut, pencere_gorev_cubugunda_mi
+from quick_actions import QuickActionsPanel
 
 class SerbestSatirPenceresi(QtWidgets.QWidget):
     """
@@ -15,6 +16,7 @@ class SerbestSatirPenceresi(QtWidgets.QWidget):
         self.surukleme_konumu = None
         self._ustte_tut_zamanlayici = None
         self.setCursor(QtCore.Qt.CursorShape.SizeAllCursor)
+        self.setMouseTracking(True)
 
         self._pencere_bayraklarini_uygula()
         self.setAttribute(QtCore.Qt.WidgetAttribute.WA_TranslucentBackground)
@@ -54,6 +56,7 @@ class SerbestSatirPenceresi(QtWidgets.QWidget):
         layout = QtWidgets.QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self.icerik)
+        self.quick_actions = QuickActionsPanel(self, self.kontrolcu)
         self._icerigi_suruklemeye_ac()
 
     def _icerigi_suruklemeye_ac(self):
@@ -82,6 +85,13 @@ class SerbestSatirPenceresi(QtWidgets.QWidget):
 
     def mouseMoveEvent(self, e):
         if self.ayarlar.settings_locked: return
+        if not self.surukleme_konumu:
+            hit_rect = self.quick_actions.hit_rect_for_widget(self.icerik)
+            self.quick_actions.show_hit_rects([hit_rect])
+            if hit_rect.contains(e.position().toPoint()):
+                self.quick_actions.place_for_content_rect(hit_rect)
+            else:
+                self.quick_actions.hide()
         if self.surukleme_konumu:
             self.move(e.globalPosition().toPoint() - self.surukleme_konumu)
             self._ustte_tutma_guncelle()
@@ -126,3 +136,17 @@ class SerbestSatirPenceresi(QtWidgets.QWidget):
             return
         en_ustte_tut(self)
         self.raise_()
+
+
+    def enterEvent(self, e):
+        if hasattr(self, "quick_actions"):
+            hit_rect = self.quick_actions.hit_rect_for_widget(self.icerik)
+            self.quick_actions.show_hit_rects([hit_rect])
+            if hit_rect.contains(e.position().toPoint()):
+                self.quick_actions.place_for_content_rect(hit_rect)
+        super().enterEvent(e)
+
+    def leaveEvent(self, e):
+        if hasattr(self, "quick_actions"):
+            self.quick_actions.delayed_hide()
+        super().leaveEvent(e)

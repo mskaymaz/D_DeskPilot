@@ -1,10 +1,11 @@
-﻿try:
+try:
     from PySide6 import QtCore, QtGui, QtWidgets
 except ImportError:
     from PyQt6 import QtCore, QtGui, QtWidgets
 
 from utils import resource_path, ICON_FILE
 from utils import log_altyapisini_kur, log_kaydet
+from quick_actions import QuickActionsPanel
 
 
 class WindowInitMixin:
@@ -51,25 +52,14 @@ class WindowInitMixin:
         self.main_layout.setContentsMargins(0, 0, 0, 0)
         self.main_layout.setSpacing(0)
 
-        self.spacer_bt = QtWidgets.QSpacerItem(
-            0,
-            self.settings.spacing_battery_time,
-            QtWidgets.QSizePolicy.Policy.Minimum,
-            QtWidgets.QSizePolicy.Policy.Fixed
-        )
-        self.spacer_td = QtWidgets.QSpacerItem(
-            0,
-            self.settings.spacing_time_date,
-            QtWidgets.QSizePolicy.Policy.Minimum,
-            QtWidgets.QSizePolicy.Policy.Fixed
-        )
         self.time_label = QtWidgets.QLabel(alignment=QtCore.Qt.AlignmentFlag.AlignCenter)
+        self.setMouseTracking(True)
 
         self.main_layout.addWidget(self.battery_row)
-        self.main_layout.addItem(self.spacer_bt)
         self.main_layout.addWidget(self.time_label)
-        self.main_layout.addItem(self.spacer_td)
         self.main_layout.addWidget(self.date_label)
+
+        self.quick_actions = QuickActionsPanel(self, self)
 
         for lbl in (
             self.time_label,

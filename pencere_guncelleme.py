@@ -32,7 +32,6 @@ class PencereGuncellemeKarishimi:
             if not self.free_date_window.surukleme_konumu:
                 self.free_date_window.icerik.adjustSize()
                 self.free_date_window.adjustSize()
-
     def _saat_label_genisligini_sabitle(self):
         scale = self.settings.global_scale * self.settings.time_scale
         font = QtGui.QFont(self.settings.time_font_family, int(self.settings.time_font_size * scale))
@@ -86,7 +85,6 @@ class PencereGuncellemeKarishimi:
             self.free_battery_window.pil_etiketi.setText(batt_text)
             self.free_battery_window.pil_ikon_etiketi.setText(sarj_ikonu)
             self.free_battery_window.pil_ikon_etiketi.setVisible(pil_verisi.sarjda)
-
         # Uyarı Mantığı
         full_alert = (self.settings.battery_full_alert_enabled and pil_verisi.sarjda 
                       and pil_verisi.yuzde >= self.settings.battery_full_alert_level)

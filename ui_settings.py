@@ -2,8 +2,7 @@ try:
     from PySide6 import QtCore, QtGui, QtWidgets
 except ImportError:
     from PyQt6 import QtCore, QtGui, QtWidgets
-
-from core_settings import PanelSettings, save_settings, load_settings, UYGULAMA_SURUMU, asdict
+from core_settings import PanelSettings, save_settings, load_settings, UYGULAMA_SURUMU, asdict, normalize_module_order
 from utils import set_autostart, resource_path, ICON_FILE, APP_ID
 import sys
 import locale
@@ -33,7 +32,6 @@ class SettingsDialog(QtWidgets.QDialog):
 
         self.form_yoneticisi = AyarFormlari(self, self.settings)
         # Sekmeleri AyarFormlari sınıfından yüklüyoruz (Modüler Yapı)
-        self.tabs.addTab(self._language_tab_olustur(), "Dil")
         self.tabs.addTab(self.form_yoneticisi.genel_sekme_olustur(), "Genel")
         self.tabs.addTab(self.form_yoneticisi.pil_sekme_olustur(), "Pil")
         self.tabs.addTab(self.form_yoneticisi.saat_sekme_olustur(), "Saat")
@@ -41,6 +39,7 @@ class SettingsDialog(QtWidgets.QDialog):
         self.tabs.addTab(self._task_priorities_tab_olustur(), "Görev Öncelikleri")
       
         
+        self.tabs.addTab(self._language_tab_olustur(), "Dil")
         self.btn_apply = QtWidgets.QPushButton("Uygula")
         self.btn_apply.setEnabled(False)
         self.btn_save = QtWidgets.QPushButton("Kaydet")
@@ -189,6 +188,63 @@ class SettingsDialog(QtWidgets.QDialog):
                 items.append({"key": key, "name": name[:7], "color": color})
         self.settings.task_priorities = items or default_task_priorities()
 
+    def _module_order_group(self):
+        group = QtWidgets.QGroupBox("Sıralama")
+        group.setFixedWidth(104)
+        layout = QtWidgets.QVBoxLayout(group)
+        layout.setContentsMargins(6, 6, 6, 6)
+        layout.setSpacing(4)
+        self.lst_module_order = QtWidgets.QListWidget()
+        self.lst_module_order.setFixedSize(90, 70)
+        self.lst_module_order.setSelectionMode(QtWidgets.QAbstractItemView.SelectionMode.SingleSelection)
+        labels = {"battery": "Pil", "time": "Saat", "date": "Tarih"}
+        for key in normalize_module_order(getattr(self.settings, "module_order", [])):
+            item = QtWidgets.QListWidgetItem(labels[key])
+            item.setData(QtCore.Qt.ItemDataRole.UserRole, key)
+            self.lst_module_order.addItem(item)
+        self.lst_module_order.setCurrentRow(0)
+
+        buttons = QtWidgets.QHBoxLayout()
+        buttons.setSpacing(4)
+        self.btn_module_up = QtWidgets.QPushButton()
+        self.btn_module_down = QtWidgets.QPushButton()
+        self.btn_module_up.setIcon(self.style().standardIcon(QtWidgets.QStyle.StandardPixmap.SP_ArrowUp))
+        self.btn_module_down.setIcon(self.style().standardIcon(QtWidgets.QStyle.StandardPixmap.SP_ArrowDown))
+        self.btn_module_up.setToolTip("Yukarı")
+        self.btn_module_down.setToolTip("Aşağı")
+        self.btn_module_up.setFixedSize(28, 24)
+        self.btn_module_down.setFixedSize(28, 24)
+        self.btn_module_up.clicked.connect(lambda: self._move_module_order(-1))
+        self.btn_module_down.clicked.connect(lambda: self._move_module_order(1))
+        buttons.addStretch()
+        buttons.addWidget(self.btn_module_up)
+        buttons.addWidget(self.btn_module_down)
+        buttons.addStretch()
+        layout.addWidget(self.lst_module_order)
+        layout.addLayout(buttons)
+        return group
+
+    def _sync_module_order_from_list(self):
+        if not hasattr(self, "lst_module_order"):
+            return
+        order = []
+        for row in range(self.lst_module_order.count()):
+            order.append(self.lst_module_order.item(row).data(QtCore.Qt.ItemDataRole.UserRole))
+        self.settings.module_order = normalize_module_order(order)
+
+    def _move_module_order(self, direction):
+        row = self.lst_module_order.currentRow()
+        target = row + direction
+        if row < 0 or target < 0 or target >= self.lst_module_order.count():
+            return
+        item = self.lst_module_order.takeItem(row)
+        self.lst_module_order.insertItem(target, item)
+        self.lst_module_order.setCurrentRow(target)
+        self._sync_module_order_from_list()
+        self._set_dirty(True)
+        if self.parent():
+            self.parent().apply_settings()
+
 
     def apply_now(self):
         prev_autostart = self.settings.acilista_calistir
@@ -237,7 +293,7 @@ class SettingsDialog(QtWidgets.QDialog):
             self.parent().apply_settings()
         self._set_dirty(False)
 
-    def _add_help_link(self, form_layout):
+    def _add_help_link(self, form_layout, extra_widget=None):
         help_btn = QtWidgets.QPushButton("Yardım")
         help_btn.setFlat(True)
         help_btn.setSizePolicy(
@@ -262,11 +318,21 @@ class SettingsDialog(QtWidgets.QDialog):
             """
         )
         help_btn.clicked.connect(self.show_help)
+        top = QtWidgets.QVBoxLayout()
+        top.setContentsMargins(0, 0, 0, 0)
+        top.setSpacing(4)
         row = QtWidgets.QHBoxLayout()
         row.setContentsMargins(0, 0, 0, 0)
         row.addStretch()
         row.addWidget(help_btn)
-        form_layout.insertRow(0, row)
+        top.addLayout(row)
+        if extra_widget is not None:
+            extra_row = QtWidgets.QHBoxLayout()
+            extra_row.setContentsMargins(0, 0, 0, 0)
+            extra_row.addStretch()
+            extra_row.addWidget(extra_widget)
+            top.addLayout(extra_row)
+        form_layout.insertRow(0, top)
 
 
     def show_help(self):
@@ -406,9 +472,9 @@ class SettingsDialog(QtWidgets.QDialog):
         if self.parent(): self.parent().apply_settings()
 
     def _apply_general_preview(self, _=None):
-        self.settings.spacing_battery_time = self.spn_space_bt.value()
-        self.settings.spacing_time_date = self.spn_space_td.value()
-        self.settings.spacing_battery_date_hidden = self.spn_space_bd.value()
+        self.settings.spacing_battery_time_offset = self.spn_space_bt.value()
+        self.settings.spacing_time_date_offset = self.spn_space_td.value()
+        self.settings.spacing_battery_date_hidden_offset = self.spn_space_bd.value()
         self._set_dirty(True)
         if self.parent(): self.parent().apply_settings()
 
@@ -474,6 +540,8 @@ class SettingsDialog(QtWidgets.QDialog):
             self.settings.language = self.cmb_language.currentData() or "tr"
         if hasattr(self, "tbl_task_priorities"):
             self._sync_task_priorities_from_table()
+        if hasattr(self, "lst_module_order"):
+            self._sync_module_order_from_list()
         return self.settings
 
 

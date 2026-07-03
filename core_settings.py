@@ -3,6 +3,20 @@ import json
 import os
 import shutil
 
+MODULE_ORDER_KEYS = ("battery", "time", "date")
+DEFAULT_MODULE_ORDER = list(MODULE_ORDER_KEYS)
+
+
+def normalize_module_order(order):
+    result = []
+    for key in order if isinstance(order, list) else []:
+        if key in MODULE_ORDER_KEYS and key not in result:
+            result.append(key)
+    for key in MODULE_ORDER_KEYS:
+        if key not in result:
+            result.append(key)
+    return result
+
 from utils import APP_DATA_DIR, SETTINGS_FILE, log_kaydet
 
 UYGULAMA_SURUMU = "1.1.0"  # Uygulamanın merkezi sürüm numarası
@@ -22,7 +36,7 @@ class PanelSettings:
     bildirim_soguma_suresi: int = 60 # Task 3.2: Saniye cinsinden
 
     time_visible: bool = True
-    time_font_family: str = "DS-Digital"
+    time_font_family: str = "Stencil"
     time_font_size: int = 30
     time_color: str = "#00FF7F"
     time_bold: bool = False
@@ -67,6 +81,10 @@ class PanelSettings:
     spacing_battery_time: int = 0
     spacing_time_date: int = 0
     spacing_battery_date_hidden: int = 2
+    spacing_battery_time_offset: int = 0
+    spacing_time_date_offset: int = 0
+    spacing_battery_date_hidden_offset: int = 0
+    module_order: list = field(default_factory=lambda: list(DEFAULT_MODULE_ORDER))
 
     coklu_monitor_modu: bool = True # Task 7.4: Modülleri farklı ekranlara dağıtma izni
 
@@ -128,6 +146,7 @@ def load_settings():
                     data = { _normalize_key(k): v for k, v in data.items() }
                     allowed = set(PanelSettings.__dataclass_fields__.keys())
                     data = {k: v for k, v in data.items() if k in allowed}
+                    data["module_order"] = normalize_module_order(data.get("module_order"))
                 return PanelSettings(**data)
         except Exception as e:
             log_kaydet(f"Ana dizinden ayarlar yuklenirken hata: {e}", "warning")
@@ -148,6 +167,7 @@ def load_settings():
                     data = { _normalize_key(k): v for k, v in data.items() }
                     allowed = set(PanelSettings.__dataclass_fields__.keys())
                     data = {k: v for k, v in data.items() if k in allowed}
+                    data["module_order"] = normalize_module_order(data.get("module_order"))
                     log_kaydet("Yerel ayarlar dosyasi basariyla yuklendi.")
                 return PanelSettings(**data)
         except Exception as e:

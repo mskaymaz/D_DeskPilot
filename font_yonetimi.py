@@ -7,7 +7,7 @@ except ImportError:
 
 from utils import resource_path
 
-_PRIMARY_TIME_FONT_FILES = ["DSDigital Bold 700.ttf", "digital7Regular.ttf"]
+_PRIMARY_TIME_FONT_FILES = ["STENCIL.TTF", "DSDigital Bold 700.ttf", "digital7Regular.ttf"]
 _OPTIONAL_TIME_FONT_FILES = ["Technology.ttf", "Technology-Bold.ttf"]
 
 _loaded = False

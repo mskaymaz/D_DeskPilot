@@ -3,6 +3,8 @@ try:
 except ImportError:
     from PyQt6 import QtCore, QtGui, QtWidgets
 
+from core_settings import normalize_module_order
+
 
 class WindowSettingsMixin:
     def apply_settings(self):
@@ -48,28 +50,7 @@ class WindowSettingsMixin:
         self._set_battery_color(self.settings.battery_color)
         self._refresh_battery_rows()
 
-        # --- Spacer guncelle ---
-        if self.settings.time_visible:
-            bt_space = int(self.settings.spacing_battery_time * scale)
-            td_space = int(self.settings.spacing_time_date * scale)
-        else:
-            # Saat yok -> pil ile tarih birbirine yakin olsun
-            bt_space = 0
-            td_space = int(self.settings.spacing_battery_date_hidden * scale)
-
-        self.spacer_bt.changeSize(
-            0,
-            bt_space,
-            QtWidgets.QSizePolicy.Policy.Minimum,
-            QtWidgets.QSizePolicy.Policy.Fixed
-        )
-
-        self.spacer_td.changeSize(
-            0,
-            td_space,
-            QtWidgets.QSizePolicy.Policy.Minimum,
-            QtWidgets.QSizePolicy.Policy.Fixed
-        )
+        self._rebuild_module_layout(scale)
 
         self.main_layout.setContentsMargins(
             0,
@@ -92,6 +73,47 @@ class WindowSettingsMixin:
             self.free_battery_window.setWindowOpacity(self.settings.seffaflik)
 
         self._apply_free_layout_mode()
+
+    def _module_gap(self, first, second, scale):
+        pair = {first, second}
+        if pair == {"battery", "time"}:
+            value = (
+                self.settings.spacing_battery_time
+                + getattr(self.settings, "spacing_battery_time_offset", 0)
+            )
+        elif pair == {"time", "date"}:
+            value = (
+                self.settings.spacing_time_date
+                + getattr(self.settings, "spacing_time_date_offset", 0)
+            )
+        else:
+            value = (
+                self.settings.spacing_battery_date_hidden
+                + getattr(self.settings, "spacing_battery_date_hidden_offset", 0)
+            )
+        return int(value * scale)
+
+    def _rebuild_module_layout(self, scale):
+        while self.main_layout.count():
+            self.main_layout.takeAt(0)
+
+        modules = {
+            "battery": (self.battery_row, self.settings.battery_visible),
+            "time": (self.time_label, self.settings.time_visible),
+            "date": (self.date_label, self.settings.date_visible),
+        }
+        visible = [
+            (key, modules[key][0])
+            for key in normalize_module_order(getattr(self.settings, "module_order", []))
+            if modules[key][1]
+        ]
+
+        previous = None
+        for key, widget in visible:
+            if previous is not None:
+                self.main_layout.addSpacing(self._module_gap(previous, key, scale))
+            self.main_layout.addWidget(widget)
+            previous = key
 
     def _lock_label_height(self, label, font_size):
         fm = QtGui.QFontMetrics(label.font())
