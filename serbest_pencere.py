@@ -91,7 +91,7 @@ class SerbestSatirPenceresi(QtWidgets.QWidget):
             if hit_rect.contains(e.position().toPoint()):
                 self.quick_actions.place_for_content_rect(hit_rect)
             else:
-                self.quick_actions.hide()
+                self.quick_actions.delayed_hide()
         if self.surukleme_konumu:
             self.move(e.globalPosition().toPoint() - self.surukleme_konumu)
             self._ustte_tutma_guncelle()

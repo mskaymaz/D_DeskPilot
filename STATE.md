@@ -10,10 +10,10 @@
 - Follow Task.md sequentially
 
 ## Last Completed
-- Documentation architecture reorganized.
+- Stencil embedded/default clock font documented.
 
 ## Next Task
-- Continue from Task.md.
+- Verify seconds visibility toggle.
 
 ## Blockers
 - None

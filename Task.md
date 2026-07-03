@@ -25,13 +25,12 @@
 ## 2. Clock Module
 - [x] Clock module exists.
 - [x] Embedded digital fonts added.
-- [x] DS-Digital set as default clock font.
+- [x] Stencil set as default clock font.
 - [x] System fonts remain selectable for clock.
-- [ ] Fix seconds-width horizontal jitter.
 - [ ] Verify seconds visibility toggle.
-- [ ] Verify clock font scaling.
+- [x] Verify clock font scaling.
 - [ ] Verify clock behavior in free layout.
-- [ ] Verify clock behavior after restart.
+- [x] Verify clock behavior after restart.
 
 ## 3. Date Module
 - [x] Date module exists.
@@ -169,6 +168,7 @@
 - [ ] Push release artifacts if needed.
 
 ## 15. Deferred / Do Not Do in v1
+- [ ] Fix seconds-width horizontal jitter.
 - [ ] No SQLite migration.
 - [ ] No plugin system.
 - [ ] No advanced theme engine.

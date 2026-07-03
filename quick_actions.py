@@ -101,6 +101,16 @@ class QuickActionsPanel(QtWidgets.QFrame):
         return local_rect
 
     def _content_rect(self, widget):
+        labels = [w for w in widget.findChildren(QtWidgets.QLabel) if w.isVisible()]
+        if isinstance(widget, QtWidgets.QLabel) and widget.isVisible():
+            labels.insert(0, widget)
+        rect = None
+        for label in labels:
+            local = self._rendered_rect(label)
+            mapped = QtCore.QRect(label.mapTo(self.owner, local.topLeft()), local.size())
+            rect = mapped if rect is None else rect.united(mapped)
+        if rect is not None:
+            return rect
         local_rect = self._rendered_rect(widget)
         return QtCore.QRect(widget.mapTo(self.owner, local_rect.topLeft()), local_rect.size())
 
@@ -144,4 +154,4 @@ class QuickActionsPanel(QtWidgets.QFrame):
         self.show()
 
     def delayed_hide(self):
-        QtCore.QTimer.singleShot(700, lambda: self.hide() if not self.underMouse() else None)
+        QtCore.QTimer.singleShot(500, lambda: self.hide() if not self.underMouse() else None)

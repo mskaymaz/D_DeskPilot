@@ -49,7 +49,7 @@ class WindowMouseMixin:
         if content_rect and any(rect.contains(pos) for rect in hit_rects):
             self.quick_actions.place_for_content_rect(content_rect)
             return
-        self.quick_actions.hide()
+        self.quick_actions.delayed_hide()
 
     def leaveEvent(self, e):
         if hasattr(self, "quick_actions"):
