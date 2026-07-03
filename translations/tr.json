@@ -20,5 +20,9 @@
   "todo.priority.high": "Yüksek",
   "todo.date.add": "Tarih/Saat Ekle",
   "todo.date.use_due": "Son tarih kullan",
-  "todo.date.label": "Son Tarih:"
+  "todo.date.label": "Son Tarih:",
+  "todo.status.completed": "Tamamlandı",
+  "todo.edit.title": "Başlık",
+  "todo.edit.description": "Açıklama",
+  "todo.edit.priority": "Öncelik"
 }

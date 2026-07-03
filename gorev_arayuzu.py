@@ -66,7 +66,7 @@ class GorevArayuzuDialog(QtWidgets.QDialog):
 
     def _ust_butonlari_olustur(self):
         ust_layout = QtWidgets.QHBoxLayout()
-        self.btn_yeni_gorev = QtWidgets.QPushButton("+ Yeni Görev")
+        self.btn_yeni_gorev = QtWidgets.QPushButton(self._tr("todo.add.button", "+ Yeni Görev"))
         self.btn_yeni_gorev.clicked.connect(self.yeni_gorev_paneli_ac)
         ust_layout.addWidget(self.btn_yeni_gorev)
         ust_layout.addStretch()
@@ -237,7 +237,7 @@ class GorevArayuzuDialog(QtWidgets.QDialog):
 
         cmb_durum = KaliciComboBox()
         cmb_durum.addItem("Aktif", "active")
-        cmb_durum.addItem("Tamamlandı", "completed")
+        cmb_durum.addItem(self._tr("todo.status.completed", "Tamamlandı"), "completed")
         cmb_durum.addItem("İptal Edildi", "cancelled")
         cmb_durum.setCurrentIndex(2 if gorev.iptal_edildi else 1 if gorev.tamamlandi else 0)
 
@@ -248,11 +248,11 @@ class GorevArayuzuDialog(QtWidgets.QDialog):
         btn_kaydet.clicked.connect(dialog.accept)
         btn_iptal.clicked.connect(dialog.reject)
 
-        layout.addWidget(QtWidgets.QLabel("Başlık"), 0, 0)
+        layout.addWidget(QtWidgets.QLabel(self._tr("todo.edit.title", "Başlık")), 0, 0)
         layout.addWidget(txt_baslik, 0, 1, 1, 2)
-        layout.addWidget(QtWidgets.QLabel("Açıklama"), 1, 0)
+        layout.addWidget(QtWidgets.QLabel(self._tr("todo.edit.description", "Açıklama")), 1, 0)
         layout.addWidget(txt_aciklama, 1, 1, 1, 2)
-        layout.addWidget(QtWidgets.QLabel("Öncelik"), 2, 0)
+        layout.addWidget(QtWidgets.QLabel(self._tr("todo.edit.priority", "Öncelik")), 2, 0)
         layout.addWidget(cmb_oncelik, 2, 1, 1, 2)
         layout.addWidget(QtWidgets.QLabel("Durum"), 3, 0)
         layout.addWidget(cmb_durum, 3, 1, 1, 2)

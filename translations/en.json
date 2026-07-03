@@ -20,5 +20,9 @@
   "todo.priority.high": "High",
   "todo.date.add": "Add Date/Time",
   "todo.date.use_due": "Use due date",
-  "todo.date.label": "Due Date:"
+  "todo.date.label": "Due Date:",
+  "todo.status.completed": "Completed",
+  "todo.edit.title": "Title",
+  "todo.edit.description": "Description",
+  "todo.edit.priority": "Priority"
 }

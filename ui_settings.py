@@ -13,6 +13,7 @@ import ctypes
 from ui_ayarlar_formlar import AyarFormlari
 from oncelik_yonetimi import default_task_priorities
 from font_yonetimi import load_app_fonts
+from dil_yonetimi import SUPPORTED_LANGUAGES, t
 
 # =======================
 # AYARLAR DİYALOĞU
@@ -32,6 +33,7 @@ class SettingsDialog(QtWidgets.QDialog):
 
         self.form_yoneticisi = AyarFormlari(self, self.settings)
         # Sekmeleri AyarFormlari sınıfından yüklüyoruz (Modüler Yapı)
+        self.tabs.addTab(self._language_tab_olustur(), "Dil")
         self.tabs.addTab(self.form_yoneticisi.genel_sekme_olustur(), "Genel")
         self.tabs.addTab(self.form_yoneticisi.pil_sekme_olustur(), "Pil")
         self.tabs.addTab(self.form_yoneticisi.saat_sekme_olustur(), "Saat")
@@ -65,6 +67,20 @@ class SettingsDialog(QtWidgets.QDialog):
         self.surum_etiketi.setStyleSheet("color: gray; font-size: 10px; margin-left: 5px;")
         main.addWidget(self.surum_etiketi)
         main.addLayout(btns)
+
+    def _language_tab_olustur(self):
+        tab = QtWidgets.QWidget()
+        layout = QtWidgets.QVBoxLayout(tab)
+        self.cmb_language = QtWidgets.QComboBox()
+        for lang in SUPPORTED_LANGUAGES:
+            self.cmb_language.addItem(t(f"language.{lang}", lang), lang)
+        idx = self.cmb_language.findData(getattr(self.settings, "language", "tr"))
+        self.cmb_language.setCurrentIndex(max(idx, 0))
+        self.cmb_language.currentIndexChanged.connect(lambda: self._set_dirty(True))
+        layout.addWidget(QtWidgets.QLabel("Uygulama dili:"))
+        layout.addWidget(self.cmb_language)
+        layout.addStretch()
+        return tab
 
     def _task_priorities_tab_olustur(self):
         tab = QtWidgets.QWidget()
@@ -454,6 +470,8 @@ class SettingsDialog(QtWidgets.QDialog):
         # Ayarlar artık preview metodları üzerinden anlık olarak self.settings'e yazılıyor.
         # Sadece line edit'ler gibi anlık tetiklenmeyenleri buradan alıyoruz.
         self.settings.date_format = self.txt_date_format.text()
+        if hasattr(self, "cmb_language"):
+            self.settings.language = self.cmb_language.currentData() or "tr"
         if hasattr(self, "tbl_task_priorities"):
             self._sync_task_priorities_from_table()
         return self.settings

@@ -467,3 +467,7 @@ Done:
 - No new UI text without translation keys.
 - Language is persisted in PanelSettings.
 - Arabic requires separate RTL validation.
+
+## Current Localization Scope
+Current phase: Turkish-first stabilization.
+Do not expand scope into full English/Arabic UI polishing until core Turkish workflows are stable.

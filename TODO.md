@@ -18,3 +18,9 @@
 - [ ] Todo migration
 - [ ] Settings migration
 - [ ] Core UI migration
+
+## TODO - Localization Phase Split
+- [ ] v1: Keep Turkish UI stable and polished.
+- [ ] v1: Use i18n-compatible structure for new text where practical.
+- [ ] v2: Complete English translation pass.
+- [ ] v2: Complete Arabic translation and RTL validation pass.

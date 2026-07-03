@@ -20,5 +20,9 @@
   "todo.priority.high": "مرتفع",
   "todo.date.add": "إضافة التاريخ/الوقت",
   "todo.date.use_due": "استخدام تاريخ الاستحقاق",
-  "todo.date.label": "تاريخ الاستحقاق:"
+  "todo.date.label": "تاريخ الاستحقاق:",
+  "todo.status.completed": "مكتملة",
+  "todo.edit.title": "العنوان",
+  "todo.edit.description": "الوصف",
+  "todo.edit.priority": "الأولوية"
 }

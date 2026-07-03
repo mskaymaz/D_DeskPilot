@@ -47,3 +47,7 @@ Arabic support must be treated as RTL-aware: alignment, layout direction, icon/t
 - English and Arabic are first-class targets.
 - Arabic requires RTL validation.
 - i18n migration is incremental: Todo → Settings → Core UI.
+
+## Localization Phase Decision
+v1 remains Turkish-first. The i18n infrastructure may exist, but full English/Arabic polishing is deferred to the v2 globalization phase.
+Before v2 localization, Turkish UI, workflow stability, task behavior, settings behavior, and release packaging must be solid.
