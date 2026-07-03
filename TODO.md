@@ -1,26 +1,5 @@
-# TODO List for Fixing Settings Persistence in Exe
+# D_DeskPilot TODO
 
-- [ ] Update SETTINGS_FILE path to use user's local app data directory
-- [ ] Modify save_settings to create directory if not exists
-- [ ] Test the changes by building exe and verifying settings save/load
+Canonical task source: `Task.md`.
 
-## TODO - Global App Preparation
-- [ ] Create translation file structure.
-- [ ] Define naming convention for translation keys.
-- [ ] Add language setting to settings model.
-- [ ] Apply translations first to Task/Todo module.
-- [ ] Add Arabic RTL validation pass.
-
-## TODO - i18n Migration
-- [ ] Translation manager
-- [ ] tr/en/ar JSON files
-- [ ] Persist language
-- [ ] Todo migration
-- [ ] Settings migration
-- [ ] Core UI migration
-
-## TODO - Localization Phase Split
-- [ ] v1: Keep Turkish UI stable and polished.
-- [ ] v1: Use i18n-compatible structure for new text where practical.
-- [ ] v2: Complete English translation pass.
-- [ ] v2: Complete Arabic translation and RTL validation pass.
+Do not maintain a second independent task list here.
