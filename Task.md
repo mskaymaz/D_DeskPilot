@@ -10,7 +10,7 @@
 - [x] Define SPP workflow.
 - [x] Use one canonical task file.
 - [ ] Keep `Task.md` updated after each completed feature.
-- [ ] Keep commits feature-scoped.
+- [x] Keep commits feature-scoped.
 - [ ] Add final release notes structure.
 
 ## 1. Core App / Startup
