@@ -1,7 +1,7 @@
-# D_DeskPilot AGENTS
+﻿# D_DeskPilot AGENTS
 
 ## Purpose
-Working rules only. Product architecture is NOT documented here.
+Working rules only. Product architecture is documented in `CORE.md`; task tracking is only in `Task.md`.
 
 ## SPP
 - Analyze first.
@@ -14,13 +14,13 @@ Working rules only. Product architecture is NOT documented here.
 - No long explanations.
 - No unsolicited examples or visuals.
 
-## Bismillah
-- Preserve disciplined workflow.
-- Stay focused on the current task.
+## Runtime Commands
+- `bismillah` or `eko`: strict scoped mode.
+- `banaver`: deliver requested artifact only.
+- `temizle`: reset current working context.
 
 ## Document Roles
-- AGENTS.md : Working rules
-- CORE.md   : Product architecture
-- STATE.md  : Current project state
-- Task.md   : Single master task list
-- TODO.md   : Pointer only
+- `AGENTS.md`: working rules.
+- `CORE.md`: product architecture.
+- `STATE.md`: current project state.
+- `Task.md`: single master roadmap.

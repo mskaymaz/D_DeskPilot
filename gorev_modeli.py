@@ -43,6 +43,8 @@ class GorevModeli:
     def from_dict(cls, data: dict):
         try:
             data = dict(data)
+            allowed_fields = {field.name for field in cls.__dataclass_fields__.values()}
+            data = {key: value for key, value in data.items() if key in allowed_fields}
             data.setdefault("aciklama", "")
             data.setdefault("iptal_edildi", False)
             data.setdefault("tamamlanma_zamani", None)

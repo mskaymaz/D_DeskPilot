@@ -1,5 +1,6 @@
 import json
 import os
+import shutil
 from datetime import datetime
 from typing import List, Optional
 from hatirlatici_modeli import HatirlaticiModeli, HatirlaticiDurumu
@@ -47,6 +48,8 @@ class HatirlaticiServisi:
             with open(gecici_dosya, "w", encoding="utf-8") as f:
                 json.dump(veri, f, ensure_ascii=False, indent=2)
             
+            if os.path.exists(self.dosya_yolu):
+                shutil.copy2(self.dosya_yolu, self.dosya_yolu + ".bak")
             os.replace(gecici_dosya, self.dosya_yolu)
         except Exception as e:
             log_kaydet(f"Hatırlatıcılar kaydedilirken hata: {e}", "error")

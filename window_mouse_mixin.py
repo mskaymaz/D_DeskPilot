@@ -45,8 +45,8 @@ class WindowMouseMixin:
             cr = self.quick_actions.hit_rect_for_widget(w)
             hit_rects.append(cr)
             content_rect = cr if content_rect is None else content_rect.united(cr)
-        self.quick_actions.show_hit_rects(hit_rects)
-        if content_rect and any(rect.contains(pos) for rect in hit_rects):
+        self.quick_actions.show_hit_rects([content_rect] if content_rect else [])
+        if content_rect and content_rect.contains(pos):
             self.quick_actions.place_for_content_rect(content_rect)
             return
         self.quick_actions.delayed_hide()

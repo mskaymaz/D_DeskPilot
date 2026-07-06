@@ -1,4 +1,4 @@
-# D_DeskPilot CORE
+﻿# D_DeskPilot CORE
 
 ## Purpose
 Desktop productivity assistant. Turkish-first v1.
@@ -26,7 +26,7 @@ Desktop productivity assistant. Turkish-first v1.
 - CORE.md : Architecture.
 - STATE.md : Current state.
 - Task.md : Master roadmap.
-- TODO.md : Pointer only.
+
 
 ## Release Policy
 - v1: Turkish stability.

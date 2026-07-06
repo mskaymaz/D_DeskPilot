@@ -123,7 +123,9 @@ class QuickActionsPanel(QtWidgets.QFrame):
     def show_hit_rects(self, rects):
         while len(self._hit_overlays) < len(rects):
             overlay = QtWidgets.QFrame(self.owner)
-            overlay.setAttribute(QtCore.Qt.WidgetAttribute.WA_TransparentForMouseEvents)
+            overlay.setMouseTracking(True)
+            overlay.setAttribute(QtCore.Qt.WidgetAttribute.WA_TransparentForMouseEvents, False)
+            overlay.installEventFilter(self)
             overlay.setStyleSheet("background:rgba(255,255,0,0);border:none;")
             self._hit_overlays.append(overlay)
 
@@ -133,6 +135,13 @@ class QuickActionsPanel(QtWidgets.QFrame):
             overlay.show()
         for overlay in self._hit_overlays[len(rects):]:
             overlay.hide()
+
+    def eventFilter(self, obj, event):
+        if obj in self._hit_overlays and event.type() == QtCore.QEvent.Type.MouseMove:
+            if hasattr(self.owner, "_quick_hover"):
+                self.owner._quick_hover(obj.mapTo(self.owner, event.position().toPoint()))
+            return False
+        return super().eventFilter(obj, event)
 
     def place_for_widget(self, widget):
         self.place_for_content_rect(self._content_rect(widget))

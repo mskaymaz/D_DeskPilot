@@ -1,5 +1,6 @@
 import json
 import os
+import shutil
 from typing import List
 from gorev_modeli import GorevModeli, GorevOnceligi
 from utils import APP_DATA_DIR, log_kaydet
@@ -42,6 +43,8 @@ class GorevServisi:
             with open(gecici_dosya, "w", encoding="utf-8") as f:
                 json.dump([g.to_dict() for g in self._gorevler], f, ensure_ascii=False, indent=2)
 
+            if os.path.exists(self.dosya_yolu):
+                shutil.copy2(self.dosya_yolu, self.dosya_yolu + ".bak")
             os.replace(gecici_dosya, self.dosya_yolu)
         except Exception as e:
             log_kaydet(f"Görevler kaydedilirken hata: {e}", "error")
