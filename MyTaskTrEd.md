@@ -24,45 +24,43 @@ Temel amaç:
 - [ ] Görev 6.2 tamamlanana kadar Hatırlatıcı, Senkronizasyon, Mobil, Paketleme veya genel yayın çalışmaları başlatılmamalıdır.
 - [ ] Faz 10 yalnızca gelecek vizyonudur; mevcut Todo odağı sırasında uygulanmamalıdır.
 
-## [ ] Vazgeçilmez Kurallar
+## [ ] Vazgeçilmez Kurallar ***
 
-- [ ] Tam yerelleştirmeden önce Türkçe öncelikli v1 kararlılığı gelir.
-- [ ] v1 içinde ücretli servis, ücretli API, bulut bağımlılığı, kullanıcı hesabı veya zorunlu internet olmayacaktır.
-- [ ] v1 için veri saklama modeli JSON olarak kalacaktır.
-- [ ] İş mantığı servislerde/modellerde olmalı; arayüz yalnızca durumu göstermeli ve eylem göndermelidir.
-- [ ] Yamalar küçük ve özellik kapsamlı tutulmalıdır.
-- [ ] Mevcut görev uygulanırken ilgisiz dosyalar değiştirilmemelidir.
-- [ ] Çalışan dosyalar; hata, özellik, performans veya dosya boyutu riski gerektirmedikçe refaktör edilmemelidir.
-- [ ] Dosyalar tercihen 400 satırın altında tutulmalıdır; 600 satır yalnızca kaçınılmazsa kabul edilmelidir.
+- [x] Tam yerelleştirmeden önce Türkçe öncelikli v1 kararlılığı gelir.
+- [x] v1 içinde ücretli servis, ücretli API, bulut bağımlılığı, kullanıcı hesabı veya zorunlu internet olmayacaktır.
+- [x] v1 için veri saklama modeli JSON olarak kalacaktır.
+- [???] İş mantığı servislerde/modellerde olmalı; arayüz yalnızca durumu göstermeli ve eylem göndermelidir.
+- [x] Yamalar küçük ve özellik kapsamlı tutulmalıdır.
+- [x] Mevcut görev uygulanırken ilgisiz dosyalar ve bölümler değiştirilmemelidir. Doğru yere odaklanılmalıdır.
+- [x] Çalışan dosyalar; hata, özellik, performans veya dosya boyutu riski gerektirmedikçe refaktör edilmemelidir.
+- [x] Dosyalar tercihen 400 satırın altında tutulmalıdır; 600 satır yalnızca kaçınılmazsa kabul edilmelidir.
 - [ ] Her görevden sonra uygulama çalışır durumda kalmalıdır.
 - [ ] Python kod düzenlemelerinde, değiştirilen dosya için söz dizimi kontrolü çalıştırılmalı veya neden atlandığı belirtilmelidir.
 
-## [ ] Uygulama Kapısı
+## [ ] Uygulama Kapısı ***
 
 Uygulamadan önce:
-- [ ] Yalnızca mevcut görev ve doğrudan ilgili dosyalar okunmalıdır.
-- [ ] Değişebilecek dosyalar/katmanlar belirlenmelidir.
-- [ ] Benzer mantığın zaten mevcut olup olmadığı kontrol edilmelidir.
-- [ ] Gelecek görevlerin uygulanmasından kaçınılmalıdır.
+- [x] Yalnızca mevcut görev ve doğrudan ilgili dosyalar okunmalıdır.
+- [x] Değişebilecek dosyalar/katmanlar belirlenmelidir.
+- [x] Benzer mantığın zaten mevcut olup olmadığı kontrol edilmelidir.
+- [x] Gelecek görevlerin uygulanmasından kaçınılmalıdır.
 
 Uygulamadan sonra:
-- [ ] Değişen dosyalar listelenmelidir.
-- [ ] Söz dizimi/test sonucu bildirilmeli veya çalıştırılmadıysa açıkça söylenmelidir.
-- [ ] Görev, yalnızca istenen kapsam tamamlandıktan sonra tamamlandı işaretlenmelidir.
-- [ ] Mevcut görev kullanıcı tarafından doğrulanmadan sonraki göreve geçilmemelidir.
 
-## [ ] Mevcut Repo Durumu
+- [x] Söz dizimi/test sonucu bildirilmeli veya çalıştırılmadıysa açıkça söylenmelidir.
+- [x] Görev, yalnızca istenen kapsam tamamlandıktan sonra tamamlandı işaretlenmelidir.
+- [x] Mevcut görev kullanıcı tarafından doğrulanmadan sonraki göreve geçilmemelidir.
 
-- [ ] Pull sonrası mevcut dal: `main`.
-- [ ] Yerel `v2` dalı hâlâ vardır; uzak takip dalı upstream'den kaldırılmıştır.
-- [ ] Mevcut odak: Türkçe v1'i kararlı hale getirmek.
-- [ ] QuickActions kararlı/dondurulmuş kabul edilir. Açıkça istenmedikçe değiştirilmemelidir.
+## [ ] Mevcut Repo Durumu***
+
+- [x] Pull sonrası mevcut dal: `main`.
+- [x] Mevcut odak: Türkçe v1'i kararlı hale getirmek.
+- [???] QuickActions kararlı/dondurulmuş kabul edilir. Açıkça istenmedikçe değiştirilmemelidir.
 - [ ] Görev dışında kirli dosyalar bulunabilir; ilgisiz değişikliklerin üzerine yazılmamalıdır.
 
-## [ ] Mevcut Mimari Özeti
+## [ ] Mevcut Mimari Özeti ***
 
-- [ ] Giriş: `main.py` -> `DeskPilot.py`.
-- [ ] Uygulama başlangıcı: tekil örnek koruması, günlükleme, ayar yükleme, uygulama fontları, sistem tepsisi, ana şeffaf pencere.
+- [x] Giriş: `main.py` -> `DeskPilot.py`. Her iki isimde olabilir. main.py kullanım kolaylığına ve hatırlamaya sahip.
 - [ ] Ana pencere: `core_window.py`; pencere/çalışma zamanı/gezinme/ayarlar/üstte tutma/serbest yerleşim mixin'leriyle oluşur.
 - [ ] Ayarlar: `core_settings.py`, `deskpilot.settings.json`, `ui_settings.py`, `ui_ayarlar_formlar.py`.
 - [ ] Saat/tarih/pil: ana panel widget'ları ve `pil_servisi.py`.
@@ -72,7 +70,7 @@ Uygulamadan sonra:
 - [ ] Bildirim/günlükleme: `bildirim_servisi.py`, `log_servisi.py`, `utils.py`.
 - [ ] i18n temeli: `dil_yonetimi.py`, `translations/*.json`.
 
-## [ ] Tamamlanma İşaretleri
+## [ ] Tamamlanma İşaretleri ***
 
 - [ ] `[x]` tamamlandı ve mevcut repoda var.
 - [ ] `[ ]` bekliyor.
@@ -81,7 +79,7 @@ Uygulamadan sonra:
 
 ---
 
-# [ ] Faz 0 - Yönetim ve Güvenlik
+# [x] Faz 0 - Yönetim ve Güvenlik ***
 
 Bu faz, geliştirme sırasında dağılmayı önleyen ana kuralları belirler. Amaç; tek görev kaynağı, sınırlı kapsam ve güvenli patch düzenini korumaktır.
 
@@ -90,19 +88,19 @@ Bu faz, geliştirme sırasında dağılmayı önleyen ana kuralları belirler. A
 **Geliştirici Notu:** Bu görev, hangi dosyanın ana plan olduğunu netleştirmek içindir. Birden fazla aktif checklist kalırsa geliştirme yönü karışır ve aynı iş iki farklı yerde farklı görünebilir.
 
 Amaç:
-- [ ] Tek bir aktif ilerleme kaynağı tutmak ve paralel checklist kaymasını önlemek.
+- [x] Tek bir aktif ilerleme kaynağı tutmak ve paralel checklist kaymasını önlemek.
 
 Kapsam:
-- [ ] Yalnızca görev yol haritası dokümanları.
+- [x] Yalnızca görev yol haritası dokümanları.
 
 Tamamlanma Kriterleri:
 - [x] `Task.md` mevcut ana yol haritasıdır.
 - [x] Gereksiz görev işaretçi dokümanları mevcut repodan kaldırıldı.
 - [x] Ana yol haritasından fazla modül bazlı checklist'ler kaldırıldı.
-- [ ] İncelemeden sonra `MyTask.md` dosyasının `Task.md` yerine geçip geçmeyeceğine karar ver.
-- [ ] Her tamamlanan özellikten sonra seçilen ana görev dosyasını güncelle.
+- [x] İncelemeden sonra `MyTask.md` dosyasının `Task.md` yerine geçip geçmeyeceğine karar ver. Karar verildi. MyTask.md Task.md yapısının aktif görevi iptal edil. Ayrıca MyTaskTr.md MyTask.md yapısının Türkçe verisyonu ve yazılım yöneticisi için üretildi ve bunun üzerinden yazılım aşamaları takip ve devam edilecek.
+- [x] Her tamamlanan özellikten sonra seçilen ana görev dosyasını güncelle.
 
-## [ ] Görev 0.2 - Kapsamlı Çalışma Kurallarını Koru
+## [ ] Görev 0.2 - Kapsamlı Çalışma Kurallarını Koru ***
 
 **Geliştirici Notu:** Bu görev, SPP/EKO tarzı kontrollü geliştirme disiplinini korur. Amaç hızlı ama dağınık değişiklik yapmak değil, küçük ve doğrulanabilir adımlarla ilerlemektir.
 
@@ -110,30 +108,12 @@ Tamamlanma Kriterleri:
 - [x] Repo talimatlarında SPP/EKO tarzı kurallar var.
 - [x] Ekonomik token çalışma akışı tanımlı.
 - [x] Görev uygulama kapısı mevcut.
-- [ ] Ayrıntı istenmedikçe nihai görev cevaplarını kısa tut.
-- [ ] Commit ve yamaları özellik kapsamlı tut.
+- [x] Task okuma yapısı open ai ve codex yapısı tarafından başarılı olarak belirli bir aşamadan sonra sürdürülemediği için yazılım yöneticisi tarafından takip edilecek ve nelerin yapılacağı yönetici tarafından adım adım belirlenecek.
+- [x] Ayrıntı istenmedikçe nihai görev cevaplarını kısa tut.
+- [x] Commit ve yamaların açıklamalarını özellikle kapsamlı tut ve R zaman etiketini eklemeyi unutma.
 
-## [ ] Görev 0.3 - Sürüm Notları Yapısı
 
-**Geliştirici Notu:** Bu görev, v1'e yaklaşırken neyin değiştiğini takip etmeyi sağlar. Ağır bir changelog sistemi değil, basit ve okunabilir bir sürüm özeti yeterlidir.
-
-Tamamlanma Kriterleri:
-- [ ] v1 için basit bir sürüm notu/changelog yapısı ekle.
-- [ ] Her özellik için değişen dosyaları ve kontrol sonuçlarını kaydet.
-- [ ] Yalnızca yayın hazırlığı sırasında hafif bir paket/yayın özeti ekle.
-
-## [ ] Görev 0.4 - Geliştirici Sağlığı Dokümanları
-
-**Geliştirici Notu:** Bu görev, projeyi açan geliştiricinin nasıl çalıştıracağını ve nasıl doğrulayacağını bilmesi içindir. Doküman kısa kalmalı; gereksiz uzun kurulum anlatımına dönüşmemelidir.
-
-Tamamlanma Kriterleri:
-- [ ] Kurulum/çalıştırma talimatlarını ekle veya güncelle.
-- [ ] Temel doğrulama komutlarını belgele.
-- [ ] Dokümantasyonu kısa ve yerel-öncelikli kurallarla uyumlu tut.
-
----
-
-# [ ] Faz 1 - Başlangıç, Ayarlar, Depolama
+# [ ] Faz 1 - Başlangıç, Ayarlar, Depolama ***
 
 Bu faz, uygulamanın açılışını, ayar yönetimini ve JSON veri saklama güvenliğini sağlamlaştırır. Uygulama kapanıp açılsa bile veri kaybı olmamalı ve bozuk dosyalar sessizce çöküşe sebep olmamalıdır.
 
@@ -150,9 +130,9 @@ Tamamlanma Kriterleri:
 - [ ] Opsiyonel varlıklar eksikken başlangıcı doğrula.
 - [ ] Yalnızca gerekirse net bir kritik başlangıç hata mesajı ekle.
 
-## [ ] Görev 1.2 - Ayar Modeli ve JSON Kalıcılığı
+## [ ] Görev 1.2 - Ayar Modeli ve JSON Kalıcılığı ***
 
-**Geliştirici Notu:** Ayarlar hem eski anahtarlarla uyumlu olmalı hem de bozuk/eksik veri karşısında güvenli davranmalıdır. Ölçek, opaklık ve konum gibi değerler sınır dışına çıkmamalıdır.
+**Geliştirici Notu:** Ayarlar her ne kadar eski ayarlar ile başlamışsa da yeni yapının ayarları eski olarak kalmak zorunda değil, ayarları güncel yapıya göre güncellemek gerekir. Bu prensip olmalı.
 
 Tamamlanma Kriterleri:
 - [x] `PanelSettings` mevcut.
