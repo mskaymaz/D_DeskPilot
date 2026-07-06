@@ -526,9 +526,18 @@ class SettingsDialog(QtWidgets.QDialog):
         if dlg.exec() == QtWidgets.QDialog.DialogCode.Accepted:
             c = dlg.selectedColor()
             if c.isValid():
-                btn.setText(c.name())
+                color = c.name()
+                btn.setText(color)
+                if btn is getattr(self, "btn_time_color", None):
+                    self.settings.time_color = color
+                elif btn is getattr(self, "btn_date_color", None):
+                    self.settings.date_color = color
+                elif btn is getattr(self, "btn_batt_color", None):
+                    self.settings.battery_color = color
                 self._set_dirty(True)
-                return c.name()
+                if self.parent():
+                    self.parent().apply_settings()
+                return color
         return None
 
     def get_settings(self):
