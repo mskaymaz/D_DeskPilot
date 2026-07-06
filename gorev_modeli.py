@@ -18,6 +18,7 @@ class GorevModeli:
     oncelik: Union[GorevOnceligi, str] = GorevOnceligi.NORMAL
     tamamlandi: bool = False
     iptal_edildi: bool = False
+    sira: int = 0
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
     bitis_tarihi: Optional[datetime] = None
     tamamlanma_zamani: Optional[datetime] = None
@@ -43,10 +44,13 @@ class GorevModeli:
     def from_dict(cls, data: dict):
         try:
             data = dict(data)
+            durum = data.get("durum", data.get("status"))
             allowed_fields = {field.name for field in cls.__dataclass_fields__.values()}
             data = {key: value for key, value in data.items() if key in allowed_fields}
             data.setdefault("aciklama", "")
-            data.setdefault("iptal_edildi", False)
+            data.setdefault("iptal_edildi", durum == "cancelled")
+            data.setdefault("tamamlandi", durum == "completed")
+            data.setdefault("sira", 0)
             data.setdefault("tamamlanma_zamani", None)
             data.setdefault("iptal_zamani", None)
 
@@ -69,3 +73,15 @@ class GorevModeli:
         self.aciklama = (self.aciklama or "").strip()
         if isinstance(self.oncelik, str):
             self.oncelik = self.oncelik.strip() or GorevOnceligi.NORMAL.value
+        try:
+            self.sira = int(self.sira or 0)
+        except (TypeError, ValueError):
+            self.sira = 0
+
+    @property
+    def durum(self) -> str:
+        if self.iptal_edildi:
+            return "cancelled"
+        if self.tamamlandi:
+            return "completed"
+        return "active"

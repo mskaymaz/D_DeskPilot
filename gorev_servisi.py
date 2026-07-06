@@ -73,6 +73,7 @@ class GorevServisi:
                 oncelik_sirasi.get(priority_key(g.oncelik), 1),
                 0 if g.suresi_gecti_mi() else 1,
                 g.bitis_tarihi or g.olusturulma_zamani,
+                g.sira,
             )
 
         return sorted(self._gorevler, key=siralama)

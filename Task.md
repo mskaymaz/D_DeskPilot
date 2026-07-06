@@ -283,11 +283,11 @@ Execution order:
 - Then finalize only the minimal v1 data model fields.
 
 Acceptance:
-- [ ] Confirm current fields before editing: title, description, status, priority, planned time, ordering, completed/cancelled times.
-- [ ] Decide whether subtasks/checklist stay deferred for v1.
-- [ ] Preserve old JSON compatibility.
-- [ ] Keep JSON readable and stable.
-- [ ] Do not reopen already-decided deleted/cancelled state behavior.
+- [x] Confirm current fields before editing: title, description, status, priority, planned time, ordering, completed/cancelled times.
+- [x] Decide whether subtasks/checklist stay deferred for v1.
+- [x] Preserve old JSON compatibility.
+- [x] Keep JSON readable and stable.
+- [x] Do not reopen already-decided deleted/cancelled state behavior.
 
 ## Task 6.3 - Todo Workflow Polish
 Acceptance:
