@@ -1,19 +1,12 @@
-# [ ] MyTaskTr - D_DeskPilot Birleşik Türkçe Görev Yol Haritası
-
 ## [ ] Doküman Kullanım Kuralı
 
-- [ ] `MyTaskTr.md` kalıcı master görev yol haritasıdır; yapısı, başlıkları ve maddeleri çalışma boyunca korunmalıdır.
-- [ ] Tamamlanan işler bu dosyadan silinmemelidir; gerekiyorsa yalnızca işaret durumu güncellenir.
-- [ ] Günlük/aktif takip `MyTaskTrEd.md` üzerinden yapılır.
-- [ ] `MyTaskTrEd.md` içinde tamamlanan başlıklar ve maddeler silinerek dosya sadeleşir.
-- [ ] AI/Codex çalışmaya başlamadan önce hangi satır veya başlığın aktif olduğunu kullanıcıdan veya `MyTaskTrEd.md` üzerinden netleştirmelidir.
+- [x] `MyTaskTrEd.md` aktif çalışma checklist dosyasıdır.
+- [ ] Yapılan başlıklar ve maddeler bu dosyadan silinerek ilerlenir.
+- [ ] Kalıcı ana yapı `MyTaskTr.md` dosyasında korunur; master yapı oradan takip edilir.
+- [ ] AI/Codex bu dosyada kalan en üst ilgili başlığı mevcut çalışma alanı olarak kabul eder; emin değilse kullanıcıdan netleştirme ister.
+- [ ] Yeni görev eklemek gerekiyorsa önce `MyTaskTr.md` master yapısına uygunluğu kontrol edilir.
 
-Bu dosya şu görev yapılarının birleştirilmiş Türkçe çalışma sürümüdür:
-- [ ] mevcut `main` / `Task.md`
-- [ ] yerel `v2` dalı `Task.md`
-- [ ] `D:\Code\mskaymaz\D_DeskPilot_old` görev yol haritaları
-
-Aynı anda birden fazla aktif görev listesi tutulmamalıdır. `Task.md` daha sonra bilinçli şekilde ana dosya yapılmadığı sürece, bu belge birleşik planlama referansı olarak kullanılmalıdır.
+---
 
 ## [ ] Ürün Tanımı
 

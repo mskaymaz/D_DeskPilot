@@ -1,7 +1,7 @@
 ﻿# D_DeskPilot AGENTS
 
 ## Purpose
-Working rules only. Product architecture is documented in `CORE.md`; task tracking is only in `Task.md`.
+Working rules only. Product architecture is documented in `CORE.md`; task tracking is based on `MyTaskTr.md` and `MyTaskTrEd.md`.
 
 ## SPP
 - Analyze first.
@@ -23,4 +23,6 @@ Working rules only. Product architecture is documented in `CORE.md`; task tracki
 - `AGENTS.md`: working rules.
 - `CORE.md`: product architecture.
 - `STATE.md`: current project state.
-- `Task.md`: single master roadmap.
+- `Task.md`: upstream/reference roadmap.
+- `MyTaskTr.md`: permanent Turkish master roadmap; keep its structure and items intact.
+- `MyTaskTrEd.md`: active working checklist; remove headings/items from this file as they are completed.
