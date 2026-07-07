@@ -32,14 +32,12 @@ class SettingsDialog(QtWidgets.QDialog):
 
         self.form_yoneticisi = AyarFormlari(self, self.settings)
         # Sekmeleri AyarFormlari sınıfından yüklüyoruz (Modüler Yapı)
-        self.tabs.addTab(self.form_yoneticisi.genel_sekme_olustur(), "Genel")
+        self.tabs.addTab(self.form_yoneticisi.genel_sekme_olustur(self._language_combo_olustur()), "Genel")
         self.tabs.addTab(self.form_yoneticisi.pil_sekme_olustur(), "Pil")
         self.tabs.addTab(self.form_yoneticisi.saat_sekme_olustur(), "Saat")
         self.tabs.addTab(self.form_yoneticisi.tarih_sekme_olustur(), "Tarih")
-        self.tabs.addTab(self._task_priorities_tab_olustur(), "Görev Öncelikleri")
       
         
-        self.tabs.addTab(self._language_tab_olustur(), "Dil")
         self.btn_apply = QtWidgets.QPushButton("Uygula")
         self.btn_apply.setEnabled(False)
         self.btn_save = QtWidgets.QPushButton("Kaydet")
@@ -70,16 +68,20 @@ class SettingsDialog(QtWidgets.QDialog):
     def _language_tab_olustur(self):
         tab = QtWidgets.QWidget()
         layout = QtWidgets.QVBoxLayout(tab)
+        layout.addWidget(QtWidgets.QLabel("Uygulama dili:"))
+        layout.addWidget(self._language_combo_olustur())
+        layout.addStretch()
+        return tab
+
+    def _language_combo_olustur(self):
         self.cmb_language = QtWidgets.QComboBox()
+        self.cmb_language.setFixedWidth(50)
         for lang in SUPPORTED_LANGUAGES:
-            self.cmb_language.addItem(t(f"language.{lang}", lang), lang)
+            self.cmb_language.addItem(lang.upper(), lang)
         idx = self.cmb_language.findData(getattr(self.settings, "language", "tr"))
         self.cmb_language.setCurrentIndex(max(idx, 0))
         self.cmb_language.currentIndexChanged.connect(lambda: self._set_dirty(True))
-        layout.addWidget(QtWidgets.QLabel("Uygulama dili:"))
-        layout.addWidget(self.cmb_language)
-        layout.addStretch()
-        return tab
+        return self.cmb_language
 
     def _task_priorities_tab_olustur(self):
         tab = QtWidgets.QWidget()
@@ -323,15 +325,11 @@ class SettingsDialog(QtWidgets.QDialog):
         top.setSpacing(4)
         row = QtWidgets.QHBoxLayout()
         row.setContentsMargins(0, 0, 0, 0)
+        if extra_widget is not None:
+            row.addWidget(extra_widget)
         row.addStretch()
         row.addWidget(help_btn)
         top.addLayout(row)
-        if extra_widget is not None:
-            extra_row = QtWidgets.QHBoxLayout()
-            extra_row.setContentsMargins(0, 0, 0, 0)
-            extra_row.addStretch()
-            extra_row.addWidget(extra_widget)
-            top.addLayout(extra_row)
         form_layout.insertRow(0, top)
 
 

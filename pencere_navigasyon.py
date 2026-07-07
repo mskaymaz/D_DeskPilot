@@ -65,11 +65,11 @@ class PencereNavigasyonKarishimi:
         act_collect = menu.addAction("⊞  Tüm Modülleri Buraya Topla")
 
         act_reminders = None
-        if self.settings.reminder_visible:
+        if False and self.settings.reminder_visible:
             act_reminders = menu.addAction("🔔  Hatırlatıcı Listesi")
 
         act_todos = None
-        if self.settings.todo_visible:
+        if False and self.settings.todo_visible:
             act_todos = menu.addAction("☑  Görev Listesi")
 
         menu.addSeparator()

@@ -48,6 +48,9 @@ class DraggableTransparentWindow(WindowLifecycleMixin, WindowMouseMixin, WindowS
         self._init_window()
         self._init_widgets()
         self._init_startup()
+        self._quit_shortcut = QtGui.QShortcut(QtGui.QKeySequence("Ctrl+Q"), self)
+        self._quit_shortcut.setContext(QtCore.Qt.ShortcutContext.ApplicationShortcut)
+        self._quit_shortcut.activated.connect(QtWidgets.QApplication.quit)
 
 
 

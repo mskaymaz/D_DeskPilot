@@ -15,7 +15,7 @@ class AyarFormlari:
         self.dialog = dialog
         self.ayarlar = ayarlar
 
-    def genel_sekme_olustur(self):
+    def genel_sekme_olustur(self, extra_widget=None):
         dialog = self.dialog
         ayarlar = self.ayarlar
         w = QtWidgets.QWidget()
@@ -118,7 +118,7 @@ class AyarFormlari:
         f.addRow("Pil ↔ Tarih boşluğu (saat kapalıyken)", dialog.spn_space_bd)
         
         f.labelForField(dialog.spn_space_bd).setText("Pil \u2194 Tarih bo\u015flu\u011fu")
-        dialog._add_help_link(f)
+        dialog._add_help_link(f, extra_widget)
         return w
 
     def pil_sekme_olustur(self):
