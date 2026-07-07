@@ -36,5 +36,12 @@
   "todo.filter.no_date": "Tarihsiz görevler",
   "todo.filter.overdue": "Süresi geçenler",
   "todo.filter.completed": "Tamamlananlar",
-  "todo.filter.cancelled": "İptal edilenler"
+  "todo.filter.cancelled": "İptal edilenler",
+  "todo.filter.trash": "Çöp Kutusu",
+  "todo.trash.move.title": "Çöp Kutusuna Taşı",
+  "todo.trash.move.message": "Bu görev çöp kutusuna taşınsın mı?",
+  "todo.trash.delete.title": "Kalıcı Sil",
+  "todo.trash.delete.message": "Bu görev kalıcı olarak silinsin mi?",
+  "todo.trash.delete.confirm.title": "Son Onay",
+  "todo.trash.delete.confirm.message": "Bu işlem geri alınamaz. Emin misiniz?"
 }

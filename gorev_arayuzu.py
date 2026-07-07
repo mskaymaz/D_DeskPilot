@@ -1,15 +1,36 @@
 from datetime import datetime, timedelta
 
 try:
-    from PySide6 import QtCore, QtWidgets
+    from PySide6 import QtCore, QtGui, QtWidgets
 except ImportError:
-    from PyQt6 import QtCore, QtWidgets
+    from PyQt6 import QtCore, QtGui, QtWidgets
 
 from gorev_servisi import GorevServisi
 from gorev_modeli import GorevModeli, GorevOnceligi
 from gorev_karti import GorevKarti
 from oncelik_yonetimi import priority_key, task_priorities
 from dil_yonetimi import t, is_rtl
+
+
+LIST_ICON_PATH = (
+    "M348.5-291.5Q360-303 360-320t-11.5-28.5Q337-360 320-360t-28.5 11.5Q280-337 280-320"
+    "t11.5 28.5Q303-280 320-280t28.5-11.5Zm0-160Q360-463 360-480t-11.5-28.5Q337-520 320-520"
+    "t-28.5 11.5Q280-497 280-480t11.5 28.5Q303-440 320-440t28.5-11.5Zm0-160Q360-623 360-640"
+    "t-11.5-28.5Q337-680 320-680t-28.5 11.5Q280-657 280-640t11.5 28.5Q303-600 320-600"
+    "t28.5-11.5ZM440-280h240v-80H440v80Zm0-160h240v-80H440v80Zm0-160h240v-80H440v80Z"
+    "M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h560q33 0 56.5 23.5T840-760"
+    "v560q0 33-23.5 56.5T760-120H200Zm0-80h560v-560H200v560Zm0-560v560-560Z"
+)
+
+
+def _svg_icon(path, size=24, color="#020617"):
+    svg = (
+        f'<svg xmlns="http://www.w3.org/2000/svg" height="{size}px" viewBox="0 -960 960 960" '
+        f'width="{size}px" fill="{color}"><path d="{path}"/></svg>'
+    )
+    pixmap = QtGui.QPixmap(size, size)
+    pixmap.loadFromData(svg.encode("utf-8"), "SVG")
+    return QtGui.QIcon(pixmap)
 
 
 class KaliciComboBox(QtWidgets.QComboBox):
@@ -89,6 +110,7 @@ class GorevArayuzuDialog(QtWidgets.QDialog):
             ("overdue", self._tr("todo.filter.overdue", "Süresi geçenler")),
             ("completed", self._tr("todo.filter.completed", "Tamamlananlar")),
             ("cancelled", self._tr("todo.filter.cancelled", "İptal edilenler")),
+            ("trash", self._tr("todo.filter.trash", "Çöp Kutusu")),
         ]
         for key, text in secenekler:
             self.cmb_liste_filtresi.addItem(text, key)
@@ -136,6 +158,43 @@ class GorevArayuzuDialog(QtWidgets.QDialog):
     def _uyari_goster(self, parent, mesaj):
         QtWidgets.QMessageBox.warning(parent, self._tr("todo.warning.title", "Eksik bilgi"), mesaj)
 
+    def _yapilacaklari_metne_cevir(self, maddeler):
+        return "\n".join(str(madde).strip() for madde in (maddeler or []) if str(madde).strip())
+
+    def _metni_yapilacaklara_cevir(self, metin):
+        return [satir.strip() for satir in (metin or "").splitlines() if satir.strip()]
+
+    def _yapilacak_listesi_duzenle(self, parent, maddeler):
+        dialog = QtWidgets.QDialog(parent)
+        dialog.setWindowTitle("Yapılacak Listesi")
+        dialog.setModal(True)
+        dialog.setFixedSize(420, 320)
+
+        layout = QtWidgets.QVBoxLayout(dialog)
+        layout.setContentsMargins(14, 14, 14, 14)
+        layout.setSpacing(8)
+
+        txt_liste = QtWidgets.QTextEdit(dialog)
+        txt_liste.setPlaceholderText("Her maddeyi ayrı satıra yazın...")
+        txt_liste.setPlainText(self._yapilacaklari_metne_cevir(maddeler))
+        layout.addWidget(txt_liste, 1)
+
+        butonlar = QtWidgets.QHBoxLayout()
+        btn_iptal = QtWidgets.QPushButton(self._tr("todo.cancel", "Vazgeç"), dialog)
+        btn_kaydet = QtWidgets.QPushButton(self._tr("todo.edit.save", "Kaydet"), dialog)
+        btn_iptal.clicked.connect(dialog.reject)
+        btn_kaydet.clicked.connect(dialog.accept)
+        butonlar.addStretch()
+        butonlar.addWidget(btn_iptal)
+        butonlar.addWidget(btn_kaydet)
+        layout.addLayout(butonlar)
+
+        dialog.setStyleSheet(self.styleSheet())
+        self._popup_katmanlarini_duzelt(dialog)
+        if dialog.exec() != QtWidgets.QDialog.DialogCode.Accepted:
+            return None
+        return self._metni_yapilacaklara_cevir(txt_liste.toPlainText())
+
     def _ekleme_formu_olustur(self):
         ekle_grubu = QtWidgets.QGroupBox(self._tr("todo.add.group", "Yeni Görev Ekle"), self)
         ekle_layout = QtWidgets.QGridLayout(ekle_grubu)
@@ -149,6 +208,7 @@ class GorevArayuzuDialog(QtWidgets.QDialog):
         self.txt_aciklama = QtWidgets.QTextEdit(ekle_grubu)
         self.txt_aciklama.setPlaceholderText(self._tr("todo.add.placeholder.description", "Açıklama..."))
         self.txt_aciklama.setFixedHeight(76)
+        self._yeni_yapilacaklar = []
 
         self.cmb_oncelik = KaliciComboBox(ekle_grubu)
         self._oncelik_combo_doldur(self.cmb_oncelik, "normal")
@@ -163,13 +223,26 @@ class GorevArayuzuDialog(QtWidgets.QDialog):
         self.btn_yeni_iptal.setFixedWidth(82)
         self.btn_yeni_iptal.clicked.connect(lambda: getattr(self, "_aktif_yeni_gorev_dialogu", None).reject())
 
+        self.btn_yeni_liste = QtWidgets.QPushButton(ekle_grubu)
+        self.btn_yeni_liste.setIcon(_svg_icon(LIST_ICON_PATH, 22))
+        self.btn_yeni_liste.setIconSize(QtCore.QSize(22, 22))
+        self.btn_yeni_liste.setToolTip("Yapılacak listesi")
+        self.btn_yeni_liste.setFixedWidth(42)
+        self.btn_yeni_liste.clicked.connect(self._yeni_yapilacak_listesi_ac)
+
         ekle_layout.addWidget(self.txt_yeni_gorev, 0, 0, 1, 4)
         ekle_layout.addWidget(self.txt_aciklama, 1, 0, 1, 4)
         ekle_layout.addWidget(self.cmb_oncelik, 2, 0)
         ekle_layout.addWidget(tarih_widget, 2, 1, 1, 3)
+        ekle_layout.addWidget(self.btn_yeni_liste, 3, 0)
         ekle_layout.addWidget(self.btn_yeni_iptal, 3, 2)
         ekle_layout.addWidget(self.btn_ekle, 3, 3)
         return ekle_grubu
+
+    def _yeni_yapilacak_listesi_ac(self):
+        maddeler = self._yapilacak_listesi_duzenle(getattr(self, "_aktif_yeni_gorev_dialogu", self), self._yeni_yapilacaklar)
+        if maddeler is not None:
+            self._yeni_yapilacaklar = maddeler
 
     def yeni_gorev_paneli_ac(self):
         dialog = QtWidgets.QDialog(self)
@@ -252,6 +325,7 @@ class GorevArayuzuDialog(QtWidgets.QDialog):
         hafta_sonu = bugun + timedelta(days=7)
 
         if filtre == "date":
+            gorevler = [g for g in gorevler if not g.cope_atildi]
             return sorted(
                 gorevler,
                 key=lambda g: (
@@ -261,20 +335,22 @@ class GorevArayuzuDialog(QtWidgets.QDialog):
                 ),
             )
         if filtre == "today":
-            return [g for g in gorevler if g.bitis_tarihi and g.bitis_tarihi.date() == bugun and not g.tamamlandi and not g.iptal_edildi]
+            return [g for g in gorevler if g.bitis_tarihi and g.bitis_tarihi.date() == bugun and not g.tamamlandi and not g.iptal_edildi and not g.cope_atildi]
         if filtre == "tomorrow":
-            return [g for g in gorevler if g.bitis_tarihi and g.bitis_tarihi.date() == yarin and not g.tamamlandi and not g.iptal_edildi]
+            return [g for g in gorevler if g.bitis_tarihi and g.bitis_tarihi.date() == yarin and not g.tamamlandi and not g.iptal_edildi and not g.cope_atildi]
         if filtre == "week":
-            return [g for g in gorevler if g.bitis_tarihi and bugun <= g.bitis_tarihi.date() <= hafta_sonu and not g.tamamlandi and not g.iptal_edildi]
+            return [g for g in gorevler if g.bitis_tarihi and bugun <= g.bitis_tarihi.date() <= hafta_sonu and not g.tamamlandi and not g.iptal_edildi and not g.cope_atildi]
         if filtre == "no_date":
-            return [g for g in gorevler if not g.bitis_tarihi and not g.tamamlandi and not g.iptal_edildi]
+            return [g for g in gorevler if not g.bitis_tarihi and not g.tamamlandi and not g.iptal_edildi and not g.cope_atildi]
         if filtre == "overdue":
-            return [g for g in gorevler if g.suresi_gecti_mi()]
+            return [g for g in gorevler if g.suresi_gecti_mi() and not g.cope_atildi]
         if filtre == "completed":
-            return [g for g in gorevler if g.tamamlandi]
+            return [g for g in gorevler if g.tamamlandi and not g.cope_atildi]
         if filtre == "cancelled":
-            return [g for g in gorevler if g.iptal_edildi]
-        return gorevler
+            return [g for g in gorevler if g.iptal_edildi and not g.cope_atildi]
+        if filtre == "trash":
+            return [g for g in gorevler if g.cope_atildi]
+        return [g for g in gorevler if not g.cope_atildi]
 
     def _gorev_form_dialogu(self, gorev):
         dialog = QtWidgets.QDialog(self)
@@ -302,9 +378,21 @@ class GorevArayuzuDialog(QtWidgets.QDialog):
         cmb_durum.setCurrentIndex(2 if gorev.iptal_edildi else 1 if gorev.tamamlandi else 0)
 
         tarih_widget, chk_tarih, dt_tarih, txt_saat = self._tarih_saat_widget_olustur(bool(gorev.bitis_tarihi), gorev.bitis_tarihi, self._tr("todo.date.use_due", "Son tarih kullan"), parent=dialog)
+        yapilacaklar = list(gorev.yapilacaklar or [])
 
+        btn_liste = QtWidgets.QPushButton(dialog)
+        btn_liste.setIcon(_svg_icon(LIST_ICON_PATH, 22))
+        btn_liste.setIconSize(QtCore.QSize(22, 22))
+        btn_liste.setToolTip("Yapılacak listesi")
+        btn_liste.setFixedWidth(42)
         btn_kaydet = QtWidgets.QPushButton(self._tr("todo.edit.save", "Kaydet"), dialog)
         btn_iptal = QtWidgets.QPushButton(self._tr("todo.cancel", "Vazgeç"), dialog)
+
+        def _listeyi_duzenle():
+            yeni_maddeler = self._yapilacak_listesi_duzenle(dialog, yapilacaklar)
+            if yeni_maddeler is not None:
+                yapilacaklar[:] = yeni_maddeler
+
         def _kaydetmeyi_dene():
             if not txt_baslik.text().strip():
                 self._uyari_goster(dialog, self._tr("todo.warning.title_required", "Görev başlığı boş bırakılamaz."))
@@ -316,6 +404,7 @@ class GorevArayuzuDialog(QtWidgets.QDialog):
                 return
             dialog.accept()
 
+        btn_liste.clicked.connect(_listeyi_duzenle)
         btn_kaydet.clicked.connect(_kaydetmeyi_dene)
         btn_iptal.clicked.connect(dialog.reject)
 
@@ -329,6 +418,7 @@ class GorevArayuzuDialog(QtWidgets.QDialog):
         layout.addWidget(cmb_durum, 3, 1, 1, 2)
         layout.addWidget(QtWidgets.QLabel(self._tr("todo.date.label", "Son Tarih:")), 4, 0)
         layout.addWidget(tarih_widget, 4, 1, 1, 2)
+        layout.addWidget(btn_liste, 5, 0)
         layout.addWidget(btn_iptal, 5, 1)
         layout.addWidget(btn_kaydet, 5, 2)
 
@@ -344,6 +434,7 @@ class GorevArayuzuDialog(QtWidgets.QDialog):
         durum = cmb_durum.currentData()
         gorev.baslik = baslik
         gorev.aciklama = txt_aciklama.toPlainText().strip()
+        gorev.yapilacaklar = yapilacaklar
         gorev.oncelik = cmb_oncelik.currentData()
         gorev.bitis_tarihi = self._tarih_saat_degeri(chk_tarih, dt_tarih, txt_saat)
         gorev.tamamlandi = durum == "completed"
@@ -391,7 +482,11 @@ class GorevArayuzuDialog(QtWidgets.QDialog):
         kart = GorevKarti(gorev, settings=self.settings, parent=self.liste_kapsayici)
         kart.durum_degisti.connect(self.durum_degistir)
         kart.sil_istendi.connect(self.gorev_sil)
+        kart.cope_istendi.connect(self.gorev_cope_tasi)
+        kart.geri_yukle_istendi.connect(self.gorev_geri_yukle)
+        kart.kalici_sil_istendi.connect(self.gorev_kalici_sil)
         kart.duzenle_istendi.connect(self.gorev_duzenle)
+        kart.liste_istendi.connect(self.gorev_yapilacak_listesi_duzenle)
         return kart
 
     def _gorev_kartini_bul(self, gorev):
@@ -435,6 +530,7 @@ class GorevArayuzuDialog(QtWidgets.QDialog):
         self.servis.gorev_ekle(GorevModeli(
             baslik=baslik,
             aciklama=self.txt_aciklama.toPlainText().strip(),
+            yapilacaklar=list(getattr(self, "_yeni_yapilacaklar", [])),
             oncelik=self.cmb_oncelik.currentData(),
             bitis_tarihi=self._tarih_saat_degeri(self.chk_son_tarih, self.dt_son_tarih, self.txt_son_saat)
         ))
@@ -455,12 +551,59 @@ class GorevArayuzuDialog(QtWidgets.QDialog):
             self.servis.kaydet()
             self._listeyi_yeniden_sirala()
 
+    def gorev_yapilacak_listesi_duzenle(self, gorev):
+        maddeler = self._yapilacak_listesi_duzenle(self, gorev.yapilacaklar)
+        if maddeler is None:
+            return
+        gorev.yapilacaklar = maddeler
+        self.servis.kaydet()
+        self._listeyi_yeniden_sirala()
+
     def gorev_sil(self, gorev):
         gorev.iptal_edildi = True
         gorev.tamamlandi = False
         gorev.tamamlanma_zamani = None
         gorev.iptal_zamani = datetime.now()
         self.servis.kaydet()
+        self._listeyi_yeniden_sirala()
+
+    def gorev_cope_tasi(self, gorev):
+        cevap = QtWidgets.QMessageBox.question(
+            self,
+            self._tr("todo.trash.move.title", "Çöp Kutusuna Taşı"),
+            self._tr("todo.trash.move.message", "Bu görev çöp kutusuna taşınsın mı?"),
+            QtWidgets.QMessageBox.StandardButton.Yes | QtWidgets.QMessageBox.StandardButton.No,
+            QtWidgets.QMessageBox.StandardButton.No,
+        )
+        if cevap != QtWidgets.QMessageBox.StandardButton.Yes:
+            return
+        self.servis.cope_tasi(gorev)
+        self._listeyi_yeniden_sirala()
+
+    def gorev_geri_yukle(self, gorev):
+        self.servis.copten_geri_yukle(gorev)
+        self._listeyi_yeniden_sirala()
+
+    def gorev_kalici_sil(self, gorev):
+        ilk_cevap = QtWidgets.QMessageBox.question(
+            self,
+            self._tr("todo.trash.delete.title", "Kalıcı Sil"),
+            self._tr("todo.trash.delete.message", "Bu görev kalıcı olarak silinsin mi?"),
+            QtWidgets.QMessageBox.StandardButton.Yes | QtWidgets.QMessageBox.StandardButton.No,
+            QtWidgets.QMessageBox.StandardButton.No,
+        )
+        if ilk_cevap != QtWidgets.QMessageBox.StandardButton.Yes:
+            return
+        ikinci_cevap = QtWidgets.QMessageBox.question(
+            self,
+            self._tr("todo.trash.delete.confirm.title", "Son Onay"),
+            self._tr("todo.trash.delete.confirm.message", "Bu işlem geri alınamaz. Emin misiniz?"),
+            QtWidgets.QMessageBox.StandardButton.Yes | QtWidgets.QMessageBox.StandardButton.No,
+            QtWidgets.QMessageBox.StandardButton.No,
+        )
+        if ikinci_cevap != QtWidgets.QMessageBox.StandardButton.Yes:
+            return
+        self.servis.kalici_sil(gorev)
         self._listeyi_yeniden_sirala()
 
 

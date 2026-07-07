@@ -13,6 +13,56 @@ from oncelik_yonetimi import priority_name, priority_color
 from utils import resource_path
 
 
+TRASH_DELETE_ICON_PATH = (
+    "m376-300 104-104 104 104 56-56-104-104 104-104-56-56-104 104-104-104-56 56 "
+    "104 104-104 104 56 56Zm-96 180q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520"
+    "q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520Zm-400 0v520-520Z"
+)
+
+TRASH_ICON_PATH = (
+    "M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520"
+    "q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-280h80v-360h-80v360Zm160 0h80v-360h-80v360Z"
+    "M280-720v520-520Z"
+)
+
+LIST_ICON_PATH = (
+    "M348.5-291.5Q360-303 360-320t-11.5-28.5Q337-360 320-360t-28.5 11.5Q280-337 280-320"
+    "t11.5 28.5Q303-280 320-280t28.5-11.5Zm0-160Q360-463 360-480t-11.5-28.5Q337-520 320-520"
+    "t-28.5 11.5Q280-497 280-480t11.5 28.5Q303-440 320-440t28.5-11.5Zm0-160Q360-623 360-640"
+    "t-11.5-28.5Q337-680 320-680t-28.5 11.5Q280-657 280-640t11.5 28.5Q303-600 320-600"
+    "t28.5-11.5ZM440-280h240v-80H440v80Zm0-160h240v-80H440v80Zm0-160h240v-80H440v80Z"
+    "M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h560q33 0 56.5 23.5T840-760"
+    "v560q0 33-23.5 56.5T760-120H200Zm0-80h560v-560H200v560Zm0-560v560-560Z"
+)
+
+CANCEL_ICON_PATH = (
+    "m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z"
+)
+
+EDIT_ICON_PATH = (
+    "M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h357l-80 80H200v560h560v-278"
+    "l80-80v358q0 33-23.5 56.5T760-120H200Zm280-360ZM360-360v-170l367-367q12-12 27-18t30-6"
+    "q16 0 30.5 6t26.5 18l56 57q11 12 17 26.5t6 29.5q0 15-5.5 29.5T897-728L530-360H360Z"
+    "m481-424-56-56 56 56ZM440-440h56l232-232-28-28-29-28-231 231v57Zm260-260-29-28 29 28 28 28-28-28Z"
+)
+
+RESTORE_ICON_PATH = (
+    "M280-200v-80h284q63 0 109.5-40T720-420q0-60-46.5-100T564-560H312l104 104-56 56-200-200 "
+    "200-200 56 56-104 104h252q97 0 166.5 63T800-420q0 94-69.5 157T564-200H280Z"
+)
+
+
+def _svg_pixmap(path, size=24, color="#020617"):
+    svg = (
+        f'<svg xmlns="http://www.w3.org/2000/svg" height="{size}px" viewBox="0 -960 960 960" '
+        f'width="{size}px" fill="{color}"><path d="{path}"/></svg>'
+    )
+    pixmap = QtGui.QPixmap(size, size)
+    if pixmap.loadFromData(svg.encode("utf-8"), "SVG"):
+        return pixmap
+    return None
+
+
 
 class RotatedLabel(QtWidgets.QLabel):
     def __init__(self, text="", parent=None):
@@ -42,10 +92,88 @@ class RotatedLabel(QtWidgets.QLabel):
         self.setPixmap(pixmap)
 
 
+def _ikon_pixmap(tur, size=24, color="#020617"):
+    if tur == "list":
+        pixmap = _svg_pixmap(LIST_ICON_PATH, size, color)
+        if pixmap:
+            return pixmap
+    if tur == "cancel":
+        pixmap = _svg_pixmap(CANCEL_ICON_PATH, size, color)
+        if pixmap:
+            return pixmap
+    if tur == "edit":
+        pixmap = _svg_pixmap(EDIT_ICON_PATH, size, color)
+        if pixmap:
+            return pixmap
+    if tur == "trash":
+        pixmap = _svg_pixmap(TRASH_ICON_PATH, size, color)
+        if pixmap:
+            return pixmap
+    if tur == "trash_delete":
+        pixmap = _svg_pixmap(TRASH_DELETE_ICON_PATH, size, color)
+        if pixmap:
+            return pixmap
+    if tur == "restore":
+        pixmap = _svg_pixmap(RESTORE_ICON_PATH, size, color)
+        if pixmap:
+            return pixmap
+
+    pixmap = QtGui.QPixmap(size, size)
+    pixmap.fill(QtCore.Qt.GlobalColor.transparent)
+    painter = QtGui.QPainter(pixmap)
+    painter.setRenderHint(QtGui.QPainter.RenderHint.Antialiasing)
+    pen = QtGui.QPen(
+        QtGui.QColor(color),
+        max(2, size // 9),
+        QtCore.Qt.PenStyle.SolidLine,
+        QtCore.Qt.PenCapStyle.RoundCap,
+        QtCore.Qt.PenJoinStyle.RoundJoin,
+    )
+    painter.setPen(pen)
+    painter.setBrush(QtCore.Qt.BrushStyle.NoBrush)
+
+    if tur in ("trash", "trash_delete"):
+        painter.drawRoundedRect(QtCore.QRectF(size * 0.16, size * 0.29, size * 0.68, size * 0.12), 1.8, 1.8)
+        painter.drawRoundedRect(QtCore.QRectF(size * 0.34, size * 0.15, size * 0.32, size * 0.14), 3.0, 3.0)
+
+        body = QtGui.QPainterPath()
+        body.moveTo(size * 0.25, size * 0.41)
+        body.lineTo(size * 0.75, size * 0.41)
+        body.lineTo(size * 0.69, size * 0.88)
+        body.quadTo(size * 0.68, size * 0.93, size * 0.61, size * 0.93)
+        body.lineTo(size * 0.39, size * 0.93)
+        body.quadTo(size * 0.32, size * 0.93, size * 0.31, size * 0.88)
+        body.closeSubpath()
+        painter.drawPath(body)
+
+        for x in (0.40, 0.50, 0.60):
+            painter.drawLine(QtCore.QPointF(size * x, size * 0.52), QtCore.QPointF(size * x, size * 0.78))
+        if tur == "trash_delete":
+            painter.drawLine(QtCore.QPointF(size * 0.40, size * 0.56), QtCore.QPointF(size * 0.60, size * 0.76))
+            painter.drawLine(QtCore.QPointF(size * 0.60, size * 0.56), QtCore.QPointF(size * 0.40, size * 0.76))
+    elif tur == "restore":
+        path = QtGui.QPainterPath()
+        path.moveTo(size * 0.82, size * 0.78)
+        path.cubicTo(size * 0.75, size * 0.47, size * 0.51, size * 0.38, size * 0.35, size * 0.48)
+        path.lineTo(size * 0.35, size * 0.31)
+        path.lineTo(size * 0.12, size * 0.50)
+        path.lineTo(size * 0.35, size * 0.69)
+        path.lineTo(size * 0.35, size * 0.55)
+        path.cubicTo(size * 0.53, size * 0.48, size * 0.72, size * 0.55, size * 0.82, size * 0.78)
+        painter.drawPath(path)
+
+    painter.end()
+    return pixmap
+
+
 class GorevKarti(QtWidgets.QFrame):
     durum_degisti = Signal(object, bool)
     sil_istendi = Signal(object)
+    cope_istendi = Signal(object)
+    geri_yukle_istendi = Signal(object)
+    kalici_sil_istendi = Signal(object)
     duzenle_istendi = Signal(object)
+    liste_istendi = Signal(object)
 
     def __init__(self, gorev: GorevModeli, tema: GorevTema = VARSAYILAN_GOREV_TEMASI, settings=None, parent=None):
         super().__init__(parent)
@@ -146,23 +274,28 @@ class GorevKarti(QtWidgets.QFrame):
 
     def _buton_paneli_olustur(self):
         buton_panel = QtWidgets.QFrame(self)
-        buton_panel.setFixedWidth(34)
-        buton_layout = QtWidgets.QVBoxLayout(buton_panel)
+        buton_panel.setFixedWidth(68)
+        buton_layout = QtWidgets.QGridLayout(buton_panel)
         buton_layout.setContentsMargins(0, 0, 0, 0)
         buton_layout.setSpacing(2)
 
         self.btn_duzenle = QtWidgets.QPushButton(buton_panel)
-        self.btn_duzenle.setFixedSize(32, 28)
-        self.btn_duzenle.setIcon(QtGui.QIcon(resource_path("img/icons/duzenle.svg")))
-        self.btn_duzenle.setIconSize(QtCore.QSize(24, 24))
-        self.btn_duzenle.clicked.connect(lambda: self.duzenle_istendi.emit(self.gorev))
+        self.btn_duzenle.setFixedSize(32, 34)
 
-        self.btn_sil = QtWidgets.QPushButton("×", buton_panel)
+        self.btn_liste = QtWidgets.QPushButton(buton_panel)
+        self.btn_liste.setFixedSize(32, 34)
+
+        self.btn_sil = QtWidgets.QPushButton(buton_panel)
         self.btn_sil.setFixedSize(32, 34)
-        self.btn_sil.clicked.connect(lambda: self.sil_istendi.emit(self.gorev))
 
-        buton_layout.addWidget(self.btn_duzenle, 0, QtCore.Qt.AlignmentFlag.AlignCenter)
-        buton_layout.addWidget(self.btn_sil, 0, QtCore.Qt.AlignmentFlag.AlignCenter)
+        self.btn_cop = QtWidgets.QPushButton(buton_panel)
+        self.btn_cop.setFixedSize(32, 34)
+
+        buton_layout.addWidget(self.btn_duzenle, 0, 0, QtCore.Qt.AlignmentFlag.AlignCenter)
+        buton_layout.addWidget(self.btn_liste, 1, 0, QtCore.Qt.AlignmentFlag.AlignCenter)
+        buton_layout.addWidget(self.btn_sil, 0, 1, QtCore.Qt.AlignmentFlag.AlignCenter)
+        buton_layout.addWidget(self.btn_cop, 1, 1, QtCore.Qt.AlignmentFlag.AlignCenter)
+        self._aksiyon_butonlarini_ayarla()
         return buton_panel
 
     def _stili_uygula(self):
@@ -191,10 +324,52 @@ class GorevKarti(QtWidgets.QFrame):
         self.lbl_saat.setStyleSheet("color:#334155; font-size:9pt;")
 
     def _buton_stilini_uygula(self):
-        self.btn_duzenle.setStyleSheet("QPushButton{background:transparent;border:none;color:#94a3b8;font-size:18px;} QPushButton:hover{color:#2563eb;}")
-        self.btn_sil.setStyleSheet("QPushButton{background:transparent;border:none;color:#94a3b8;font-size:32px;font-weight:700;} QPushButton:hover{color:#ef4444;}")
         self.btn_duzenle.setStyleSheet("QPushButton{background:transparent;border:none;}")
+        self.btn_liste.setStyleSheet("QPushButton{background:transparent;border:none;}")
+        self.btn_sil.setStyleSheet("QPushButton{background:transparent;border:none;}")
+        self.btn_cop.setStyleSheet("QPushButton{background:transparent;border:none;color:#94a3b8;} QPushButton:hover{color:#ef4444;}")
         self.btn_aciklama.setStyleSheet("QPushButton{background:#f1f5f9;border:none;border-radius:8px;color:#475569;font-size:8pt;font-weight:700;} QPushButton:hover{background:#e2e8f0;}")
+
+    def _aksiyon_butonlarini_ayarla(self):
+        for btn in (self.btn_duzenle, self.btn_liste, self.btn_sil, self.btn_cop):
+            try:
+                btn.clicked.disconnect()
+            except (TypeError, RuntimeError):
+                pass
+            btn.setText("")
+            btn.setIcon(QtGui.QIcon())
+            btn.show()
+
+        if self.gorev.cope_atildi:
+            self.btn_duzenle.setIcon(QtGui.QIcon(_ikon_pixmap("restore", 24)))
+            self.btn_duzenle.setIconSize(QtCore.QSize(24, 24))
+            self.btn_duzenle.setToolTip("Geri yükle")
+            self.btn_duzenle.clicked.connect(lambda: self.geri_yukle_istendi.emit(self.gorev))
+            self.btn_sil.setIcon(QtGui.QIcon(_ikon_pixmap("trash_delete", 24)))
+            self.btn_sil.setIconSize(QtCore.QSize(24, 24))
+            self.btn_sil.setToolTip("Kalıcı sil")
+            self.btn_sil.clicked.connect(lambda: self.kalici_sil_istendi.emit(self.gorev))
+            self.btn_liste.hide()
+            self.btn_cop.hide()
+            return
+
+        self.btn_duzenle.setIcon(QtGui.QIcon(_ikon_pixmap("edit", 24)))
+        self.btn_duzenle.setIconSize(QtCore.QSize(24, 24))
+        self.btn_duzenle.setToolTip("Düzenle")
+        self.btn_duzenle.clicked.connect(lambda: self.duzenle_istendi.emit(self.gorev))
+        self.btn_liste.setIcon(QtGui.QIcon(_ikon_pixmap("list", 24)))
+        self.btn_liste.setIconSize(QtCore.QSize(24, 24))
+        self.btn_liste.setToolTip("Yapılacak listesi")
+        self.btn_liste.clicked.connect(lambda: self.liste_istendi.emit(self.gorev))
+        self.btn_sil.setIcon(QtGui.QIcon(_ikon_pixmap("cancel", 24)))
+        self.btn_sil.setIconSize(QtCore.QSize(24, 24))
+        self.btn_sil.setToolTip("İptal et")
+        self.btn_sil.clicked.connect(lambda: self.sil_istendi.emit(self.gorev))
+        self.btn_cop.setIcon(QtGui.QIcon(_ikon_pixmap("trash", 24)))
+        self.btn_cop.setIconSize(QtCore.QSize(24, 24))
+        self.btn_cop.setToolTip("Çöp kutusuna taşı")
+        self.btn_cop.clicked.connect(lambda: self.cope_istendi.emit(self.gorev))
+        self.btn_cop.show()
 
     def _overlay_stilini_uygula(self):
         self.lbl_overlay.setGeometry(self.rect())
@@ -206,8 +381,15 @@ class GorevKarti(QtWidgets.QFrame):
 
     def _durum_ikonunu_ayarla(self):
         self.btn_durum.setIcon(QtGui.QIcon())
+        self.btn_durum.setToolTip("")
         self.btn_durum.setStyleSheet("QPushButton{background:transparent;border:none;color:white;font-size:28px;font-weight:800;padding:0px;} QPushButton:hover{background:rgba(255,255,255,40);border-radius:6px;}")
 
+        if self.gorev.cope_atildi:
+            self.btn_durum.setText("")
+            self.btn_durum.setIcon(QtGui.QIcon(_ikon_pixmap("restore", 30, "#ffffff")))
+            self.btn_durum.setIconSize(QtCore.QSize(30, 30))
+            self.btn_durum.setToolTip("Çöpten çıkar")
+            return
         if self.gorev.iptal_edildi:
             self.btn_durum.setText("✖")
             return
@@ -232,11 +414,15 @@ class GorevKarti(QtWidgets.QFrame):
         self.lbl_tarih.setText(self._son_tarih_gun())
         self.lbl_saat.setText(self._son_tarih_saat())
         self.tarih_panel.setVisible(bool(self.gorev.bitis_tarihi))
+        self._aksiyon_butonlarini_ayarla()
         self._stili_uygula()
         self.setUpdatesEnabled(True)
         self.update()
 
     def _durum_butonu_tiklandi(self):
+        if self.gorev.cope_atildi:
+            self.geri_yukle_istendi.emit(self.gorev)
+            return
         if self.gorev.iptal_edildi:
             self.gorev.iptal_edildi = False
             self.gorev.iptal_zamani = None
@@ -280,6 +466,8 @@ class GorevKarti(QtWidgets.QFrame):
         return self.gorev.aciklama if len(self.gorev.aciklama) <= 80 else self.gorev.aciklama[:80].rstrip() + "..."
 
     def _overlay_bilgisi(self):
+        if self.gorev.cope_atildi:
+            return "ÇÖP KUTUSU", "rgba(71,85,105,128)"
         if self.gorev.iptal_edildi:
             return "\u0130PTAL ED\u0130LD\u0130", "rgba(71,85,105,128)"
         if self.gorev.tamamlandi:

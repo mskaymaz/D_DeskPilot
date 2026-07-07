@@ -2,6 +2,7 @@ import json
 import os
 import shutil
 from typing import List
+from datetime import datetime
 from gorev_modeli import GorevModeli, GorevOnceligi
 from utils import APP_DATA_DIR, log_kaydet
 from oncelik_yonetimi import priority_key
@@ -56,6 +57,20 @@ class GorevServisi:
     def gorevleri_al(self) -> List[GorevModeli]:
         return self._gorevler
 
+    def cope_tasi(self, gorev: GorevModeli):
+        gorev.cope_atildi = True
+        gorev.cope_atilma_zamani = datetime.now()
+        self.kaydet()
+
+    def copten_geri_yukle(self, gorev: GorevModeli):
+        gorev.cope_atildi = False
+        gorev.cope_atilma_zamani = None
+        self.kaydet()
+
+    def kalici_sil(self, gorev: GorevModeli):
+        self._gorevler = [g for g in self._gorevler if g is not gorev]
+        self.kaydet()
+
     def gorevleri_sirali_al(self) -> List[GorevModeli]:
         oncelik_sirasi = {
             "high": 0,
@@ -64,6 +79,8 @@ class GorevServisi:
         }
 
         def siralama(g: GorevModeli):
+            if g.cope_atildi:
+                return (5, g.cope_atilma_zamani or g.olusturulma_zamani)
             if g.iptal_edildi:
                 return (4, g.iptal_zamani or g.olusturulma_zamani)
             if g.tamamlandi:
