@@ -19,7 +19,7 @@ from dil_yonetimi import SUPPORTED_LANGUAGES, t
 # =======================
 
 class SettingsDialog(QtWidgets.QDialog):
-    def __init__(self, settings, parent=None):
+    def __init__(self, settings, parent=None, hedef_tur=None):
         super().__init__(parent)
         self.setWindowTitle("Ayarlar")
         self.settings = settings
@@ -33,9 +33,7 @@ class SettingsDialog(QtWidgets.QDialog):
         self.form_yoneticisi = AyarFormlari(self, self.settings)
         # Sekmeleri AyarFormlari sınıfından yüklüyoruz (Modüler Yapı)
         self.tabs.addTab(self.form_yoneticisi.genel_sekme_olustur(self._language_combo_olustur()), "Genel")
-        self.tabs.addTab(self.form_yoneticisi.pil_sekme_olustur(), "Pil")
-        self.tabs.addTab(self.form_yoneticisi.saat_sekme_olustur(), "Saat")
-        self.tabs.addTab(self.form_yoneticisi.tarih_sekme_olustur(), "Tarih")
+        self._hedef_sekmeleri_ekle(hedef_tur)
       
         
         self.btn_apply = QtWidgets.QPushButton("Uygula")
@@ -64,6 +62,19 @@ class SettingsDialog(QtWidgets.QDialog):
         self.surum_etiketi.setStyleSheet("color: gray; font-size: 10px; margin-left: 5px;")
         main.addWidget(self.surum_etiketi)
         main.addLayout(btns)
+
+    def _hedef_sekmeleri_ekle(self, hedef_tur):
+        sekmeler = {
+            "battery": (self.form_yoneticisi.pil_sekme_olustur, "Pil"),
+            "time": (self.form_yoneticisi.saat_sekme_olustur, "Saat"),
+            "date": (self.form_yoneticisi.tarih_sekme_olustur, "Tarih"),
+        }
+        if hedef_tur in sekmeler:
+            olustur, baslik = sekmeler[hedef_tur]
+            self.tabs.addTab(olustur(), baslik)
+            return
+        for olustur, baslik in sekmeler.values():
+            self.tabs.addTab(olustur(), baslik)
 
     def _language_tab_olustur(self):
         tab = QtWidgets.QWidget()
@@ -493,6 +504,11 @@ class SettingsDialog(QtWidgets.QDialog):
         self._set_dirty(True)
         if self.parent(): self.parent().apply_settings()
 
+    def _apply_module_scale_preview(self, hedef_tur, value):
+        setattr(self.settings, f"{hedef_tur}_scale", value / 100)
+        self._set_dirty(True)
+        if self.parent(): self.parent().apply_settings()
+
     def _apply_date_preview(self, font=None, size=None, bold=None, visible=None):
         if font is not None: self.settings.date_font_family = font
         if size is not None: self.settings.date_font_size = size
@@ -542,7 +558,8 @@ class SettingsDialog(QtWidgets.QDialog):
         """UI elemanlarından ayarları toplar."""
         # Ayarlar artık preview metodları üzerinden anlık olarak self.settings'e yazılıyor.
         # Sadece line edit'ler gibi anlık tetiklenmeyenleri buradan alıyoruz.
-        self.settings.date_format = self.txt_date_format.text()
+        if hasattr(self, "txt_date_format"):
+            self.settings.date_format = self.txt_date_format.text()
         if hasattr(self, "cmb_language"):
             self.settings.language = self.cmb_language.currentData() or "tr"
         if hasattr(self, "tbl_task_priorities"):

@@ -32,10 +32,13 @@ class QuickActionsPanel(QtWidgets.QFrame):
             btn.setCursor(QtCore.Qt.CursorShape.PointingHandCursor)
             layout.addWidget(btn)
 
-        self.btn_settings.clicked.connect(lambda: controller.show_settings_at())
+        self.btn_settings.clicked.connect(self._settings_clicked)
         self.btn_reminders.clicked.connect(controller.show_reminder_list)
         self.btn_todos.clicked.connect(controller.show_todo_list)
         self._apply_size()
+
+    def _settings_clicked(self):
+        self.controller.show_settings_at(hedef_tur=getattr(self.owner, "tur", None))
 
     def _scale(self):
         return float(getattr(getattr(self.controller, "settings", None), "global_scale", 1.0))

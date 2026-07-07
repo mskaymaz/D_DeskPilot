@@ -97,14 +97,14 @@ class PencereNavigasyonKarishimi:
         elif action == act_exit:
             QtWidgets.QApplication.quit()
 
-    def show_settings_at(self, anchor_pos=None):
+    def show_settings_at(self, anchor_pos=None, hedef_tur=None):
         if self.settings.settings_locked:
             return
         if hasattr(self, "settings_window") and self.settings_window.isVisible():
             self.settings_window.raise_()
             self.settings_window.activateWindow()
             return
-        self.settings_window = SettingsDialog(self.settings, self)
+        self.settings_window = SettingsDialog(self.settings, self, hedef_tur)
         if anchor_pos is not None:
             self.position_settings_window_at(self.settings_window, anchor_pos)
         else:

@@ -15,6 +15,32 @@ class AyarFormlari:
         self.dialog = dialog
         self.ayarlar = ayarlar
 
+    def _birim_olcek_grubu(self, hedef_tur, baslik):
+        dialog = self.dialog
+        deger = int(float(getattr(self.ayarlar, f"{hedef_tur}_scale", 1.0)) * 100)
+        grup = QtWidgets.QGroupBox(f"{baslik} büyütme")
+        grup_layout = QtWidgets.QHBoxLayout(grup)
+        grup_layout.setContentsMargins(10, 8, 10, 8)
+        grup_layout.setSpacing(8)
+
+        slider = QtWidgets.QSlider(QtCore.Qt.Orientation.Horizontal)
+        slider.setRange(50, 300)
+        slider.setValue(deger)
+
+        spin = QtWidgets.QSpinBox()
+        spin.setRange(50, 300)
+        spin.setSuffix("%")
+        spin.setFixedWidth(70)
+        spin.setValue(deger)
+
+        slider.valueChanged.connect(spin.setValue)
+        spin.valueChanged.connect(slider.setValue)
+        slider.valueChanged.connect(lambda v: dialog._apply_module_scale_preview(hedef_tur, v))
+
+        grup_layout.addWidget(slider)
+        grup_layout.addWidget(spin)
+        return grup
+
     def genel_sekme_olustur(self, extra_widget=None):
         dialog = self.dialog
         ayarlar = self.ayarlar
@@ -158,6 +184,7 @@ class AyarFormlari:
         f.addRow("Font", dialog.cmb_batt_font)
         f.addRow("Font boyutu", dialog.spn_batt_size)
         f.addRow(dialog.chk_batt_bold)
+        f.addRow(self._birim_olcek_grubu("battery", "Pil"))
         
         dialog._add_help_link(f)
         return w
@@ -210,6 +237,7 @@ class AyarFormlari:
         f.addRow("Saniye boyutu (%)", sec_scale_row)
         f.addRow(dialog.chk_sec_visible)
         f.addRow("Renk", dialog.btn_time_color)
+        f.addRow(self._birim_olcek_grubu("time", "Saat"))
         
         dialog._add_help_link(f)
         return w
@@ -249,6 +277,7 @@ class AyarFormlari:
         f.addRow("Renk", dialog.btn_date_color)
         f.addRow("Boyut", dialog.spn_date_size)
         f.addRow(dialog.chk_date_bold)
+        f.addRow(self._birim_olcek_grubu("date", "Tarih"))
         
         dialog._add_help_link(f)
         return w
