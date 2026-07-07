@@ -24,5 +24,8 @@
   "todo.status.completed": "مكتملة",
   "todo.edit.title": "العنوان",
   "todo.edit.description": "الوصف",
-  "todo.edit.priority": "الأولوية"
+  "todo.edit.priority": "الأولوية",
+  "todo.warning.title": "معلومات ناقصة",
+  "todo.warning.title_required": "لا يمكن ترك عنوان المهمة فارغا.",
+  "todo.warning.invalid_time": "يجب أن يكون الوقت بين 00:00 و 23:59."
 }

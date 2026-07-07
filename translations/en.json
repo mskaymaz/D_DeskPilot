@@ -24,5 +24,8 @@
   "todo.status.completed": "Completed",
   "todo.edit.title": "Title",
   "todo.edit.description": "Description",
-  "todo.edit.priority": "Priority"
+  "todo.edit.priority": "Priority",
+  "todo.warning.title": "Missing information",
+  "todo.warning.title_required": "Task title cannot be empty.",
+  "todo.warning.invalid_time": "Time must be between 00:00 and 23:59."
 }

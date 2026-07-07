@@ -24,5 +24,8 @@
   "todo.status.completed": "Tamamlandı",
   "todo.edit.title": "Başlık",
   "todo.edit.description": "Açıklama",
-  "todo.edit.priority": "Öncelik"
+  "todo.edit.priority": "Öncelik",
+  "todo.warning.title": "Eksik bilgi",
+  "todo.warning.title_required": "Görev başlığı boş bırakılamaz.",
+  "todo.warning.invalid_time": "Saat 00:00 - 23:59 aralığında olmalıdır."
 }

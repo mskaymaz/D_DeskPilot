@@ -71,7 +71,7 @@ class GorevServisi:
 
             return (
                 oncelik_sirasi.get(priority_key(g.oncelik), 1),
-                0 if g.suresi_gecti_mi() else 1,
+                0 if g.bitis_tarihi else 1,
                 g.bitis_tarihi or g.olusturulma_zamani,
                 g.sira,
             )

@@ -107,8 +107,14 @@ class GorevArayuzuDialog(QtWidgets.QDialog):
             return None
         saat = QtCore.QTime.fromString(txt_saat.text(), "HH:mm")
         if not saat.isValid():
-            saat = QtCore.QTime(0, 0)
+            return None
         return QtCore.QDateTime(dt.date(), saat).toPython()
+
+    def _tarih_saat_gecerli_mi(self, chk, txt_saat):
+        return not chk.isChecked() or QtCore.QTime.fromString(txt_saat.text(), "HH:mm").isValid()
+
+    def _uyari_goster(self, parent, mesaj):
+        QtWidgets.QMessageBox.warning(parent, self._tr("todo.warning.title", "Eksik bilgi"), mesaj)
 
     def _ekleme_formu_olustur(self):
         ekle_grubu = QtWidgets.QGroupBox(self._tr("todo.add.group", "Yeni Görev Ekle"), self)
@@ -247,7 +253,18 @@ class GorevArayuzuDialog(QtWidgets.QDialog):
 
         btn_kaydet = QtWidgets.QPushButton(self._tr("todo.edit.save", "Kaydet"), dialog)
         btn_iptal = QtWidgets.QPushButton(self._tr("todo.cancel", "Vazgeç"), dialog)
-        btn_kaydet.clicked.connect(dialog.accept)
+        def _kaydetmeyi_dene():
+            if not txt_baslik.text().strip():
+                self._uyari_goster(dialog, self._tr("todo.warning.title_required", "Görev başlığı boş bırakılamaz."))
+                txt_baslik.setFocus()
+                return
+            if not self._tarih_saat_gecerli_mi(chk_tarih, txt_saat):
+                self._uyari_goster(dialog, self._tr("todo.warning.invalid_time", "Saat 00:00 - 23:59 aralığında olmalıdır."))
+                txt_saat.setFocus()
+                return
+            dialog.accept()
+
+        btn_kaydet.clicked.connect(_kaydetmeyi_dene)
         btn_iptal.clicked.connect(dialog.reject)
 
         layout.addWidget(QtWidgets.QLabel(self._tr("todo.edit.title", "Başlık")), 0, 0)
@@ -355,6 +372,12 @@ class GorevArayuzuDialog(QtWidgets.QDialog):
     def gorev_ekle(self):
         baslik = self.txt_yeni_gorev.text().strip()
         if not baslik:
+            self._uyari_goster(getattr(self, "_aktif_yeni_gorev_dialogu", self), self._tr("todo.warning.title_required", "Görev başlığı boş bırakılamaz."))
+            self.txt_yeni_gorev.setFocus()
+            return
+        if not self._tarih_saat_gecerli_mi(self.chk_son_tarih, self.txt_son_saat):
+            self._uyari_goster(getattr(self, "_aktif_yeni_gorev_dialogu", self), self._tr("todo.warning.invalid_time", "Saat 00:00 - 23:59 aralığında olmalıdır."))
+            self.txt_son_saat.setFocus()
             return
 
         self.servis.gorev_ekle(GorevModeli(
