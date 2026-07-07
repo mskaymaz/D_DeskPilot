@@ -363,7 +363,7 @@ class GorevKarti(QtWidgets.QFrame):
         self.btn_liste.clicked.connect(lambda: self.liste_istendi.emit(self.gorev))
         self.btn_sil.setIcon(QtGui.QIcon(_ikon_pixmap("cancel", 24)))
         self.btn_sil.setIconSize(QtCore.QSize(24, 24))
-        self.btn_sil.setToolTip("İptal et")
+        self.btn_sil.setToolTip("İptal edildi olarak işaretle")
         self.btn_sil.clicked.connect(lambda: self.sil_istendi.emit(self.gorev))
         self.btn_cop.setIcon(QtGui.QIcon(_ikon_pixmap("trash", 24)))
         self.btn_cop.setIconSize(QtCore.QSize(24, 24))
@@ -392,6 +392,7 @@ class GorevKarti(QtWidgets.QFrame):
             return
         if self.gorev.iptal_edildi:
             self.btn_durum.setText("✖")
+            self.btn_durum.setToolTip("İptali geri al")
             return
         if self.gorev.tamamlandi:
             self.btn_durum.setText("✔")

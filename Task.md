@@ -425,6 +425,7 @@ Acceptance:
 - [ ] Today view.
 - [ ] Priority view.
 - [ ] Custom task priority names/colors/settings.
+- [ ] Consider a small Todo listing/filter helper after v1 behavior is stable.
 - [ ] Completed history view.
 - [ ] No complex project-management system.
 
