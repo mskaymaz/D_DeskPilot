@@ -27,5 +27,14 @@
   "todo.edit.priority": "Öncelik",
   "todo.warning.title": "Eksik bilgi",
   "todo.warning.title_required": "Görev başlığı boş bırakılamaz.",
-  "todo.warning.invalid_time": "Saat 00:00 - 23:59 aralığında olmalıdır."
+  "todo.warning.invalid_time": "Saat 00:00 - 23:59 aralığında olmalıdır.",
+  "todo.filter.all": "Tümü",
+  "todo.filter.date": "Tarihe göre",
+  "todo.filter.today": "Bugün",
+  "todo.filter.tomorrow": "Yarın",
+  "todo.filter.week": "Bu hafta",
+  "todo.filter.no_date": "Tarihsiz görevler",
+  "todo.filter.overdue": "Süresi geçenler",
+  "todo.filter.completed": "Tamamlananlar",
+  "todo.filter.cancelled": "İptal edilenler"
 }

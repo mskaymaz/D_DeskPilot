@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 try:
     from PySide6 import QtCore, QtWidgets
@@ -71,7 +71,27 @@ class GorevArayuzuDialog(QtWidgets.QDialog):
         self.btn_yeni_gorev.clicked.connect(self.yeni_gorev_paneli_ac)
         ust_layout.addWidget(self.btn_yeni_gorev)
         ust_layout.addStretch()
+        self.cmb_liste_filtresi = KaliciComboBox(self)
+        self.cmb_liste_filtresi.setFixedWidth(150)
+        self._liste_filtresi_doldur()
+        self.cmb_liste_filtresi.currentIndexChanged.connect(self.verileri_yukle)
+        ust_layout.addWidget(self.cmb_liste_filtresi)
         return ust_layout
+
+    def _liste_filtresi_doldur(self):
+        secenekler = [
+            ("all", self._tr("todo.filter.all", "Tümü")),
+            ("date", self._tr("todo.filter.date", "Tarihe göre")),
+            ("today", self._tr("todo.filter.today", "Bugün")),
+            ("tomorrow", self._tr("todo.filter.tomorrow", "Yarın")),
+            ("week", self._tr("todo.filter.week", "Bu hafta")),
+            ("no_date", self._tr("todo.filter.no_date", "Tarihsiz görevler")),
+            ("overdue", self._tr("todo.filter.overdue", "Süresi geçenler")),
+            ("completed", self._tr("todo.filter.completed", "Tamamlananlar")),
+            ("cancelled", self._tr("todo.filter.cancelled", "İptal edilenler")),
+        ]
+        for key, text in secenekler:
+            self.cmb_liste_filtresi.addItem(text, key)
 
     def _tarih_saat_widget_olustur(self, checked=False, tarih_saat=None, label=None, parent=None):
         parent = parent or self
@@ -224,6 +244,38 @@ class GorevArayuzuDialog(QtWidgets.QDialog):
                 return i
         return 0
 
+    def _filtrelenmis_gorevleri_al(self):
+        filtre = self.cmb_liste_filtresi.currentData() if hasattr(self, "cmb_liste_filtresi") else "all"
+        gorevler = list(self.servis.gorevleri_sirali_al())
+        bugun = datetime.now().date()
+        yarin = bugun + timedelta(days=1)
+        hafta_sonu = bugun + timedelta(days=7)
+
+        if filtre == "date":
+            return sorted(
+                gorevler,
+                key=lambda g: (
+                    0 if g.bitis_tarihi else 1,
+                    g.bitis_tarihi or g.olusturulma_zamani,
+                    g.sira,
+                ),
+            )
+        if filtre == "today":
+            return [g for g in gorevler if g.bitis_tarihi and g.bitis_tarihi.date() == bugun and not g.tamamlandi and not g.iptal_edildi]
+        if filtre == "tomorrow":
+            return [g for g in gorevler if g.bitis_tarihi and g.bitis_tarihi.date() == yarin and not g.tamamlandi and not g.iptal_edildi]
+        if filtre == "week":
+            return [g for g in gorevler if g.bitis_tarihi and bugun <= g.bitis_tarihi.date() <= hafta_sonu and not g.tamamlandi and not g.iptal_edildi]
+        if filtre == "no_date":
+            return [g for g in gorevler if not g.bitis_tarihi and not g.tamamlandi and not g.iptal_edildi]
+        if filtre == "overdue":
+            return [g for g in gorevler if g.suresi_gecti_mi()]
+        if filtre == "completed":
+            return [g for g in gorevler if g.tamamlandi]
+        if filtre == "cancelled":
+            return [g for g in gorevler if g.iptal_edildi]
+        return gorevler
+
     def _gorev_form_dialogu(self, gorev):
         dialog = QtWidgets.QDialog(self)
         dialog.setWindowTitle(self._tr("todo.edit.window", "Görevi Düzenle"))
@@ -320,7 +372,7 @@ class GorevArayuzuDialog(QtWidgets.QDialog):
                     widget.hide()
                     widget.deleteLater()
 
-            for gorev in self.servis.gorevleri_sirali_al():
+            for gorev in self._filtrelenmis_gorevleri_al():
                 kart = self._gorev_karti_olustur(gorev)
                 self.liste_layout.insertWidget(self.liste_layout.count() - 1, kart, 0, QtCore.Qt.AlignmentFlag.AlignHCenter)
         finally:
@@ -359,7 +411,7 @@ class GorevArayuzuDialog(QtWidgets.QDialog):
                 if widget:
                     widget.hide()
 
-            for gorev in self.servis.gorevleri_sirali_al():
+            for gorev in self._filtrelenmis_gorevleri_al():
                 kart = kartlar.get(id(gorev)) or self._gorev_karti_olustur(gorev)
                 kart.refresh()
                 self.liste_layout.insertWidget(self.liste_layout.count() - 1, kart, 0, QtCore.Qt.AlignmentFlag.AlignHCenter)
