@@ -71,6 +71,9 @@ class PanelSettings:
         {"key": "normal", "name": "Normal", "color": "#3b82f6"},
         {"key": "high", "name": "Yüksek", "color": "#f97316"},
     ])
+    todo_trash_retention_days: int = 30
+    todo_completed_visible_days: int = 7
+    todo_cancelled_visible_days: int = 7
 
     global_scale: float = 1.0      # Task 6.3: Genel ölçeklendirme çarpanı
     time_scale: float = 1.0        # Bağımsız saat ölçeği

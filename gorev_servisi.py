@@ -2,7 +2,7 @@ import json
 import os
 import shutil
 from typing import List
-from datetime import datetime
+from datetime import datetime, timedelta
 from gorev_modeli import GorevModeli, GorevOnceligi
 from utils import APP_DATA_DIR, log_kaydet
 from oncelik_yonetimi import priority_key
@@ -70,6 +70,22 @@ class GorevServisi:
     def kalici_sil(self, gorev: GorevModeli):
         self._gorevler = [g for g in self._gorevler if g is not gorev]
         self.kaydet()
+
+    def cop_suresi_dolanlari_sil(self, gun_sayisi: int) -> int:
+        try:
+            gun_sayisi = max(0, int(gun_sayisi))
+        except (TypeError, ValueError):
+            gun_sayisi = 30
+        sinir = datetime.now() - timedelta(days=gun_sayisi)
+        onceki_sayi = len(self._gorevler)
+        self._gorevler = [
+            gorev for gorev in self._gorevler
+            if not gorev.cope_atildi or not gorev.cope_atilma_zamani or gorev.cope_atilma_zamani > sinir
+        ]
+        silinen_sayi = onceki_sayi - len(self._gorevler)
+        if silinen_sayi:
+            self.kaydet()
+        return silinen_sayi
 
     def gorevleri_sirali_al(self) -> List[GorevModeli]:
         oncelik_sirasi = {

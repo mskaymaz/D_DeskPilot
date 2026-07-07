@@ -10,6 +10,7 @@ from gorev_modeli import GorevModeli, GorevOnceligi
 from gorev_karti import GorevKarti
 from oncelik_yonetimi import priority_key, task_priorities
 from dil_yonetimi import t, is_rtl
+from core_settings import save_settings
 
 
 LIST_ICON_PATH = (
@@ -20,6 +21,17 @@ LIST_ICON_PATH = (
     "t28.5-11.5ZM440-280h240v-80H440v80Zm0-160h240v-80H440v80Zm0-160h240v-80H440v80Z"
     "M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h560q33 0 56.5 23.5T840-760"
     "v560q0 33-23.5 56.5T760-120H200Zm0-80h560v-560H200v560Zm0-560v560-560Z"
+)
+
+SETTINGS_ICON_PATH = (
+    "m370-80-16-128q-13-5-24.5-12T307-235l-119 50L78-375l103-78q-1-7-1-13.5v-27q0-6.5 1-13.5"
+    "L78-585l110-190 119 50q11-8 23-15t24-12l16-128h220l16 128q13 5 24.5 12t22.5 15l119-50 110 190"
+    "-103 78q1 7 1 13.5v27q0 6.5-2 13.5l103 78-110 190-118-50q-11 8-23 15t-24 12L590-80H370Z"
+    "m70-80h79l14-106q31-8 57.5-23.5T639-327l99 41 39-68-86-65q5-14 7-29.5t2-31.5q0-16-2-31.5"
+    "t-7-29.5l86-65-39-68-99 42q-22-23-48.5-38.5T533-694l-13-106h-79l-14 106q-31 8-57.5 23.5T321-633"
+    "l-99-41-39 68 86 64q-5 15-7 30t-2 32q0 16 2 31t7 30l-86 65 39 68 99-42q22 23 48.5 38.5T427-266"
+    "l13 106Zm42-180q58 0 99-41t41-99q0-58-41-99t-99-41q-59 0-99.5 41T342-480q0 58 40.5 99t99.5 41Z"
+    "m-2-140Z"
 )
 
 
@@ -97,6 +109,13 @@ class GorevArayuzuDialog(QtWidgets.QDialog):
         self._liste_filtresi_doldur()
         self.cmb_liste_filtresi.currentIndexChanged.connect(self.verileri_yukle)
         ust_layout.addWidget(self.cmb_liste_filtresi)
+        self.btn_todo_ayarlar = QtWidgets.QPushButton(self)
+        self.btn_todo_ayarlar.setIcon(_svg_icon(SETTINGS_ICON_PATH, 22))
+        self.btn_todo_ayarlar.setIconSize(QtCore.QSize(22, 22))
+        self.btn_todo_ayarlar.setToolTip("Görevlerim ayarları")
+        self.btn_todo_ayarlar.setFixedSize(34, 34)
+        self.btn_todo_ayarlar.clicked.connect(self.todo_ayarlarini_ac)
+        ust_layout.addWidget(self.btn_todo_ayarlar)
         return ust_layout
 
     def _liste_filtresi_doldur(self):
@@ -157,6 +176,83 @@ class GorevArayuzuDialog(QtWidgets.QDialog):
 
     def _uyari_goster(self, parent, mesaj):
         QtWidgets.QMessageBox.warning(parent, self._tr("todo.warning.title", "Eksik bilgi"), mesaj)
+
+    def _todo_ayar_degeri(self, alan, varsayilan):
+        try:
+            return max(0, int(getattr(self.settings, alan, varsayilan)))
+        except (TypeError, ValueError):
+            return varsayilan
+
+    def _todo_ayarini_yaz(self, alan, deger):
+        if self.settings is None:
+            return
+        setattr(self.settings, alan, int(deger))
+
+    def todo_ayarlarini_ac(self):
+        dialog = QtWidgets.QDialog(self)
+        dialog.setWindowTitle("Görevlerim Ayarları")
+        dialog.setModal(True)
+        dialog.setFixedWidth(420)
+
+        layout = QtWidgets.QVBoxLayout(dialog)
+        layout.setContentsMargins(16, 14, 16, 14)
+        layout.setSpacing(16)
+
+        aciklama = QtWidgets.QLabel("Liste görünümü ve çöp kutusu saklama süresini buradan yönetebilirsiniz.", dialog)
+        aciklama.setWordWrap(True)
+        aciklama.setStyleSheet("color:#475569;font-size:11pt;")
+        layout.addWidget(aciklama)
+
+        form = QtWidgets.QFormLayout()
+        form.setLabelAlignment(QtCore.Qt.AlignmentFlag.AlignLeft)
+        form.setFormAlignment(QtCore.Qt.AlignmentFlag.AlignTop)
+        form.setVerticalSpacing(16)
+
+        spn_cop = self._gun_secici_olustur("Çöp kutusunda kalma süresi", self._todo_ayar_degeri("todo_trash_retention_days", 30), dialog)
+        spn_tamamlanan = self._gun_secici_olustur("Tamamlananlar Tümü listesinde", self._todo_ayar_degeri("todo_completed_visible_days", 7), dialog)
+        spn_iptal = self._gun_secici_olustur("İptal edilenler Tümü listesinde", self._todo_ayar_degeri("todo_cancelled_visible_days", 7), dialog)
+
+        form.addRow("Silinen görevler", spn_cop)
+        form.addRow("Tamamlanan görevler", spn_tamamlanan)
+        form.addRow("İptal edilen görevler", spn_iptal)
+        layout.addLayout(form)
+
+        not_metni = QtWidgets.QLabel("0 gün seçilirse ilgili işlem hemen uygulanır. Özel filtrelerde kayıtlar ayrıca görüntülenebilir.", dialog)
+        not_metni.setWordWrap(True)
+        not_metni.setStyleSheet("color:#64748b;font-size:10pt;")
+        layout.addWidget(not_metni)
+
+        butonlar = QtWidgets.QHBoxLayout()
+        btn_iptal = QtWidgets.QPushButton(self._tr("todo.cancel", "Vazgeç"), dialog)
+        btn_kaydet = QtWidgets.QPushButton(self._tr("todo.edit.save", "Kaydet"), dialog)
+        btn_iptal.clicked.connect(dialog.reject)
+        btn_kaydet.clicked.connect(dialog.accept)
+        butonlar.addStretch()
+        butonlar.addWidget(btn_iptal)
+        butonlar.addWidget(btn_kaydet)
+        layout.addLayout(butonlar)
+
+        dialog.setStyleSheet(self.styleSheet())
+        dialog.setStyleSheet(dialog.styleSheet() + " QLabel{font-size:11pt;} QSpinBox{font-size:11pt; padding:7px;} ")
+        self._popup_katmanlarini_duzelt(dialog)
+        if dialog.exec() != QtWidgets.QDialog.DialogCode.Accepted:
+            return
+
+        self._todo_ayarini_yaz("todo_trash_retention_days", spn_cop.value())
+        self._todo_ayarini_yaz("todo_completed_visible_days", spn_tamamlanan.value())
+        self._todo_ayarini_yaz("todo_cancelled_visible_days", spn_iptal.value())
+        if self.settings is not None:
+            save_settings(self.settings)
+        self.verileri_yukle()
+
+    def _gun_secici_olustur(self, tooltip, deger, parent):
+        spin = QtWidgets.QSpinBox(parent)
+        spin.setRange(0, 365)
+        spin.setSuffix(" gün")
+        spin.setValue(deger)
+        spin.setToolTip(tooltip)
+        spin.setFixedWidth(110)
+        return spin
 
     def _yapilacaklari_metne_cevir(self, maddeler):
         return "\n".join(str(madde).strip() for madde in (maddeler or []) if str(madde).strip())
@@ -350,7 +446,19 @@ class GorevArayuzuDialog(QtWidgets.QDialog):
             return [g for g in gorevler if g.iptal_edildi and not g.cope_atildi]
         if filtre == "trash":
             return [g for g in gorevler if g.cope_atildi]
-        return [g for g in gorevler if not g.cope_atildi]
+        return [g for g in gorevler if not g.cope_atildi and self._varsayilan_listede_gorunur_mu(g)]
+
+    def _varsayilan_listede_gorunur_mu(self, gorev):
+        if gorev.tamamlandi:
+            return self._durum_suresi_icinde_mi(gorev.tamamlanma_zamani, "todo_completed_visible_days", 7)
+        if gorev.iptal_edildi:
+            return self._durum_suresi_icinde_mi(gorev.iptal_zamani, "todo_cancelled_visible_days", 7)
+        return True
+
+    def _durum_suresi_icinde_mi(self, zaman, alan, varsayilan):
+        if not zaman:
+            return True
+        return datetime.now() - zaman <= timedelta(days=self._todo_ayar_degeri(alan, varsayilan))
 
     def _gorev_form_dialogu(self, gorev):
         dialog = QtWidgets.QDialog(self)
@@ -450,6 +558,7 @@ class GorevArayuzuDialog(QtWidgets.QDialog):
             cal=d.calendarWidget()
             if cal: cal.window().setWindowFlag(popup_flag,True)
     def verileri_yukle(self):
+        self._cop_suresi_dolanlari_temizle()
         scroll_degeri = self.scroll.verticalScrollBar().value()
         self.setUpdatesEnabled(False)
         self.scroll.setUpdatesEnabled(False)
@@ -496,6 +605,7 @@ class GorevArayuzuDialog(QtWidgets.QDialog):
         return None
 
     def _listeyi_yeniden_sirala(self):
+        self._cop_suresi_dolanlari_temizle()
         kartlar = {id(kart.gorev): kart for kart in self.liste_kapsayici.findChildren(GorevKarti)}
         self.setUpdatesEnabled(False)
         self.liste_kapsayici.setUpdatesEnabled(False)
@@ -515,6 +625,9 @@ class GorevArayuzuDialog(QtWidgets.QDialog):
             self.liste_kapsayici.setUpdatesEnabled(True)
             self.setUpdatesEnabled(True)
             self.update()
+
+    def _cop_suresi_dolanlari_temizle(self):
+        self.servis.cop_suresi_dolanlari_sil(self._todo_ayar_degeri("todo_trash_retention_days", 30))
 
     def gorev_ekle(self):
         baslik = self.txt_yeni_gorev.text().strip()
