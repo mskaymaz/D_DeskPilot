@@ -13,6 +13,7 @@ class QuickActionsPanel(QtWidgets.QFrame):
         self.setVisible(False)
         self.setObjectName("quickActions")
         self._hit_overlays = []
+        self._last_anchor_pos = None
         self._hide_timer = QtCore.QTimer(self)
         self._hide_timer.setSingleShot(True)
         self._hide_timer.timeout.connect(lambda: self.hide() if not self.underMouse() else None)
@@ -38,7 +39,8 @@ class QuickActionsPanel(QtWidgets.QFrame):
         self._apply_size()
 
     def _settings_clicked(self):
-        self.controller.show_settings_at(hedef_tur=getattr(self.owner, "tur", None))
+        anchor_pos = self._last_anchor_pos or self.mapToGlobal(self.rect().center())
+        self.controller.show_settings_at(anchor_pos, hedef_tur=getattr(self.owner, "tur", None))
 
     def _scale(self):
         return float(getattr(getattr(self.controller, "settings", None), "global_scale", 1.0))
@@ -152,6 +154,7 @@ class QuickActionsPanel(QtWidgets.QFrame):
     def place_for_content_rect(self, content_rect):
         if self._hide_timer.isActive():
             self._hide_timer.stop()
+        self._last_anchor_pos = self.owner.mapToGlobal(content_rect.center())
         self._apply_window_flags()
         self._apply_size()
         anchor_top = content_rect.top()

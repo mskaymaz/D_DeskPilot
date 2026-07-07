@@ -8,7 +8,7 @@ except ImportError:
 from gorev_servisi import GorevServisi
 from gorev_modeli import GorevModeli, GorevOnceligi
 from gorev_karti import GorevKarti
-from oncelik_yonetimi import default_task_priorities, priority_key, task_priorities
+from oncelik_yonetimi import priority_key, task_priorities
 from dil_yonetimi import t, is_rtl
 from core_settings import save_settings
 
@@ -216,7 +216,6 @@ class GorevArayuzuDialog(QtWidgets.QDialog):
         form.addRow("Tamamlanan görevler", spn_tamamlanan)
         form.addRow("İptal edilen görevler", spn_iptal)
         layout.addLayout(form)
-        layout.addWidget(self._todo_oncelik_grubu_olustur(dialog))
 
         not_metni = QtWidgets.QLabel("0 gün seçilirse ilgili işlem hemen uygulanır. Özel filtrelerde kayıtlar ayrıca görüntülenebilir.", dialog)
         not_metni.setWordWrap(True)
@@ -243,7 +242,6 @@ class GorevArayuzuDialog(QtWidgets.QDialog):
         self._todo_ayarini_yaz("todo_completed_visible_days", spn_tamamlanan.value())
         self._todo_ayarini_yaz("todo_cancelled_visible_days", spn_iptal.value())
         if self.settings is not None:
-            self._todo_oncelikleri_kaydet()
             save_settings(self.settings)
         self.verileri_yukle()
 
@@ -255,102 +253,6 @@ class GorevArayuzuDialog(QtWidgets.QDialog):
         spin.setToolTip(tooltip)
         spin.setFixedWidth(110)
         return spin
-
-    def _todo_oncelik_grubu_olustur(self, parent):
-        grup = QtWidgets.QGroupBox("Görev Öncelikleri", parent)
-        layout = QtWidgets.QVBoxLayout(grup)
-        layout.setSpacing(8)
-
-        bilgi = QtWidgets.QLabel("Öncelik adlarını ve renklerini buradan düzenleyebilirsiniz. Ad sınırı: 7 karakter.", grup)
-        bilgi.setWordWrap(True)
-        bilgi.setStyleSheet("color:#475569;font-size:10pt;")
-        layout.addWidget(bilgi)
-
-        self.tbl_todo_oncelikler = QtWidgets.QTableWidget(0, 3, grup)
-        self.tbl_todo_oncelikler.setHorizontalHeaderLabels(["Anahtar", "Ad", "Renk"])
-        self.tbl_todo_oncelikler.horizontalHeader().setStretchLastSection(True)
-        self.tbl_todo_oncelikler.verticalHeader().setVisible(False)
-        self.tbl_todo_oncelikler.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectionBehavior.SelectRows)
-        self.tbl_todo_oncelikler.setEditTriggers(QtWidgets.QAbstractItemView.EditTrigger.NoEditTriggers)
-        self.tbl_todo_oncelikler.setFixedHeight(145)
-        layout.addWidget(self.tbl_todo_oncelikler)
-
-        butonlar = QtWidgets.QHBoxLayout()
-        btn_ekle = QtWidgets.QPushButton("Ekle", grup)
-        btn_sil = QtWidgets.QPushButton("Seçileni Sil", grup)
-        btn_varsayilan = QtWidgets.QPushButton("Varsayılanlara Dön", grup)
-        btn_ekle.clicked.connect(self._todo_oncelik_ekle)
-        btn_sil.clicked.connect(self._todo_oncelik_sil)
-        btn_varsayilan.clicked.connect(self._todo_oncelikleri_varsayilan)
-        butonlar.addWidget(btn_ekle)
-        butonlar.addWidget(btn_sil)
-        butonlar.addStretch()
-        butonlar.addWidget(btn_varsayilan)
-        layout.addLayout(butonlar)
-
-        self._todo_oncelikleri_yukle()
-        return grup
-
-    def _todo_oncelikleri_yukle(self):
-        self.tbl_todo_oncelikler.setRowCount(0)
-        for item in task_priorities(self.settings) or default_task_priorities():
-            self._todo_oncelik_satiri_ekle(item.get("key", ""), item.get("name", ""), item.get("color", "#3b82f6"))
-
-    def _todo_oncelik_satiri_ekle(self, key, name, color):
-        row = self.tbl_todo_oncelikler.rowCount()
-        self.tbl_todo_oncelikler.insertRow(row)
-        key_item = QtWidgets.QTableWidgetItem(str(key))
-        key_item.setFlags(key_item.flags() & ~QtCore.Qt.ItemFlag.ItemIsEditable)
-        self.tbl_todo_oncelikler.setItem(row, 0, key_item)
-
-        name_edit = QtWidgets.QLineEdit(str(name)[:7])
-        name_edit.setMaxLength(7)
-        self.tbl_todo_oncelikler.setCellWidget(row, 1, name_edit)
-
-        color_btn = QtWidgets.QPushButton(str(color or "#3b82f6"))
-        color_btn.clicked.connect(lambda _=None, b=color_btn: self._todo_oncelik_rengi_sec(b))
-        self.tbl_todo_oncelikler.setCellWidget(row, 2, color_btn)
-
-    def _todo_oncelik_sonraki_anahtar(self):
-        mevcut = {self.tbl_todo_oncelikler.item(r, 0).text() for r in range(self.tbl_todo_oncelikler.rowCount())}
-        i = 1
-        while f"custom_{i}" in mevcut:
-            i += 1
-        return f"custom_{i}"
-
-    def _todo_oncelik_ekle(self):
-        self._todo_oncelik_satiri_ekle(self._todo_oncelik_sonraki_anahtar(), "Yeni", "#8b5cf6")
-
-    def _todo_oncelik_sil(self):
-        satirlar = sorted({i.row() for i in self.tbl_todo_oncelikler.selectedIndexes()}, reverse=True)
-        korunan = {"low", "normal", "high"}
-        for row in satirlar:
-            item = self.tbl_todo_oncelikler.item(row, 0)
-            if item and item.text() not in korunan:
-                self.tbl_todo_oncelikler.removeRow(row)
-
-    def _todo_oncelikleri_varsayilan(self):
-        if self.settings is not None:
-            self.settings.task_priorities = default_task_priorities()
-        self._todo_oncelikleri_yukle()
-
-    def _todo_oncelik_rengi_sec(self, btn):
-        color = QtWidgets.QColorDialog.getColor(QtGui.QColor(btn.text()), self, "Renk Seç")
-        if color.isValid():
-            btn.setText(color.name())
-
-    def _todo_oncelikleri_kaydet(self):
-        items = []
-        for row in range(self.tbl_todo_oncelikler.rowCount()):
-            key_item = self.tbl_todo_oncelikler.item(row, 0)
-            name_edit = self.tbl_todo_oncelikler.cellWidget(row, 1)
-            color_btn = self.tbl_todo_oncelikler.cellWidget(row, 2)
-            key = key_item.text().strip() if key_item else ""
-            name = name_edit.text().strip() if name_edit else ""
-            color = color_btn.text().strip() if color_btn else "#3b82f6"
-            if key and name:
-                items.append({"key": key, "name": name[:7], "color": color})
-        self.settings.task_priorities = items or default_task_priorities()
 
     def _yapilacaklari_metne_cevir(self, maddeler):
         return "\n".join(str(madde).strip() for madde in (maddeler or []) if str(madde).strip())

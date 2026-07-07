@@ -62,7 +62,7 @@ class PencereNavigasyonKarishimi:
                 act.setData((scale_attr, carpan))
 
         menu.addSeparator()
-        act_collect = menu.addAction("⊞  Tüm Modülleri Buraya Topla")
+        act_collect = menu.addAction("⊞  Tüm yapıyı ortada topla")
 
         act_reminders = None
         if False and self.settings.reminder_visible:
@@ -87,7 +87,7 @@ class PencereNavigasyonKarishimi:
             return
 
         if action == act_settings and not self.settings.settings_locked:
-            self.show_settings_at(settings_anchor_pos)
+            self.show_settings_at(settings_anchor_pos or global_pos)
         elif action == act_collect:
             self.tum_modulleri_topla()
         elif action == act_reminders:
@@ -101,6 +101,10 @@ class PencereNavigasyonKarishimi:
         if self.settings.settings_locked:
             return
         if hasattr(self, "settings_window") and self.settings_window.isVisible():
+            if anchor_pos is not None:
+                self.position_settings_window_at(self.settings_window, anchor_pos)
+            else:
+                self.position_settings_window(self.settings_window)
             self.settings_window.raise_()
             self.settings_window.activateWindow()
             return

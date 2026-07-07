@@ -323,7 +323,7 @@ Acceptance:
 - [x] Settings window exists.
 - [x] Language tab exists.
 - [x] Clock font selection supports embedded fonts.
-- [x] Task priority settings exist.
+- [ ] Task priority customization settings are deferred to v2.
 - [ ] Review Turkish settings UX.
 - [ ] Add restart notice when language changes.
 - [ ] Keep missing/old-key and reset-to-default flows stable.
@@ -424,6 +424,7 @@ Acceptance:
 Acceptance:
 - [ ] Today view.
 - [ ] Priority view.
+- [ ] Custom task priority names/colors/settings.
 - [ ] Completed history view.
 - [ ] No complex project-management system.
 

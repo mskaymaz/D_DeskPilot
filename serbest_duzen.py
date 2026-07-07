@@ -3,7 +3,7 @@ try:
 except ImportError:
     from PyQt6 import QtCore, QtGui, QtWidgets
 
-from core_settings import save_settings
+from core_settings import DEFAULT_MODULE_ORDER, save_settings
 from log_servisi import log_kaydet
 from pencere_araclari import ekrani_bul
 from serbest_pencere import SerbestSatirPenceresi
@@ -134,27 +134,21 @@ class SerbestDuzenKarishimi:
         ekran = app.screenAt(QtGui.QCursor.pos()) or app.primaryScreen()
         alan = ekran.availableGeometry()
         log_kaydet(f"Tüm modüller '{ekran.name()}' ekranına toplanıyor.")
+        self.settings.module_order = list(DEFAULT_MODULE_ORDER)
 
-        if not self.settings.free_layout_enabled:
-            self.adjustSize()
-            x = alan.left() + (alan.width() - self.width()) // 2
-            y = alan.top() + (alan.height() - self.height()) // 2
-            self.move(x, y)
-            self.settings.pos_x = x
-            self.settings.pos_y = y
-            self.settings.grup_ekran_adi = ekran.name()
-        else:
-            self._ensure_free_windows()
-            y = alan.top() + 50
-            for pencere, tur in (
-                (self.free_time_window, "time"),
-                (self.free_date_window, "date"),
-                (self.free_battery_window, "battery"),
-            ):
-                if pencere and pencere.isVisible():
-                    pencere.move(alan.left() + 50, y)
-                    self.update_free_position(tur, pencere.x(), pencere.y(), ekran.name())
-                    y += pencere.height() + 10
+        self.settings.free_layout_enabled = False
+        self.settings.free_layout_has_positions = False
+        self._free_layout_active = False
+        self._hide_free_windows()
+        self.apply_settings()
+        self.show()
+        self.adjustSize()
+        x = alan.left() + (alan.width() - self.width()) // 2
+        y = alan.top() + (alan.height() - self.height()) // 2
+        self.move(x, y)
+        self.settings.pos_x = x
+        self.settings.pos_y = y
+        self.settings.grup_ekran_adi = ekran.name()
 
         save_settings(self.settings)
 

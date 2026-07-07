@@ -472,10 +472,10 @@ Tamamlanma Kriterleri:
 **Geliştirici Notu:** Kullanıcı görevin aktif, gecikmiş, tamamlanmış, iptal edilmiş veya silinmiş olduğunu açıkça görebilmelidir. Erteleme ancak mevcut modele temiz oturuyorsa eklenmelidir.
 
 Tamamlanma Kriterleri:
-- [ ] Türkçe iş akışını iyileştir.
-- [ ] Görev ekle/düzenle dialog davranışını destekle.
-- [ ] Görev tarih ve saatini kaydet/yükle.
-- [ ] Gecikmiş, tamamlanmış, iptal edilmiş ve silinmiş durumları net göster.
+- [x] Türkçe iş akışını iyileştir.
+- [x] Görev ekle/düzenle dialog davranışını destekle.
+- [x] Görev tarih ve saatini kaydet/yükle.
+- [x] Gecikmiş, tamamlanmış, iptal edilmiş ve silinmiş durumları net göster.
 - [ ] Öncelik sıralaması ve tamamlananları temizleme davranışını kararlı tut.
 - [ ] Yalnızca mevcut modele temiz uyuyorsa ertelemeyi destekle.
 
