@@ -46,6 +46,7 @@ class GorevArayuzuDialog(QtWidgets.QDialog):
         self.setLayoutDirection(QtCore.Qt.LayoutDirection.RightToLeft if is_rtl(self.language) else QtCore.Qt.LayoutDirection.LeftToRight)
         self.setWindowTitle(self._tr("todo.title", "Görevlerim"))
         self.setFixedSize(540, 600)
+        self.setWindowOpacity(0.0)
         self._arayuz_kur()
         self.verileri_yukle()
 
@@ -66,25 +67,26 @@ class GorevArayuzuDialog(QtWidgets.QDialog):
 
     def _ust_butonlari_olustur(self):
         ust_layout = QtWidgets.QHBoxLayout()
-        self.btn_yeni_gorev = QtWidgets.QPushButton(self._tr("todo.add.button", "+ Yeni Görev"))
+        self.btn_yeni_gorev = QtWidgets.QPushButton(self._tr("todo.add.button", "+ Yeni Görev"), self)
         self.btn_yeni_gorev.clicked.connect(self.yeni_gorev_paneli_ac)
         ust_layout.addWidget(self.btn_yeni_gorev)
         ust_layout.addStretch()
         return ust_layout
 
-    def _tarih_saat_widget_olustur(self, checked=False, tarih_saat=None, label=None):
-        kapsayici = QtWidgets.QWidget()
+    def _tarih_saat_widget_olustur(self, checked=False, tarih_saat=None, label=None, parent=None):
+        parent = parent or self
+        kapsayici = QtWidgets.QWidget(parent)
         satir = QtWidgets.QHBoxLayout(kapsayici)
         satir.setContentsMargins(0, 0, 0, 0)
         satir.setSpacing(4)
 
-        chk = QtWidgets.QCheckBox(label or self._tr("todo.date.add", "Tarih/Saat Ekle"))
-        dt = QtWidgets.QDateTimeEdit()
+        chk = QtWidgets.QCheckBox(label or self._tr("todo.date.add", "Tarih/Saat Ekle"), kapsayici)
+        dt = QtWidgets.QDateTimeEdit(kapsayici)
         dt.setCalendarPopup(True)
         dt.setDisplayFormat("dd.MM.yyyy")
         dt.setDateTime(QtCore.QDateTime(tarih_saat) if tarih_saat else QtCore.QDateTime.currentDateTime())
 
-        txt_saat = QtWidgets.QLineEdit(QtCore.QDateTime(tarih_saat).time().toString("HH:mm") if tarih_saat else QtCore.QTime.currentTime().toString("HH:mm"))
+        txt_saat = QtWidgets.QLineEdit(QtCore.QDateTime(tarih_saat).time().toString("HH:mm") if tarih_saat else QtCore.QTime.currentTime().toString("HH:mm"), kapsayici)
         txt_saat.setInputMask("00:00")
         txt_saat.setFixedWidth(56)
 
@@ -109,29 +111,29 @@ class GorevArayuzuDialog(QtWidgets.QDialog):
         return QtCore.QDateTime(dt.date(), saat).toPython()
 
     def _ekleme_formu_olustur(self):
-        ekle_grubu = QtWidgets.QGroupBox(self._tr("todo.add.group", "Yeni Görev Ekle"))
+        ekle_grubu = QtWidgets.QGroupBox(self._tr("todo.add.group", "Yeni Görev Ekle"), self)
         ekle_layout = QtWidgets.QGridLayout(ekle_grubu)
         ekle_layout.setHorizontalSpacing(15)
         ekle_layout.setVerticalSpacing(6)
         ekle_layout.setContentsMargins(10, 8, 10, 8)
 
-        self.txt_yeni_gorev = QtWidgets.QLineEdit()
+        self.txt_yeni_gorev = QtWidgets.QLineEdit(ekle_grubu)
         self.txt_yeni_gorev.setPlaceholderText(self._tr("todo.add.placeholder.title", "Görev başlığı..."))
 
-        self.txt_aciklama = QtWidgets.QTextEdit()
+        self.txt_aciklama = QtWidgets.QTextEdit(ekle_grubu)
         self.txt_aciklama.setPlaceholderText(self._tr("todo.add.placeholder.description", "Açıklama..."))
         self.txt_aciklama.setFixedHeight(76)
 
-        self.cmb_oncelik = KaliciComboBox()
+        self.cmb_oncelik = KaliciComboBox(ekle_grubu)
         self._oncelik_combo_doldur(self.cmb_oncelik, "normal")
 
-        tarih_widget, self.chk_son_tarih, self.dt_son_tarih, self.txt_son_saat = self._tarih_saat_widget_olustur(False, None)
+        tarih_widget, self.chk_son_tarih, self.dt_son_tarih, self.txt_son_saat = self._tarih_saat_widget_olustur(False, None, parent=ekle_grubu)
 
-        self.btn_ekle = QtWidgets.QPushButton(self._tr("todo.add.submit", "Ekle"))
+        self.btn_ekle = QtWidgets.QPushButton(self._tr("todo.add.submit", "Ekle"), ekle_grubu)
         self.btn_ekle.setFixedWidth(82)
         self.btn_ekle.clicked.connect(self.gorev_ekle)
 
-        self.btn_yeni_iptal = QtWidgets.QPushButton(self._tr("todo.cancel", "Vazgeç"))
+        self.btn_yeni_iptal = QtWidgets.QPushButton(self._tr("todo.cancel", "Vazgeç"), ekle_grubu)
         self.btn_yeni_iptal.setFixedWidth(82)
         self.btn_yeni_iptal.clicked.connect(lambda: getattr(self, "_aktif_yeni_gorev_dialogu", None).reject())
 
@@ -160,13 +162,13 @@ class GorevArayuzuDialog(QtWidgets.QDialog):
         self._aktif_yeni_gorev_dialogu = None
 
     def _liste_alani_olustur(self):
-        self.scroll = QtWidgets.QScrollArea()
+        self.scroll = QtWidgets.QScrollArea(self)
         self.scroll.setWidgetResizable(True)
         self.scroll.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.scroll.setAlignment(QtCore.Qt.AlignmentFlag.AlignHCenter | QtCore.Qt.AlignmentFlag.AlignTop)
         self.scroll.setFrameShape(QtWidgets.QFrame.Shape.NoFrame)
 
-        self.liste_kapsayici = QtWidgets.QWidget()
+        self.liste_kapsayici = QtWidgets.QWidget(self.scroll)
         self.liste_kapsayici.setFixedWidth(520)
         self.liste_layout = QtWidgets.QVBoxLayout(self.liste_kapsayici)
         self.liste_layout.setContentsMargins(2, 2, 2, 2)
@@ -178,7 +180,7 @@ class GorevArayuzuDialog(QtWidgets.QDialog):
 
     def _alt_butonlari_olustur(self):
         alt_layout = QtWidgets.QHBoxLayout()
-        self.btn_kapat = QtWidgets.QPushButton(self._tr("todo.close", "Kapat"))
+        self.btn_kapat = QtWidgets.QPushButton(self._tr("todo.close", "Kapat"), self)
         self.btn_kapat.clicked.connect(self.accept)
         alt_layout.addStretch()
         alt_layout.addWidget(self.btn_kapat)
@@ -227,24 +229,24 @@ class GorevArayuzuDialog(QtWidgets.QDialog):
         layout.setHorizontalSpacing(8)
         layout.setVerticalSpacing(8)
 
-        txt_baslik = QtWidgets.QLineEdit(gorev.baslik)
-        txt_aciklama = QtWidgets.QTextEdit()
+        txt_baslik = QtWidgets.QLineEdit(gorev.baslik, dialog)
+        txt_aciklama = QtWidgets.QTextEdit(dialog)
         txt_aciklama.setPlainText(gorev.aciklama)
         txt_aciklama.setFixedHeight(110)
 
-        cmb_oncelik = KaliciComboBox()
+        cmb_oncelik = KaliciComboBox(dialog)
         self._oncelik_combo_doldur(cmb_oncelik, gorev.oncelik)
 
-        cmb_durum = KaliciComboBox()
+        cmb_durum = KaliciComboBox(dialog)
         cmb_durum.addItem("Aktif", "active")
         cmb_durum.addItem(self._tr("todo.status.completed", "Tamamlandı"), "completed")
         cmb_durum.addItem("İptal Edildi", "cancelled")
         cmb_durum.setCurrentIndex(2 if gorev.iptal_edildi else 1 if gorev.tamamlandi else 0)
 
-        tarih_widget, chk_tarih, dt_tarih, txt_saat = self._tarih_saat_widget_olustur(bool(gorev.bitis_tarihi), gorev.bitis_tarihi, self._tr("todo.date.use_due", "Son tarih kullan"))
+        tarih_widget, chk_tarih, dt_tarih, txt_saat = self._tarih_saat_widget_olustur(bool(gorev.bitis_tarihi), gorev.bitis_tarihi, self._tr("todo.date.use_due", "Son tarih kullan"), parent=dialog)
 
-        btn_kaydet = QtWidgets.QPushButton(self._tr("todo.edit.save", "Kaydet"))
-        btn_iptal = QtWidgets.QPushButton(self._tr("todo.cancel", "Vazgeç"))
+        btn_kaydet = QtWidgets.QPushButton(self._tr("todo.edit.save", "Kaydet"), dialog)
+        btn_iptal = QtWidgets.QPushButton(self._tr("todo.cancel", "Vazgeç"), dialog)
         btn_kaydet.clicked.connect(dialog.accept)
         btn_iptal.clicked.connect(dialog.reject)
 
@@ -289,20 +291,66 @@ class GorevArayuzuDialog(QtWidgets.QDialog):
             if cal: cal.window().setWindowFlag(popup_flag,True)
     def verileri_yukle(self):
         scroll_degeri = self.scroll.verticalScrollBar().value()
-        while self.liste_layout.count() > 1:
-            item = self.liste_layout.takeAt(0)
-            widget = item.widget()
-            if widget:
-                widget.deleteLater()
+        self.setUpdatesEnabled(False)
+        self.scroll.setUpdatesEnabled(False)
+        self.scroll.viewport().setUpdatesEnabled(False)
+        self.liste_kapsayici.setUpdatesEnabled(False)
+        try:
+            while self.liste_layout.count() > 1:
+                item = self.liste_layout.takeAt(0)
+                widget = item.widget()
+                if widget:
+                    widget.hide()
+                    widget.deleteLater()
 
-        for gorev in self.servis.gorevleri_sirali_al():
-            kart = GorevKarti(gorev, settings=self.settings)
-            kart.durum_degisti.connect(self.durum_degistir)
-            kart.sil_istendi.connect(self.gorev_sil)
-            kart.duzenle_istendi.connect(self.gorev_duzenle)
-            self.liste_layout.insertWidget(self.liste_layout.count() - 1, kart, 0, QtCore.Qt.AlignmentFlag.AlignHCenter)
+            for gorev in self.servis.gorevleri_sirali_al():
+                kart = self._gorev_karti_olustur(gorev)
+                self.liste_layout.insertWidget(self.liste_layout.count() - 1, kart, 0, QtCore.Qt.AlignmentFlag.AlignHCenter)
+        finally:
+            self.liste_kapsayici.setUpdatesEnabled(True)
+            self.scroll.viewport().setUpdatesEnabled(True)
+            self.scroll.setUpdatesEnabled(True)
+            self.setUpdatesEnabled(True)
 
-        QtCore.QTimer.singleShot(0, lambda: self.scroll.verticalScrollBar().setValue(scroll_degeri))
+        def _yenilemeyi_bitir():
+            self.scroll.verticalScrollBar().setValue(scroll_degeri)
+            self.update()
+
+        QtCore.QTimer.singleShot(0, _yenilemeyi_bitir)
+
+    def _gorev_karti_olustur(self, gorev):
+        kart = GorevKarti(gorev, settings=self.settings, parent=self.liste_kapsayici)
+        kart.durum_degisti.connect(self.durum_degistir)
+        kart.sil_istendi.connect(self.gorev_sil)
+        kart.duzenle_istendi.connect(self.gorev_duzenle)
+        return kart
+
+    def _gorev_kartini_bul(self, gorev):
+        for kart in self.liste_kapsayici.findChildren(GorevKarti):
+            if kart.gorev is gorev:
+                return kart
+        return None
+
+    def _listeyi_yeniden_sirala(self):
+        kartlar = {id(kart.gorev): kart for kart in self.liste_kapsayici.findChildren(GorevKarti)}
+        self.setUpdatesEnabled(False)
+        self.liste_kapsayici.setUpdatesEnabled(False)
+        try:
+            while self.liste_layout.count() > 1:
+                item = self.liste_layout.takeAt(0)
+                widget = item.widget()
+                if widget:
+                    widget.hide()
+
+            for gorev in self.servis.gorevleri_sirali_al():
+                kart = kartlar.get(id(gorev)) or self._gorev_karti_olustur(gorev)
+                kart.refresh()
+                self.liste_layout.insertWidget(self.liste_layout.count() - 1, kart, 0, QtCore.Qt.AlignmentFlag.AlignHCenter)
+                kart.show()
+        finally:
+            self.liste_kapsayici.setUpdatesEnabled(True)
+            self.setUpdatesEnabled(True)
+            self.update()
 
     def gorev_ekle(self):
         baslik = self.txt_yeni_gorev.text().strip()
@@ -325,12 +373,12 @@ class GorevArayuzuDialog(QtWidgets.QDialog):
         gorev.tamamlandi = durum
         gorev.tamamlanma_zamani = datetime.now() if durum else None
         self.servis.kaydet()
-        self.verileri_yukle()
+        self._listeyi_yeniden_sirala()
 
     def gorev_duzenle(self, gorev):
         if self._gorev_form_dialogu(gorev):
             self.servis.kaydet()
-            self.verileri_yukle()
+            self._listeyi_yeniden_sirala()
 
     def gorev_sil(self, gorev):
         gorev.iptal_edildi = True
@@ -338,7 +386,7 @@ class GorevArayuzuDialog(QtWidgets.QDialog):
         gorev.tamamlanma_zamani = None
         gorev.iptal_zamani = datetime.now()
         self.servis.kaydet()
-        self.verileri_yukle()
+        self._listeyi_yeniden_sirala()
 
 
 

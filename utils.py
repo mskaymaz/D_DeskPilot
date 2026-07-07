@@ -9,7 +9,6 @@ APP_NAME = "DeskPilot"
 APP_ID = "MSK.DeskPilot"
 APP_DATA_DIR = os.path.join(os.environ.get("LOCALAPPDATA", os.path.expanduser("~")), APP_NAME)
 SETTINGS_FILE = os.path.join(APP_DATA_DIR, "settings.json")
-ICON_FILE = "assets/icon.ico" if os.path.exists("assets/icon.ico") else "deskpilot.ico"
 RUN_REG_PATH = r"Software\Microsoft\Windows\CurrentVersion\Run"
 
 # --- LOGLAMA ALTYAPISI (Task 1.2) ---
@@ -46,14 +45,39 @@ def log_kaydet(mesaj: str, seviye: str = "info"):
     except UnicodeEncodeError:
         pass
 
+def _resource_roots():
+    roots = []
+    meipass = getattr(sys, "_MEIPASS", None)
+    if meipass:
+        roots.append(meipass)
+    if getattr(sys, "frozen", False):
+        roots.append(os.path.dirname(sys.executable))
+    roots.append(os.path.dirname(os.path.abspath(__file__)))
+
+    temiz = []
+    for root in roots:
+        root = os.path.abspath(root)
+        if root not in temiz:
+            temiz.append(root)
+    return temiz
+
 def resource_path(relative_path: str) -> str:
-    """Paketlenmiş exe veya kaynak klasörü için doğru dosya yolunu döndürür."""
-    base_path = getattr(sys, "_MEIPASS", os.path.abspath("."))
-    full_path = os.path.join(base_path, relative_path)
-    if not os.path.exists(full_path):
-        # Fallback to current dir if assets are missing in expected path
-        return os.path.join(os.path.abspath("."), os.path.basename(relative_path))
-    return full_path
+    """Return a bundled/source resource path without depending on cwd."""
+    relative_path = relative_path.replace("/", os.sep)
+    roots = _resource_roots()
+    for root in roots:
+        aday = os.path.join(root, relative_path)
+        if os.path.exists(aday):
+            return aday
+    return os.path.join(roots[0], relative_path)
+
+def _first_existing_resource(*relative_paths: str) -> str:
+    for relative_path in relative_paths:
+        if os.path.exists(resource_path(relative_path)):
+            return relative_path
+    return relative_paths[0]
+
+ICON_FILE = _first_existing_resource("assets/icon.ico", "deskpilot.ico")
 
 def _get_autostart_command():
     """Uygulamayı başlatacak komut satırını oluşturur."""

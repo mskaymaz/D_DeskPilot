@@ -72,7 +72,7 @@ class GorevKarti(QtWidgets.QFrame):
         ana.addWidget(self._govde_panel_olustur(), 1)
 
     def _sol_panel_olustur(self):
-        self.sol_panel = QtWidgets.QFrame()
+        self.sol_panel = QtWidgets.QFrame(self)
         self.sol_panel.setFixedWidth(68)
 
         self.lbl_oncelik = RotatedLabel("", self.sol_panel)
@@ -88,7 +88,7 @@ class GorevKarti(QtWidgets.QFrame):
         return self.sol_panel
 
     def _govde_panel_olustur(self):
-        govde = QtWidgets.QFrame()
+        govde = QtWidgets.QFrame(self)
         govde.setObjectName("gorevGovde")
         govde_layout = QtWidgets.QHBoxLayout(govde)
         govde_layout.setContentsMargins(14, 5, 12, 5)
@@ -104,11 +104,11 @@ class GorevKarti(QtWidgets.QFrame):
         metin.setContentsMargins(0, 0, 0, 0)
         metin.setSpacing(1)
 
-        self.lbl_baslik = QtWidgets.QLabel(self.gorev.baslik)
-        self.lbl_aciklama = QtWidgets.QLabel(self._kisa_aciklama())
+        self.lbl_baslik = QtWidgets.QLabel(self.gorev.baslik, self)
+        self.lbl_aciklama = QtWidgets.QLabel(self._kisa_aciklama(), self)
         self.lbl_aciklama.setVisible(bool(self.gorev.aciklama))
 
-        self.btn_aciklama = QtWidgets.QPushButton()
+        self.btn_aciklama = QtWidgets.QPushButton(self)
         self.btn_aciklama.setFixedSize(30, 24)
         self.btn_aciklama.setVisible(len(self.gorev.aciklama) > 80)
         aciklama_icon_path = resource_path("img/icons/aciklama.svg")
@@ -129,14 +129,14 @@ class GorevKarti(QtWidgets.QFrame):
         return metin
 
     def _tarih_paneli_olustur(self):
-        self.tarih_panel = QtWidgets.QFrame()
+        self.tarih_panel = QtWidgets.QFrame(self)
         tarih_layout = QtWidgets.QVBoxLayout(self.tarih_panel)
         tarih_layout.setContentsMargins(8, 3, 8, 3)
         tarih_layout.setSpacing(1)
 
-        self.lbl_tarih_baslik = QtWidgets.QLabel("Son Tarih")
-        self.lbl_tarih = QtWidgets.QLabel(self._son_tarih_gun())
-        self.lbl_saat = QtWidgets.QLabel(self._son_tarih_saat())
+        self.lbl_tarih_baslik = QtWidgets.QLabel("Son Tarih", self.tarih_panel)
+        self.lbl_tarih = QtWidgets.QLabel(self._son_tarih_gun(), self.tarih_panel)
+        self.lbl_saat = QtWidgets.QLabel(self._son_tarih_saat(), self.tarih_panel)
 
         tarih_layout.addWidget(self.lbl_tarih_baslik)
         tarih_layout.addWidget(self.lbl_tarih)
@@ -145,19 +145,19 @@ class GorevKarti(QtWidgets.QFrame):
         return self.tarih_panel
 
     def _buton_paneli_olustur(self):
-        buton_panel = QtWidgets.QFrame()
+        buton_panel = QtWidgets.QFrame(self)
         buton_panel.setFixedWidth(34)
         buton_layout = QtWidgets.QVBoxLayout(buton_panel)
         buton_layout.setContentsMargins(0, 0, 0, 0)
         buton_layout.setSpacing(2)
 
-        self.btn_duzenle = QtWidgets.QPushButton()
+        self.btn_duzenle = QtWidgets.QPushButton(buton_panel)
         self.btn_duzenle.setFixedSize(32, 28)
         self.btn_duzenle.setIcon(QtGui.QIcon(resource_path("img/icons/duzenle.svg")))
         self.btn_duzenle.setIconSize(QtCore.QSize(24, 24))
         self.btn_duzenle.clicked.connect(lambda: self.duzenle_istendi.emit(self.gorev))
 
-        self.btn_sil = QtWidgets.QPushButton("×")
+        self.btn_sil = QtWidgets.QPushButton("×", buton_panel)
         self.btn_sil.setFixedSize(32, 34)
         self.btn_sil.clicked.connect(lambda: self.sil_istendi.emit(self.gorev))
 
@@ -223,6 +223,19 @@ class GorevKarti(QtWidgets.QFrame):
 
         self.btn_durum.setText("⌛")
 
+    def refresh(self):
+        self.setUpdatesEnabled(False)
+        self.lbl_baslik.setText(self.gorev.baslik)
+        self.lbl_aciklama.setText(self._kisa_aciklama())
+        self.lbl_aciklama.setVisible(bool(self.gorev.aciklama))
+        self.btn_aciklama.setVisible(len(self.gorev.aciklama) > 80)
+        self.lbl_tarih.setText(self._son_tarih_gun())
+        self.lbl_saat.setText(self._son_tarih_saat())
+        self.tarih_panel.setVisible(bool(self.gorev.bitis_tarihi))
+        self._stili_uygula()
+        self.setUpdatesEnabled(True)
+        self.update()
+
     def _durum_butonu_tiklandi(self):
         if self.gorev.iptal_edildi:
             self.gorev.iptal_edildi = False
@@ -231,7 +244,7 @@ class GorevKarti(QtWidgets.QFrame):
             self.gorev.tamamlanma_zamani = None
         else:
             self.gorev.tamamlandi = not self.gorev.tamamlandi
-        self._stili_uygula()
+        self.refresh()
         self.durum_degisti.emit(self.gorev, self.gorev.tamamlandi)
 
     def _aciklama_goster(self):
@@ -284,20 +297,6 @@ class GorevKarti(QtWidgets.QFrame):
         self.lbl_overlay.setVisible(bool(metin))
         self.lbl_overlay.raise_()
         self.update()
-
-    def paintEvent(self, event):
-        super().paintEvent(event)
-        if self.gorev.iptal_edildi or not self.gorev.tamamlandi:
-            return
-        painter = QtGui.QPainter(self)
-        painter.setOpacity(0.50)
-        painter.setPen(QtGui.QColor("#111827"))
-        font = painter.font()
-        font.setPointSize(24)
-        font.setBold(True)
-        painter.setFont(font)
-        painter.drawText(self.rect(), QtCore.Qt.AlignmentFlag.AlignCenter, "TAMAMLANDI")
-        painter.end()
 
     def _oncelik_dikey_metni(self):
         return self._oncelik_metni().replace(" Öncelik", "").strip().upper()

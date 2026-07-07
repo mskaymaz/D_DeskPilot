@@ -127,8 +127,38 @@ class PencereNavigasyonKarishimi:
             self.todo_window.activateWindow()
             return
         self.todo_window = GorevArayuzuDialog(self.gorev_servisi, self)
+        self.todo_window.setWindowOpacity(0.0)
+        self._move_todo_window_offscreen(self.todo_window)
         self.todo_window.show()
         self.todo_window.raise_()
+
+        def _todo_window_ready():
+            if hasattr(self, "todo_window") and self.todo_window:
+                self._center_todo_window(self.todo_window)
+                self.todo_window.setWindowOpacity(1.0)
+                self.todo_window.raise_()
+
+        QtCore.QTimer.singleShot(0, _todo_window_ready)
+
+    def _center_todo_window(self, dialog):
+        app = QtWidgets.QApplication.instance()
+        anchor_rect = self.frameGeometry()
+        screen = app.screenAt(anchor_rect.center()) or app.primaryScreen()
+        rect = screen.availableGeometry()
+        x = rect.left() + (rect.width() - dialog.width()) // 2
+        y = rect.top() + (rect.height() - dialog.height()) // 2
+        dialog.move(x, y)
+
+    def _move_todo_window_offscreen(self, dialog):
+        app = QtWidgets.QApplication.instance()
+        screens = app.screens() if app else []
+        if not screens:
+            dialog.move(10000, 10000)
+            return
+        rect = screens[0].geometry()
+        for screen in screens[1:]:
+            rect = rect.united(screen.geometry())
+        dialog.move(rect.right() + dialog.width() + 200, rect.bottom() + dialog.height() + 200)
 
     def _clamp_dialog_position(self, dialog, x, y, rect):
         dialog.adjustSize()
