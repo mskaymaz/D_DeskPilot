@@ -23,7 +23,7 @@ class QuickActionsPanel(QtWidgets.QFrame):
 
         layout = QtWidgets.QHBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(2)
+        layout.setSpacing(0)
 
         self.btn_settings = QtWidgets.QPushButton("\u2699")
         self.btn_alarm = QtWidgets.QPushButton()
@@ -62,10 +62,12 @@ class QuickActionsPanel(QtWidgets.QFrame):
 
     def _apply_size(self):
         size = max(24, min(72, int(self.BASE_SIZE * self._scale() * 0.935)))
+        width = max(20, int(size * 0.82))
         for btn in (self.btn_settings, self.btn_alarm, self.btn_reminders, self.btn_todos):
-            btn.setFixedSize(size, size)
+            btn.setFixedSize(width, size)
         self.btn_settings.setStyleSheet(f"font-size:{int(size * 0.62)}px;")
-        self.btn_alarm.setIconSize(QtCore.QSize(int(size * 0.84 * 0.76), int(size * 0.84 * 0.76)))
+        alarm_icon_size = int(size * 0.84 * 0.76 * 1.32)
+        self.btn_alarm.setIconSize(QtCore.QSize(alarm_icon_size, alarm_icon_size))
         self.btn_reminders.setStyleSheet(f"font-size:{int(size * 0.62 * 0.90)}px;")
         self.btn_todos.setIconSize(QtCore.QSize(int(size * 0.84 * 0.76), int(size * 0.84 * 0.76)))
         self.setStyleSheet(

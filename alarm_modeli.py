@@ -28,7 +28,9 @@ class AlarmModeli:
     snooze_dakika: int = 5
     ses_tipi: str = "Varsayılan"
     ses_seviyesi: int = 70
+    tekrar_araligi_saniye: int = 5
     tts_aktif: bool = False
+    tts_metni: str = ""
     erteleme_zamani: Optional[datetime] = None
     son_calisma_zamani: Optional[datetime] = None
     olusturulma_zamani: datetime = field(default_factory=datetime.now)
@@ -78,7 +80,9 @@ class AlarmModeli:
         if self.tekrar_tipi == AlarmTekrarTipi.GUNLUK:
             return aday
 
-        gunler = self.haftanin_gunleri or [simdi.weekday()]
+        gunler = self.haftanin_gunleri or []
+        if not gunler:
+            return None
         for offset in range(8):
             haftalik_aday = datetime.combine((simdi + timedelta(days=offset)).date(), alarm_saati)
             if haftalik_aday > simdi and haftalik_aday.weekday() in gunler:

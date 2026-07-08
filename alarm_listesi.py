@@ -15,22 +15,21 @@ class AlarmListesiDialog(QtWidgets.QDialog):
         self.resize(460, 360)
 
         self.lst_alarmlar = QtWidgets.QListWidget()
+        lbl_baslik = QtWidgets.QLabel("Saat Alarmları")
+        lbl_baslik.setStyleSheet("font-weight:bold; font-size:15px;")
         self.btn_ekle = self._ikon_buton("img/icons/add_icon.svg", "Ekle")
-        self.btn_duzenle = self._ikon_buton("img/icons/duzenle.svg", "Düzenle")
-        self.btn_sil = self._ikon_buton("img/icons/delete_icon.svg", "Sil")
 
-        btns = QtWidgets.QHBoxLayout()
-        btns.addWidget(self.btn_ekle)
-        btns.addWidget(self.btn_duzenle)
-        btns.addWidget(self.btn_sil)
+        ust_panel = QtWidgets.QHBoxLayout()
+        ust_panel.addWidget(lbl_baslik)
+        ust_panel.addStretch()
+        ust_panel.addWidget(self.btn_ekle)
 
         layout = QtWidgets.QVBoxLayout(self)
+        layout.addLayout(ust_panel)
         layout.addWidget(self.lst_alarmlar)
-        layout.addLayout(btns)
 
         self.btn_ekle.clicked.connect(self._alarm_ekle)
-        self.btn_duzenle.clicked.connect(self._alarm_duzenle)
-        self.btn_sil.clicked.connect(self._alarm_sil)
+        self.lst_alarmlar.itemDoubleClicked.connect(lambda _item: self._alarm_duzenle())
         self._liste_yenile()
 
     def _ikon_buton(self, ikon_yolu, ipucu):
@@ -66,12 +65,16 @@ class AlarmListesiDialog(QtWidgets.QDialog):
         lbl_baslik = QtWidgets.QLabel(alarm.baslik or "Alarm")
         lbl_tekrar = QtWidgets.QLabel(tekrar)
         lbl_tekrar.setFixedWidth(58)
+        btn_sil = self._ikon_buton("img/icons/delete_icon.svg", "Sil")
+        btn_sil.setFixedSize(28, 26)
 
         row.addWidget(chk)
         row.addWidget(lbl_saat)
         row.addWidget(lbl_baslik, 1)
         row.addWidget(lbl_tekrar)
+        row.addWidget(btn_sil)
         chk.toggled.connect(lambda checked, alarm_id=alarm.id: self._alarm_satir_aktiflik_degistir(alarm_id, checked))
+        btn_sil.clicked.connect(lambda _checked=False, alarm_id=alarm.id: self._alarm_sil_id(alarm_id))
         return widget
 
     def _alarm_satir_aktiflik_degistir(self, alarm_id, aktif):
@@ -112,6 +115,9 @@ class AlarmListesiDialog(QtWidgets.QDialog):
         txt_baslik = QtWidgets.QLineEdit(alarm.baslik if alarm else self._siradaki_alarm_adi())
         txt_baslik.setFixedWidth(190)
         txt_aciklama = QtWidgets.QLineEdit(alarm.aciklama if alarm else "")
+        txt_tts_metni = QtWidgets.QPlainTextEdit(getattr(alarm, "tts_metni", "") if alarm else "")
+        txt_tts_metni.setFixedHeight(58)
+        txt_tts_metni.setPlaceholderText("Boşsa başlık ve açıklama okunur.")
         alarm_time = QtCore.QTime.fromString(alarm.saat, "HH:mm") if alarm else QtCore.QTime.currentTime()
         if not alarm_time.isValid():
             alarm_time = QtCore.QTime.currentTime()
@@ -128,8 +134,11 @@ class AlarmListesiDialog(QtWidgets.QDialog):
         baslik_saat_row.addWidget(time_edit)
 
         cmb_ses = QtWidgets.QComboBox()
-        cmb_ses.addItems(["Varsayılan", "Kısa zil", "Yumuşak zil"])
-        cmb_ses.setCurrentText(getattr(alarm, "ses_tipi", "Varsayılan") if alarm else "Varsayılan")
+        cmb_ses.addItems(["Varsayılan", "Kısa zil", "Yumuşak zil", "TTS"])
+        ses_tipi = getattr(alarm, "ses_tipi", "Varsayılan") if alarm else "Varsayılan"
+        if alarm and getattr(alarm, "tts_aktif", False):
+            ses_tipi = "TTS"
+        cmb_ses.setCurrentText(ses_tipi)
         cmb_ses.setFixedWidth(110)
 
         spn_ses = QtWidgets.QSpinBox()
@@ -138,8 +147,12 @@ class AlarmListesiDialog(QtWidgets.QDialog):
         spn_ses.setValue(getattr(alarm, "ses_seviyesi", 70) if alarm else 70)
         spn_ses.setFixedWidth(62)
 
-        chk_tts = QtWidgets.QCheckBox("TTS")
-        chk_tts.setChecked(getattr(alarm, "tts_aktif", False) if alarm else False)
+        spn_tekrar = QtWidgets.QSpinBox()
+        spn_tekrar.setRange(1, 300)
+        spn_tekrar.setSuffix(" sn")
+        spn_tekrar.setValue(getattr(alarm, "tekrar_araligi_saniye", 5) if alarm else 5)
+        spn_tekrar.setFixedWidth(72)
+        spn_tekrar.setToolTip("Alarm tekrar arası")
 
         spn_ertele = QtWidgets.QSpinBox()
         spn_ertele.setRange(1, 60)
@@ -153,15 +166,24 @@ class AlarmListesiDialog(QtWidgets.QDialog):
         secenek_row.setSpacing(8)
         secenek_row.addWidget(cmb_ses)
         secenek_row.addWidget(spn_ses)
-        secenek_row.addWidget(chk_tts)
-        secenek_row.addWidget(spn_ertele)
+        secenek_row.addWidget(QtWidgets.QLabel("Tekrar arası"))
+        secenek_row.addWidget(spn_tekrar)
         secenek_row.addStretch()
 
         cmb_tekrar = QtWidgets.QComboBox()
         cmb_tekrar.addItem("Günlük", AlarmTekrarTipi.GUNLUK)
         cmb_tekrar.addItem("Haftalık", AlarmTekrarTipi.HAFTALIK)
+        cmb_tekrar.setFixedWidth(88)
         if alarm:
             cmb_tekrar.setCurrentIndex(max(0, cmb_tekrar.findData(alarm.tekrar_tipi)))
+
+        tekrar_row = QtWidgets.QHBoxLayout()
+        tekrar_row.setContentsMargins(0, 0, 0, 0)
+        tekrar_row.setSpacing(8)
+        tekrar_row.addWidget(cmb_tekrar)
+        tekrar_row.addWidget(QtWidgets.QLabel("Erteleme Süresi"))
+        tekrar_row.addWidget(spn_ertele)
+        tekrar_row.addStretch()
 
         gun_row = QtWidgets.QHBoxLayout()
         gunler = []
@@ -173,6 +195,14 @@ class AlarmListesiDialog(QtWidgets.QDialog):
             gunler.append(chk)
             gun_row.addWidget(chk)
 
+        def gunleri_guncelle():
+            haftalik = cmb_tekrar.currentData() == AlarmTekrarTipi.HAFTALIK
+            for chk in gunler:
+                chk.setEnabled(haftalik)
+
+        cmb_tekrar.currentIndexChanged.connect(gunleri_guncelle)
+        gunleri_guncelle()
+
         buttons = QtWidgets.QDialogButtonBox(
             QtWidgets.QDialogButtonBox.StandardButton.Ok | QtWidgets.QDialogButtonBox.StandardButton.Cancel
         )
@@ -181,8 +211,9 @@ class AlarmListesiDialog(QtWidgets.QDialog):
 
         form.addRow("Başlık", baslik_saat_row)
         form.addRow("Açıklama", txt_aciklama)
+        form.addRow("TTS Metni", txt_tts_metni)
         form.addRow("Alarm Seçenekleri", secenek_row)
-        form.addRow("Tekrar", cmb_tekrar)
+        form.addRow("Tekrar", tekrar_row)
         form.addRow("Günler", gun_row)
         form.addRow(buttons)
 
@@ -199,7 +230,9 @@ class AlarmListesiDialog(QtWidgets.QDialog):
                 haftanin_gunleri=[chk.property("gun") for chk in gunler if chk.isChecked()],
                 ses_tipi=cmb_ses.currentText(),
                 ses_seviyesi=spn_ses.value(),
-                tts_aktif=chk_tts.isChecked(),
+                tekrar_araligi_saniye=spn_tekrar.value(),
+                tts_aktif=cmb_ses.currentText() == "TTS",
+                tts_metni=txt_tts_metni.toPlainText().strip(),
                 snooze_dakika=spn_ertele.value(),
             )
         return AlarmModeli(
@@ -210,7 +243,9 @@ class AlarmListesiDialog(QtWidgets.QDialog):
             haftanin_gunleri=[chk.property("gun") for chk in gunler if chk.isChecked()],
             ses_tipi=cmb_ses.currentText(),
             ses_seviyesi=spn_ses.value(),
-            tts_aktif=chk_tts.isChecked(),
+            tekrar_araligi_saniye=spn_tekrar.value(),
+            tts_aktif=cmb_ses.currentText() == "TTS",
+            tts_metni=txt_tts_metni.toPlainText().strip(),
             snooze_dakika=spn_ertele.value(),
         )
 
@@ -218,7 +253,10 @@ class AlarmListesiDialog(QtWidgets.QDialog):
         alarm = self._secili_alarm()
         if not alarm:
             return
-        self.alarm_servisi.alarm_sil(alarm.id)
+        self._alarm_sil_id(alarm.id)
+
+    def _alarm_sil_id(self, alarm_id):
+        self.alarm_servisi.alarm_sil(alarm_id)
         self._liste_yenile()
 
     def _siradaki_alarm_adi(self):
