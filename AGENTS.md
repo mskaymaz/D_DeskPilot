@@ -4,6 +4,9 @@
 Working rules only. Product architecture is documented in `CORE.md`; task tracking is based on `MyTaskTr.md` and `MyTaskTrEd.md`.
 
 ## SPP
+- User chooses task continuation and checklist marking; never inspect task/checklist markdown files or mark items unless the user explicitly asks for that exact step.
+- Only after completing an explicitly requested operation, a short progress note may be recorded in the relevant markdown file for later continuity; for resuming that place, read only that relevant markdown file.
+- Do not undo, revert, compensate for, or further modify any previous action unless the user explicitly asks for that exact operation, even if the previous action was mistaken.
 - Analyze first.
 - One safe patch at a time.
 - Verify syntax before delivery.
