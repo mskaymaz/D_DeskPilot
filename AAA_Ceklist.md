@@ -1,5 +1,24 @@
 # D_DeskPilot Geliştirme El Kitabı (Master Checklist)
 
+Sıralama:
+
+Giriş ve Proje Vizyonu
+Sistem Çekirdeği
+Saat Modülü
+Tarih Modülü
+Pil Modülü
+Hatırlatıcı Modülü
+Todo Modülü
+Bildirim Sistemi
+Ayarlar
+Pencere Sistemi
+Tasarım Sistemi
+Dil Sistemi
+Paketleme ve Dağıtım
+Kod Kalitesi
+Teknik Terimler Sözlüğü
+
+
 > Bu doküman ürün geliştirme boyunca tek ana kontrol listesidir.
 > Her madde tamamlandıkça işaretlenebilir.
 
@@ -32,20 +51,20 @@
 - [x] Dijital font desteği
 - [x] Yazı tipi boyutu
 - [x] Yazı rengi ve biçimi
-- [ ] 12 / 24 saat formatı
+- [x] 12 / 24 saat formatı
 - [x] Saniye gösterimi
 - [x] Serbest konumlandırma
-- [ ] Günlük alarm oluşturma
-- [ ] Haftalık alarm oluşturma
-- [ ] Birden fazla alarm desteği
-- [ ] Alarm başlığı / kısa açıklama
+- [x] Günlük alarm oluşturma
+- [x] Haftalık alarm oluşturma
+- [x] Birden fazla alarm desteği
+- [x] Alarm başlığı / kısa açıklama
 - [ ] Alarm geldiğinde metni sesli okuma (TTS)
 - [ ] Alarm sesi seçimi
 - [ ] Alarm ses seviyesi
-- [ ] Alarmı ertele (Snooze)
-- [ ] Alarmı durdur
-- [ ] Alarmı aktif / pasif yapma
-- [ ] Alarm listesi yönetimi
+- [x] Alarmı ertele (Snooze)
+- [x] Alarmı durdur
+- [x] Alarmı aktif / pasif yapma
+- [x] Alarm listesi yönetimi
 - [ ] Kaçırılan alarm bildirimi
 - [ ] Sessiz mod desteği
 
