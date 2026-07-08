@@ -134,18 +134,44 @@ class AlarmListesiDialog(QtWidgets.QDialog):
         baslik_saat_row.addWidget(time_edit)
 
         cmb_ses = QtWidgets.QComboBox()
-        cmb_ses.addItems(["Varsayılan", "Kısa zil", "Yumuşak zil", "TTS"])
+        cmb_ses.addItems(["Varsayılan", "Kısa zil", "Yumuşak zil", "TTS", "Müzik seç"])
         ses_tipi = getattr(alarm, "ses_tipi", "Varsayılan") if alarm else "Varsayılan"
         if alarm and getattr(alarm, "tts_aktif", False):
             ses_tipi = "TTS"
         cmb_ses.setCurrentText(ses_tipi)
         cmb_ses.setFixedWidth(110)
 
-        spn_ses = QtWidgets.QSpinBox()
-        spn_ses.setRange(0, 100)
-        spn_ses.setSuffix("%")
-        spn_ses.setValue(getattr(alarm, "ses_seviyesi", 70) if alarm else 70)
-        spn_ses.setFixedWidth(62)
+        secili_ses_dosyasi = {"path": getattr(alarm, "ses_dosyasi", "") if alarm else ""}
+        btn_muzik_sec = QtWidgets.QPushButton("...")
+        btn_muzik_sec.setFixedSize(28, 24)
+        btn_muzik_sec.setToolTip("Müzik dosyası seç")
+
+        def muzik_dosyasi_sec():
+            dosya, _ = QtWidgets.QFileDialog.getOpenFileName(
+                dialog,
+                "Alarm Müziği Seç",
+                secili_ses_dosyasi["path"],
+                "Ses Dosyaları (*.mp3 *.wav *.ogg *.m4a);;Tüm Dosyalar (*)",
+            )
+            if dosya:
+                secili_ses_dosyasi["path"] = dosya
+                cmb_ses.setToolTip(dosya)
+                return True
+            return False
+
+        def ses_tipi_degisti(text):
+            muzik_secili = text == "Müzik seç"
+            btn_muzik_sec.setVisible(muzik_secili)
+            if muzik_secili:
+                cmb_ses.setToolTip(secili_ses_dosyasi["path"])
+                if not secili_ses_dosyasi["path"] and not muzik_dosyasi_sec():
+                    cmb_ses.setCurrentText("Varsayılan")
+            else:
+                cmb_ses.setToolTip("")
+
+        cmb_ses.currentTextChanged.connect(ses_tipi_degisti)
+        btn_muzik_sec.clicked.connect(muzik_dosyasi_sec)
+        ses_tipi_degisti(cmb_ses.currentText())
 
         spn_tekrar = QtWidgets.QSpinBox()
         spn_tekrar.setRange(1, 300)
@@ -165,6 +191,7 @@ class AlarmListesiDialog(QtWidgets.QDialog):
         secenek_row.setContentsMargins(0, 0, 0, 0)
         secenek_row.setSpacing(8)
         secenek_row.addWidget(cmb_ses)
+        secenek_row.addWidget(btn_muzik_sec)
         secenek_row.addSpacing(10)
         secenek_row.addWidget(QtWidgets.QLabel("Tekrar arası"))
         secenek_row.addWidget(spn_tekrar)
@@ -221,7 +248,6 @@ class AlarmListesiDialog(QtWidgets.QDialog):
         form.addRow("Açıklama", txt_aciklama)
         form.addRow("", aciklama_boslugu)
         form.addRow("Alarm Seçenekleri", secenek_row)
-        form.addRow("TTS özel ses seviyesi", spn_ses)
         form.addRow("TTS Metni", txt_tts_metni)
         form.addRow("", tekrar_boslugu)
         form.addRow("Tekrar", tekrar_row)
@@ -241,7 +267,7 @@ class AlarmListesiDialog(QtWidgets.QDialog):
                 tekrar_tipi=cmb_tekrar.currentData(),
                 haftanin_gunleri=[chk.property("gun") for chk in gunler if chk.isChecked()],
                 ses_tipi=cmb_ses.currentText(),
-                ses_seviyesi=spn_ses.value(),
+                ses_dosyasi=secili_ses_dosyasi["path"] if cmb_ses.currentText() == "Müzik seç" else "",
                 tekrar_araligi_saniye=spn_tekrar.value(),
                 tts_aktif=cmb_ses.currentText() == "TTS",
                 tts_metni=txt_tts_metni.toPlainText().strip(),
@@ -254,7 +280,7 @@ class AlarmListesiDialog(QtWidgets.QDialog):
             tekrar_tipi=cmb_tekrar.currentData(),
             haftanin_gunleri=[chk.property("gun") for chk in gunler if chk.isChecked()],
             ses_tipi=cmb_ses.currentText(),
-            ses_seviyesi=spn_ses.value(),
+            ses_dosyasi=secili_ses_dosyasi["path"] if cmb_ses.currentText() == "Müzik seç" else "",
             tekrar_araligi_saniye=spn_tekrar.value(),
             tts_aktif=cmb_ses.currentText() == "TTS",
             tts_metni=txt_tts_metni.toPlainText().strip(),

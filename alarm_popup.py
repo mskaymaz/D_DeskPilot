@@ -1,8 +1,15 @@
+import os
+
 from PySide6 import QtCore, QtGui, QtWidgets
 try:
     from PySide6.QtTextToSpeech import QTextToSpeech
 except ImportError:
     QTextToSpeech = None
+try:
+    from PySide6.QtMultimedia import QAudioOutput, QMediaPlayer
+except ImportError:
+    QAudioOutput = None
+    QMediaPlayer = None
 try:
     import winsound
 except ImportError:
@@ -22,6 +29,8 @@ class AlarmBildirimPenceresi(QtWidgets.QWidget):
         )
         self.alarm = alarm
         self._tts = None
+        self._media_player = None
+        self._audio_output = None
         self._dongu_aktif = True
         tekrar_saniye = max(1, int(getattr(self.alarm, "tekrar_araligi_saniye", 5) or 5))
         self._tekrar_araligi_ms = tekrar_saniye * 1000
@@ -39,6 +48,8 @@ class AlarmBildirimPenceresi(QtWidgets.QWidget):
         if self._tts_secili_mi():
             if not self._metni_oku():
                 self._tekrar_zamanla()
+            return
+        if self._muzik_secili_mi() and self._muzik_cal():
             return
         self._ses_cal()
         self._tekrar_zamanla()
@@ -104,6 +115,33 @@ class AlarmBildirimPenceresi(QtWidgets.QWidget):
         }
         winsound.MessageBeep(sesler.get(ses_tipi, winsound.MB_OK))
 
+    def _muzik_secili_mi(self):
+        return getattr(self.alarm, "ses_tipi", "") == "Müzik seç"
+
+    def _muzik_cal(self):
+        dosya = getattr(self.alarm, "ses_dosyasi", "")
+        if QMediaPlayer is None or QAudioOutput is None or not dosya or not os.path.isfile(dosya):
+            return False
+        if self._media_player is None:
+            self._audio_output = QAudioOutput(self)
+            self._media_player = QMediaPlayer(self)
+            self._media_player.setAudioOutput(self._audio_output)
+            self._media_player.mediaStatusChanged.connect(self._media_durum_degisti)
+            self._media_player.errorOccurred.connect(lambda *_: self._tekrar_zamanla())
+        self._media_player.stop()
+        self._media_player.setSource(QtCore.QUrl.fromLocalFile(dosya))
+        self._media_player.play()
+        return True
+
+    def _media_durum_degisti(self, durum):
+        if QMediaPlayer is None:
+            return
+        if durum in (
+            QMediaPlayer.MediaStatus.EndOfMedia,
+            QMediaPlayer.MediaStatus.InvalidMedia,
+        ):
+            self._tekrar_zamanla()
+
     def _tts_secili_mi(self):
         return getattr(self.alarm, "ses_tipi", "") == "TTS" or getattr(self.alarm, "tts_aktif", False)
 
@@ -121,16 +159,8 @@ class AlarmBildirimPenceresi(QtWidgets.QWidget):
             self._tts = QTextToSpeech(self)
             self._turkce_erkek_sesi_sec(self._tts)
             self._tts.stateChanged.connect(self._tts_durum_degisti)
-        self._tts_ses_seviyesi_uygula()
         self._tts.say(metin)
         return True
-
-    def _tts_ses_seviyesi_uygula(self):
-        try:
-            seviye = max(0, min(100, int(getattr(self.alarm, "ses_seviyesi", 70) or 0)))
-            self._tts.setVolume(seviye / 100)
-        except Exception:
-            return
 
     def _tts_durum_degisti(self, durum):
         durum_adi = getattr(durum, "name", str(durum)).lower()
@@ -172,6 +202,9 @@ class AlarmBildirimPenceresi(QtWidgets.QWidget):
         tts = getattr(self, "_tts", None)
         if tts:
             tts.stop()
+        media_player = getattr(self, "_media_player", None)
+        if media_player:
+            media_player.stop()
 
     def _durdur(self):
         self._dongu_aktif = False

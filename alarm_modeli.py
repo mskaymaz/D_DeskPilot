@@ -27,7 +27,7 @@ class AlarmModeli:
     durum: AlarmDurumu = AlarmDurumu.AKTIF
     snooze_dakika: int = 5
     ses_tipi: str = "Varsayılan"
-    ses_seviyesi: int = 70
+    ses_dosyasi: str = ""
     tekrar_araligi_saniye: int = 5
     tts_aktif: bool = False
     tts_metni: str = ""
@@ -57,6 +57,8 @@ class AlarmModeli:
                 data["son_calisma_zamani"] = datetime.fromisoformat(data["son_calisma_zamani"])
             cls._saat_dogrula(data["saat"])
             data["haftanin_gunleri"] = [int(g) for g in data.get("haftanin_gunleri", []) if 0 <= int(g) <= 6]
+            allowed = set(cls.__dataclass_fields__)
+            data = {k: v for k, v in data.items() if k in allowed}
             return cls(**data)
         except (TypeError, ValueError, KeyError):
             return None
