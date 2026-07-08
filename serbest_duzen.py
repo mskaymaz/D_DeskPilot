@@ -87,6 +87,25 @@ class SerbestDuzenKarishimi:
         self.settings.free_layout_has_positions = True
         save_settings(self.settings)
 
+    def _capture_current_free_positions(self):
+        hedefler = (
+            (self.free_time_window, "free_time_x", "free_time_y", "serbest_saat_ekran_adi"),
+            (self.free_date_window, "free_date_x", "free_date_y", "serbest_tarih_ekran_adi"),
+            (self.free_battery_window, "free_battery_x", "free_battery_y", "serbest_pil_ekran_adi"),
+        )
+        guncellendi = False
+        for pencere, x_alan, y_alan, ekran_alan in hedefler:
+            if not pencere:
+                continue
+            setattr(self.settings, x_alan, pencere.x())
+            setattr(self.settings, y_alan, pencere.y())
+            ekran = QtGui.QGuiApplication.screenAt(pencere.pos())
+            if ekran:
+                setattr(self.settings, ekran_alan, ekran.name())
+            guncellendi = True
+        if guncellendi:
+            self.settings.free_layout_has_positions = True
+
     def _show_free_windows(self):
         self._ensure_free_windows()
         pencereler = (
@@ -136,8 +155,9 @@ class SerbestDuzenKarishimi:
         log_kaydet(f"Tüm modüller '{ekran.name()}' ekranına toplanıyor.")
         self.settings.module_order = list(DEFAULT_MODULE_ORDER)
 
+        if self.settings.free_layout_enabled:
+            self._capture_current_free_positions()
         self.settings.free_layout_enabled = False
-        self.settings.free_layout_has_positions = False
         self._free_layout_active = False
         self._hide_free_windows()
         self.apply_settings()

@@ -3,18 +3,11 @@ try:
 except ImportError:
     from PyQt6 import QtCore
 
-from bildirim_servisi import BildirimServisi
-from pil_servisi import PilServisi
-from hatirlatici_servisi import HatirlaticiServisi
-from gorev_servisi import GorevServisi
-from alarm_servisi import AlarmServisi
-
-
 class WindowRuntimeMixin:
     def _zamanlayicilari_kur(self):
         self.timer = QtCore.QTimer(self)
         self.timer.timeout.connect(self.update_time)
-        self.timer.start(200)
+        self.timer.start(self._saat_timer_araligi())
 
         self.batt_timer = QtCore.QTimer(self)
         self.batt_timer.timeout.connect(self.update_battery)
@@ -39,11 +32,34 @@ class WindowRuntimeMixin:
         self.setContextMenuPolicy(QtCore.Qt.ContextMenuPolicy.CustomContextMenu)
         self.customContextMenuRequested.connect(self.show_menu)
 
+    def _saat_timer_araligi(self):
+        return 1000 if getattr(self.settings, "time_seconds_visible", True) else 60000
+
+    def _saat_timer_araligini_guncelle(self):
+        if hasattr(self, "timer") and self.timer.interval() != self._saat_timer_araligi():
+            self.timer.setInterval(self._saat_timer_araligi())
+
     def _servisleri_baslat(self):
+        self.pil_servisi = None
+        self.bildirim_servisi = None
+        self.hatirlatici_servisi = None
+        self.gorev_servisi = None
+        self.alarm_servisi = None
+        self._aktif_popuplar = {}
+        self._aktif_alarm_popuplar = {}
+        QtCore.QTimer.singleShot(100, self._agir_servisleri_baslat)
+
+    def _agir_servisleri_baslat(self):
+        from bildirim_servisi import BildirimServisi
+        from pil_servisi import PilServisi
+        from hatirlatici_servisi import HatirlaticiServisi
+        from gorev_servisi import GorevServisi
+        from alarm_servisi import AlarmServisi
+
         self.pil_servisi = PilServisi(dusuk_esik=self.settings.battery_warning_level)
         self.bildirim_servisi = BildirimServisi()
         self.hatirlatici_servisi = HatirlaticiServisi()
         self.gorev_servisi = GorevServisi()
         self.alarm_servisi = AlarmServisi()
-        self._aktif_popuplar = {}
-        self._aktif_alarm_popuplar = {}
+        self.update_battery()
+        QtCore.QTimer.singleShot(500, self._baslangic_kacirilan_alarmlari_goster)

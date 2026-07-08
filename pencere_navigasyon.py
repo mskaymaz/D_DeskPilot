@@ -1,8 +1,4 @@
 from PySide6 import QtCore, QtGui, QtWidgets
-from ui_settings import SettingsDialog
-from hatirlatici_listesi import HatirlaticiListesiDialog
-from gorev_arayuzu import GorevArayuzuDialog
-from alarm_listesi import AlarmListesiDialog
 from core_settings import save_settings
 from utils import resource_path
 
@@ -33,7 +29,6 @@ class PencereNavigasyonKarishimi:
             act_settings.setEnabled(False)
         else:
             act_settings = menu.addAction("Ayarlar")
-
         act_settings.setIcon(QtGui.QIcon(resource_path("img/icons/settings_icon.svg")))
         menu.addSeparator()
         act_alarm = menu.addAction("Alarm")
@@ -42,6 +37,10 @@ class PencereNavigasyonKarishimi:
         act_menu_todos.setIcon(QtGui.QIcon(resource_path("img/icons/todo_icon.svg")))
         act_menu_reminders = menu.addAction("Reminder")
         act_menu_reminders.setIcon(QtGui.QIcon(resource_path("img/icons/reminder_icon.svg")))
+        menu.addSeparator()
+        act_silent = menu.addAction("Sessiz Mod")
+        act_silent.setCheckable(True)
+        act_silent.setChecked(getattr(self.settings, "sessiz_mod", False))
 
         if hedef_tur is None:
             fare_lokal = self.mapFromGlobal(global_pos)
@@ -72,7 +71,6 @@ class PencereNavigasyonKarishimi:
                 act = boyut_menu.addAction(f"{secili}  ×{carpan:.1f}")
                 act.setData((scale_attr, carpan))
 
-        menu.addSeparator()
         act_collect = menu.addAction("⊞  Tüm yapıyı ortada topla")
 
         act_reminders = None
@@ -85,7 +83,6 @@ class PencereNavigasyonKarishimi:
 
         menu.addSeparator()
         act_exit = menu.addAction("✕  Çıkış")
-
         act_exit.setIcon(QtGui.QIcon(resource_path("img/icons/exit_icon.svg")))
 
         action = menu.exec(global_pos)
@@ -107,6 +104,13 @@ class PencereNavigasyonKarishimi:
             self.show_todo_list()
         elif action == act_menu_reminders:
             self.show_reminder_list()
+        elif action == act_silent:
+            self.settings.sessiz_mod = action.isChecked()
+            if hasattr(self, "settings_window") and hasattr(self.settings_window, "chk_silent"):
+                self.settings_window.chk_silent.blockSignals(True)
+                self.settings_window.chk_silent.setChecked(self.settings.sessiz_mod)
+                self.settings_window.chk_silent.blockSignals(False)
+            save_settings(self.settings)
         elif action == act_collect:
             self.tum_modulleri_topla()
         elif action == act_reminders:
@@ -127,6 +131,8 @@ class PencereNavigasyonKarishimi:
             self.settings_window.raise_()
             self.settings_window.activateWindow()
             return
+        from ui_settings import SettingsDialog
+
         self.settings_window = SettingsDialog(self.settings, self, hedef_tur)
         if anchor_pos is not None:
             self.position_settings_window_at(self.settings_window, anchor_pos)
@@ -140,6 +146,8 @@ class PencereNavigasyonKarishimi:
             self.list_window.raise_()
             self.list_window.activateWindow()
             return
+        from hatirlatici_listesi import HatirlaticiListesiDialog
+
         self.list_window = HatirlaticiListesiDialog(self.hatirlatici_servisi, self)
         self.list_window.show()
         self.list_window.raise_()
@@ -149,6 +157,8 @@ class PencereNavigasyonKarishimi:
             self.alarm_window.raise_()
             self.alarm_window.activateWindow()
             return
+        from alarm_listesi import AlarmListesiDialog
+
         self.alarm_window = AlarmListesiDialog(self.alarm_servisi, self)
         self.alarm_window.show()
         self.alarm_window.raise_()
@@ -158,6 +168,8 @@ class PencereNavigasyonKarishimi:
             self.todo_window.raise_()
             self.todo_window.activateWindow()
             return
+        from gorev_arayuzu import GorevArayuzuDialog
+
         self.todo_window = GorevArayuzuDialog(self.gorev_servisi, self)
         self.todo_window.setWindowOpacity(0.0)
         self._move_todo_window_offscreen(self.todo_window)

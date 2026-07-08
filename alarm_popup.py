@@ -20,7 +20,7 @@ class AlarmBildirimPenceresi(QtWidgets.QWidget):
     durduruldu_sinyali = QtCore.Signal(str)
     ertelendi_sinyali = QtCore.Signal(str, int)
 
-    def __init__(self, alarm, parent=None):
+    def __init__(self, alarm, parent=None, sessiz_mod=False):
         super().__init__(
             parent,
             QtCore.Qt.WindowType.FramelessWindowHint
@@ -28,6 +28,7 @@ class AlarmBildirimPenceresi(QtWidgets.QWidget):
             | QtCore.Qt.WindowType.Tool,
         )
         self.alarm = alarm
+        self.sessiz_mod = sessiz_mod
         self._tts = None
         self._media_player = None
         self._audio_output = None
@@ -44,6 +45,8 @@ class AlarmBildirimPenceresi(QtWidgets.QWidget):
 
     def _alarm_cal(self):
         if not self._dongu_aktif:
+            return
+        if self.sessiz_mod:
             return
         if self._tts_secili_mi():
             if not self._metni_oku():

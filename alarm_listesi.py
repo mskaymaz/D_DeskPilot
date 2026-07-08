@@ -43,7 +43,10 @@ class AlarmListesiDialog(QtWidgets.QDialog):
     def _liste_yenile(self):
         self.lst_alarmlar.clear()
         for alarm in self.alarm_servisi.alarmlari_al():
-            tekrar = "Günlük" if alarm.tekrar_tipi == AlarmTekrarTipi.GUNLUK else "Haftalık"
+            if alarm.durum == AlarmDurumu.KACIRILDI:
+                tekrar = "Kaçırıldı"
+            else:
+                tekrar = "Günlük" if alarm.tekrar_tipi == AlarmTekrarTipi.GUNLUK else "Haftalık"
             item = QtWidgets.QListWidgetItem()
             item.setData(QtCore.Qt.ItemDataRole.UserRole, alarm.id)
             item.setSizeHint(QtCore.QSize(0, 34))

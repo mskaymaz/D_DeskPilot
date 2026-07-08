@@ -1,7 +1,7 @@
 import json
 import os
 import shutil
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import List, Optional
 
 from alarm_modeli import AlarmModeli, AlarmDurumu
@@ -106,6 +106,31 @@ class AlarmServisi:
                 gelenler.append(alarm)
         return gelenler
 
+    def kacirilanlari_tara(self, tolerans_saniye: int = 60) -> List[AlarmModeli]:
+        simdi = datetime.now()
+        kacirilanlar = []
+        tolerans = timedelta(seconds=max(1, tolerans_saniye))
+        for alarm in self._alarmlar:
+            if alarm.durum != AlarmDurumu.AKTIF or alarm.erteleme_zamani:
+                continue
+            if not self._bugun_calmali_mi(alarm, simdi):
+                continue
+            try:
+                alarm_saat = datetime.strptime(alarm.saat, "%H:%M").time()
+            except ValueError:
+                continue
+            hedef = datetime.combine(simdi.date(), alarm_saat)
+            son = alarm.son_calisma_zamani
+            bugun_islem_gordu = son and son.date() == simdi.date() and son >= hedef
+            if hedef + tolerans < simdi and not bugun_islem_gordu:
+                alarm.durum = AlarmDurumu.KACIRILDI
+                alarm.son_calisma_zamani = simdi
+                alarm.erteleme_zamani = None
+                kacirilanlar.append(alarm)
+        if kacirilanlar:
+            self.kaydet()
+        return kacirilanlar
+
     def _bugun_calmali_mi(self, alarm: AlarmModeli, simdi: datetime) -> bool:
         if alarm.tekrar_tipi.value == "daily":
             return True
@@ -129,3 +154,16 @@ class AlarmServisi:
                 self.kaydet()
                 return True
         return False
+
+    def kacirilan_bildirildi_isaretle(self, alarm_ids: list[str]) -> bool:
+        ids = set(alarm_ids)
+        degisti = False
+        for alarm in self._alarmlar:
+            if alarm.id in ids and alarm.durum == AlarmDurumu.KACIRILDI:
+                alarm.durum = AlarmDurumu.AKTIF
+                alarm.son_calisma_zamani = datetime.now()
+                alarm.erteleme_zamani = None
+                degisti = True
+        if degisti:
+            self.kaydet()
+        return degisti

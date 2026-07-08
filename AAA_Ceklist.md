@@ -58,15 +58,15 @@ Teknik Terimler Sözlüğü
 - [x] Haftalık alarm oluşturma
 - [x] Birden fazla alarm desteği
 - [x] Alarm başlığı / kısa açıklama
-- [ ] Alarm geldiğinde metni sesli okuma (TTS)
-- [ ] Alarm sesi seçimi
-- [ ] Alarm ses seviyesi
+- [x] Alarm geldiğinde metni sesli okuma (TTS)
+- [x] Alarm sesi seçimi
+- [-] Alarm ses seviyesi iptal edildi..
 - [x] Alarmı ertele (Snooze)
 - [x] Alarmı durdur
 - [x] Alarmı aktif / pasif yapma
 - [x] Alarm listesi yönetimi
-- [ ] Kaçırılan alarm bildirimi
-- [ ] Sessiz mod desteği
+- [x] Kaçırılan alarm bildirimi
+- [x] Sessiz mod desteği
 
 
 ### V2+
@@ -525,3 +525,5 @@ Araç Muayenesi  5 gün geçti gibi
 
 - [ ] CI (Kod değiştikçe otomatik doğrulama sistemi.)
 - [ ] Benchmark (Performans karşılaştırma testleri.)
+
+Not: Alarm kısmı bitti.
