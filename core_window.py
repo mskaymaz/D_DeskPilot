@@ -1,25 +1,9 @@
-import locale
-import sys
-import time
-from datetime import datetime, timedelta
-
 try:
     from PySide6 import QtCore, QtGui, QtWidgets
 except ImportError:
     from PyQt6 import QtCore, QtGui, QtWidgets
 
-from utils import resource_path, ICON_FILE, log_altyapisini_kur, log_kaydet, _enforce_topmost
-from core_settings import PanelSettings, save_settings
-from ui_settings import SettingsDialog
-from hatirlatici_servisi import HatirlaticiServisi
-from hatirlatici_modeli import HatirlaticiDurumu
-from hatirlatici_popup import HatirlaticiBildirimPenceresi
-from hatirlatici_listesi import HatirlaticiListesiDialog
-from gorev_servisi import GorevServisi
-from gorev_arayuzu import GorevArayuzuDialog
 from pencere_araclari import aktif_popup_veya_modal_var, pencereyi_guvenli_tas, en_ustte_tut
-from pil_servisi import PilServisi
-from bildirim_servisi import BildirimServisi
 
 # =======================
 # ANA PENCERE

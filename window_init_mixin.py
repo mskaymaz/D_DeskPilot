@@ -82,4 +82,3 @@ class WindowInitMixin:
         self._setup_keep_on_top()
         self.apply_settings()
         self.update_time()
-        self.update_battery()
