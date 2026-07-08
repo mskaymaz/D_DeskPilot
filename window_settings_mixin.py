@@ -9,6 +9,8 @@ from core_settings import normalize_module_order
 class WindowSettingsMixin:
     def apply_settings(self):
         self._apply_window_flags()
+        if hasattr(self, "_saat_timer_araligini_guncelle"):
+            self._saat_timer_araligini_guncelle()
         scale = self.settings.global_scale
 
         # --- Saat ---
@@ -51,6 +53,8 @@ class WindowSettingsMixin:
         self._refresh_battery_rows()
 
         self._rebuild_module_layout(scale)
+        if hasattr(self, "quick_actions"):
+            self.quick_actions._apply_size()
 
         self.main_layout.setContentsMargins(
             0,

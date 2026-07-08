@@ -488,6 +488,8 @@ class SettingsDialog(QtWidgets.QDialog):
         self.settings.spacing_battery_time_offset = self.spn_space_bt.value()
         self.settings.spacing_time_date_offset = self.spn_space_td.value()
         self.settings.spacing_battery_date_hidden_offset = self.spn_space_bd.value()
+        if hasattr(self, "spn_quick_icon_spacing"):
+            self.settings.quick_actions_icon_spacing = self.spn_quick_icon_spacing.value()
         self._set_dirty(True)
         if self.parent(): self.parent().apply_settings()
 

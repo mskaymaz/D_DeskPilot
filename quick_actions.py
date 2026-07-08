@@ -21,9 +21,9 @@ class QuickActionsPanel(QtWidgets.QFrame):
         self._apply_window_flags()
         self.setAttribute(QtCore.Qt.WidgetAttribute.WA_TranslucentBackground)
 
-        layout = QtWidgets.QHBoxLayout(self)
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(0)
+        self._layout = QtWidgets.QHBoxLayout(self)
+        self._layout.setContentsMargins(0, 0, 0, 0)
+        self._layout.setSpacing(self._icon_spacing())
 
         self.btn_settings = QtWidgets.QPushButton("\u2699")
         self.btn_alarm = QtWidgets.QPushButton()
@@ -38,7 +38,7 @@ class QuickActionsPanel(QtWidgets.QFrame):
 
         for btn in (self.btn_settings, self.btn_alarm, self.btn_reminders, self.btn_todos):
             btn.setCursor(QtCore.Qt.CursorShape.PointingHandCursor)
-            layout.addWidget(btn)
+            self._layout.addWidget(btn)
 
         self.btn_settings.clicked.connect(self._settings_clicked)
         self.btn_alarm.clicked.connect(controller.show_alarm_list)
@@ -53,6 +53,10 @@ class QuickActionsPanel(QtWidgets.QFrame):
     def _scale(self):
         return float(getattr(getattr(self.controller, "settings", None), "global_scale", 1.0))
 
+    def _icon_spacing(self):
+        settings = getattr(self.controller, "settings", None) or getattr(self.owner, "ayarlar", None)
+        return max(0, int(getattr(settings, "quick_actions_icon_spacing", 2) or 0))
+
     def _apply_window_flags(self):
         flags = QtCore.Qt.WindowType.Tool | QtCore.Qt.WindowType.FramelessWindowHint
         settings = getattr(self.controller, "settings", None) or getattr(self.owner, "ayarlar", None)
@@ -61,6 +65,7 @@ class QuickActionsPanel(QtWidgets.QFrame):
         self.setWindowFlags(flags)
 
     def _apply_size(self):
+        self._layout.setSpacing(self._icon_spacing())
         size = max(24, min(72, int(self.BASE_SIZE * self._scale() * 0.935)))
         width = max(20, int(size * 0.82))
         for btn in (self.btn_settings, self.btn_alarm, self.btn_reminders, self.btn_todos):

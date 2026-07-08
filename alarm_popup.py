@@ -121,8 +121,16 @@ class AlarmBildirimPenceresi(QtWidgets.QWidget):
             self._tts = QTextToSpeech(self)
             self._turkce_erkek_sesi_sec(self._tts)
             self._tts.stateChanged.connect(self._tts_durum_degisti)
+        self._tts_ses_seviyesi_uygula()
         self._tts.say(metin)
         return True
+
+    def _tts_ses_seviyesi_uygula(self):
+        try:
+            seviye = max(0, min(100, int(getattr(self.alarm, "ses_seviyesi", 70) or 0)))
+            self._tts.setVolume(seviye / 100)
+        except Exception:
+            return
 
     def _tts_durum_degisti(self, durum):
         durum_adi = getattr(durum, "name", str(durum)).lower()
