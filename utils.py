@@ -84,7 +84,15 @@ def _get_autostart_command():
     if getattr(sys, "frozen", False):
         return f"\"{sys.executable}\""
     script_path = os.path.abspath(sys.argv[0])
-    return f"\"{sys.executable}\" \"{script_path}\""
+    python_exe = sys.executable
+    if sys.platform == "win32":
+        exe_dir, exe_name = os.path.split(sys.executable)
+        exe_base, exe_ext = os.path.splitext(exe_name)
+        if exe_base.lower() == "python":
+            pythonw_exe = os.path.join(exe_dir, f"pythonw{exe_ext}")
+            if os.path.exists(pythonw_exe):
+                python_exe = pythonw_exe
+    return f"\"{python_exe}\" \"{script_path}\""
 
 def set_autostart(enabled: bool) -> bool:
     """Windows başlangıç kaydını ekler/siler."""

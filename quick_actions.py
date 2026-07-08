@@ -3,6 +3,7 @@ import math
 from PySide6 import QtCore, QtGui, QtWidgets
 from utils import resource_path
 
+
 class QuickActionsPanel(QtWidgets.QFrame):
     BASE_SIZE = 46
 
@@ -24,16 +25,23 @@ class QuickActionsPanel(QtWidgets.QFrame):
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(2)
 
-        self.btn_settings = QtWidgets.QPushButton("⚙")
-        self.btn_reminders = QtWidgets.QPushButton("🔔")
+        self.btn_settings = QtWidgets.QPushButton("\u2699")
+        self.btn_alarm = QtWidgets.QPushButton()
+        self.btn_alarm.setIcon(QtGui.QIcon(resource_path("img/icons/alarm_icon.svg")))
+        self.btn_reminders = QtWidgets.QPushButton("\U0001f514")
         self.btn_todos = QtWidgets.QPushButton()
         self.btn_todos.setIcon(QtGui.QIcon(resource_path("img/icons/todo_icon.svg")))
+        self.btn_settings.setToolTip("Ayarlar")
+        self.btn_alarm.setToolTip("Alarm")
+        self.btn_reminders.setToolTip("Reminder")
+        self.btn_todos.setToolTip("Todo")
 
-        for btn in (self.btn_settings, self.btn_reminders, self.btn_todos):
+        for btn in (self.btn_settings, self.btn_alarm, self.btn_reminders, self.btn_todos):
             btn.setCursor(QtCore.Qt.CursorShape.PointingHandCursor)
             layout.addWidget(btn)
 
         self.btn_settings.clicked.connect(self._settings_clicked)
+        self.btn_alarm.clicked.connect(controller.show_alarm_list)
         self.btn_reminders.clicked.connect(controller.show_reminder_list)
         self.btn_todos.clicked.connect(controller.show_todo_list)
         self._apply_size()
@@ -54,12 +62,17 @@ class QuickActionsPanel(QtWidgets.QFrame):
 
     def _apply_size(self):
         size = max(24, min(72, int(self.BASE_SIZE * self._scale() * 0.935)))
-        for btn in (self.btn_settings, self.btn_reminders, self.btn_todos):
+        for btn in (self.btn_settings, self.btn_alarm, self.btn_reminders, self.btn_todos):
             btn.setFixedSize(size, size)
-        self.btn_settings.setStyleSheet(f"font-size:{int(size*0.62)}px;")
-        self.btn_reminders.setStyleSheet(f"font-size:{int(size*0.62*0.90)}px;")
-        self.btn_todos.setIconSize(QtCore.QSize(int(size*0.84*0.76), int(size*0.84*0.76)))
-        self.setStyleSheet(f"QFrame#quickActions{{background:transparent;}} QPushButton{{background:transparent;border:none;color:white;font-size:{max(14, int(size*0.62))}px;}} QPushButton:hover{{background:rgba(255,255,255,35);border-radius:8px;}}")
+        self.btn_settings.setStyleSheet(f"font-size:{int(size * 0.62)}px;")
+        self.btn_alarm.setIconSize(QtCore.QSize(int(size * 0.84 * 0.76), int(size * 0.84 * 0.76)))
+        self.btn_reminders.setStyleSheet(f"font-size:{int(size * 0.62 * 0.90)}px;")
+        self.btn_todos.setIconSize(QtCore.QSize(int(size * 0.84 * 0.76), int(size * 0.84 * 0.76)))
+        self.setStyleSheet(
+            "QFrame#quickActions{background:transparent;}"
+            f"QPushButton{{background:transparent;border:none;color:white;font-size:{max(14, int(size * 0.62))}px;}}"
+            "QPushButton:hover{background:rgba(255,255,255,35);border-radius:8px;}"
+        )
         self.adjustSize()
 
     def _rendered_rect(self, widget):
@@ -100,13 +113,12 @@ class QuickActionsPanel(QtWidgets.QFrame):
         local_top = math.floor(top / dpr)
         local_right = math.ceil((right + 1) / dpr)
         local_bottom = math.ceil((bottom + 1) / dpr)
-        local_rect = QtCore.QRect(
+        return QtCore.QRect(
             local_left,
             local_top,
             max(1, local_right - local_left),
             max(1, local_bottom - local_top),
         )
-        return local_rect
 
     def _content_rect(self, widget):
         labels = [w for w in widget.findChildren(QtWidgets.QLabel) if w.isVisible()]

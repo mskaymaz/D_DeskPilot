@@ -463,7 +463,7 @@ class SettingsDialog(QtWidgets.QDialog):
 
         box.move(x, y)
 
-    def _apply_time_preview(self, font=None, size=None, bold=None, visible=None, seconds_scale=None, seconds_bold=None, seconds_visible=None):
+    def _apply_time_preview(self, font=None, size=None, bold=None, visible=None, seconds_scale=None, seconds_bold=None, seconds_visible=None, time_24h=None, time_format_mode=None):
         if font is not None: self.settings.time_font_family = font
         if size is not None: self.settings.time_font_size = size
         if bold is not None: self.settings.time_bold = bold
@@ -471,6 +471,10 @@ class SettingsDialog(QtWidgets.QDialog):
         if seconds_scale is not None: self.settings.time_seconds_scale = seconds_scale
         if seconds_bold is not None: self.settings.time_seconds_bold = seconds_bold
         if seconds_visible is not None: self.settings.time_seconds_visible = seconds_visible
+        if time_24h is not None: self.settings.time_24h = time_24h
+        if time_format_mode is not None:
+            self.settings.time_format_mode = time_format_mode
+            self.settings.time_24h = time_format_mode == "24h"
         self._set_dirty(True)
         if self.parent(): self.parent().apply_settings()
 

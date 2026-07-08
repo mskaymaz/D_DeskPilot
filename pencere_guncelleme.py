@@ -4,6 +4,7 @@ from PySide6 import QtCore, QtGui, QtWidgets
 from log_servisi import log_kaydet
 from hatirlatici_modeli import HatirlaticiDurumu
 from hatirlatici_popup import HatirlaticiBildirimPenceresi
+from alarm_popup import AlarmBildirimPenceresi
 
 try:
     import winsound
@@ -37,7 +38,11 @@ class PencereGuncellemeKarishimi:
         font = QtGui.QFont(self.settings.time_font_family, int(self.settings.time_font_size * scale))
         font.setBold(self.settings.time_bold)
         fm = QtGui.QFontMetrics(font)
-        genislik = fm.horizontalAdvance("88:88:88" if self.settings.time_seconds_visible else "88:88") + 20
+        format_mode = getattr(self.settings, "time_format_mode", "24h" if getattr(self.settings, "time_24h", True) else "12h_ampm")
+        referans = "88:88" if format_mode in ("24h", "12h_plain") else "88:88 PM"
+        if self.settings.time_seconds_visible:
+            referans = f"{referans}:88" if format_mode in ("24h", "12h_plain") else "88:88:88 PM"
+        genislik = fm.horizontalAdvance(referans) + 20
         self.time_label.setFixedWidth(genislik)
         self.time_label.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
 
@@ -56,7 +61,10 @@ class PencereGuncellemeKarishimi:
         fm = QtGui.QFontMetrics(font)
 
         # Saniye görünürlüğüne göre referans metin seç
-        referans = "88:88:88" if self.settings.time_seconds_visible else "88:88"
+        format_mode = getattr(self.settings, "time_format_mode", "24h" if getattr(self.settings, "time_24h", True) else "12h_ampm")
+        referans = "88:88" if format_mode in ("24h", "12h_plain") else "88:88 PM"
+        if self.settings.time_seconds_visible:
+            referans = f"{referans}:88" if format_mode in ("24h", "12h_plain") else "88:88:88 PM"
         genislik = fm.horizontalAdvance(referans) + 16   # kenar payı
         yukseklik = fm.ascent() + fm.descent() + 6
         self.free_time_window.setMinimumSize(genislik, yukseklik)
@@ -141,17 +149,51 @@ class PencereGuncellemeKarishimi:
                 self._aktif_popuplar.pop(hatirlatici_id, None)
                 break
 
+    def alarmlari_kontrol_et(self):
+        for alarm in self.alarm_servisi.zamani_gelenleri_tara():
+            if alarm.id in self._aktif_alarm_popuplar:
+                continue
+            popup = AlarmBildirimPenceresi(alarm)
+            popup.durduruldu_sinyali.connect(self._alarm_durdur)
+            popup.ertelendi_sinyali.connect(self._alarm_ertele)
+            popup.show()
+            self._aktif_alarm_popuplar[alarm.id] = popup
+
+    def _alarm_durdur(self, alarm_id):
+        self.alarm_servisi.alarm_durdur(alarm_id)
+        self._aktif_alarm_popuplar.pop(alarm_id, None)
+
+    def _alarm_ertele(self, alarm_id, dakika):
+        self.alarm_servisi.alarm_ertele(alarm_id, dakika)
+        self._aktif_alarm_popuplar.pop(alarm_id, None)
+
     def _format_time_html(self, now):
         scale = self.settings.global_scale * self.settings.time_scale
         base_size = int(self.settings.time_font_size * scale)
         sec_size = max(1, int(base_size * self.settings.time_seconds_scale))
+        ampm_size = max(1, sec_size // 2)
         weight = "bold" if self.settings.time_bold else "normal"
         color = self.settings.time_color
-        hhmm = now.strftime("%H:%M")
+        format_mode = getattr(self.settings, "time_format_mode", "24h" if getattr(self.settings, "time_24h", True) else "12h_ampm")
+        if format_mode == "24h":
+            hhmm = now.strftime("%H:%M")
+        elif format_mode == "12h_plain":
+            hhmm = now.strftime("%I:%M")
+        else:
+            hhmm = now.strftime("%I:%M %p")
+        if format_mode == "12h_ampm":
+            saat, ampm = hhmm.rsplit(" ", 1)
+            if not self.settings.time_seconds_visible:
+                return (f"<span style='font-size:{base_size}px; font-weight:{weight}; color:{color};'>{saat}</span>"
+                        f"<span style='font-size:{ampm_size}px; color:{color};'> {ampm}</span>")
         if not self.settings.time_seconds_visible:
             return f"<span style='font-size:{base_size}px; font-weight:{weight}; color:{color};'>{hhmm}</span>"
-        return (f"<span style='font-size:{base_size}px; font-weight:{weight}; color:{color};'>{hhmm}</span>"
-                f"<span style='font-size:{sec_size}px; color:{color};'>:{now.strftime('%S')}</span>")
+        if format_mode in ("24h", "12h_plain"):
+            return (f"<span style='font-size:{base_size}px; font-weight:{weight}; color:{color};'>{hhmm}</span>"
+                    f"<span style='font-size:{sec_size}px; color:{color};'>:{now.strftime('%S')}</span>")
+        return (f"<span style='font-size:{base_size}px; font-weight:{weight}; color:{color};'>{saat}</span>"
+                f"<span style='font-size:{sec_size}px; color:{color};'>:{now.strftime('%S')} </span>"
+                f"<span style='font-size:{ampm_size}px; color:{color};'>{ampm}</span>")
 
     def _format_date(self, now):
         fmt = self.settings.date_format.strip()

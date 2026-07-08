@@ -195,9 +195,21 @@ class AyarFormlari:
         w = QtWidgets.QWidget()
         f = QtWidgets.QFormLayout(w)
 
-        dialog.chk_time_visible = QtWidgets.QCheckBox("Saat görünür")
-        dialog.chk_time_visible.setChecked(ayarlar.time_visible)
-        dialog.chk_time_visible.toggled.connect(lambda v: dialog._apply_time_preview(visible=v))
+        dialog.chk_time_visible = QtWidgets.QCheckBox("Saati Gizle")
+        dialog.chk_time_visible.setChecked(not ayarlar.time_visible)
+        dialog.chk_time_visible.toggled.connect(lambda v: dialog._apply_time_preview(visible=not v))
+
+        dialog.cmb_time_format = QtWidgets.QComboBox()
+        dialog.cmb_time_format.addItem("24 saat", "24h")
+        dialog.cmb_time_format.addItem("12 saat ÖS/ÖÖ", "12h_ampm")
+        dialog.cmb_time_format.addItem("12 saat sade", "12h_plain")
+        format_mode = getattr(ayarlar, "time_format_mode", "24h")
+        if not getattr(ayarlar, "time_24h", True) and format_mode == "24h":
+            format_mode = "12h_ampm"
+        dialog.cmb_time_format.setCurrentIndex(max(0, dialog.cmb_time_format.findData(format_mode)))
+        dialog.cmb_time_format.currentIndexChanged.connect(
+            lambda _: dialog._apply_time_preview(time_format_mode=dialog.cmb_time_format.currentData())
+        )
 
         dialog.cmb_time_font = QtWidgets.QComboBox()
         for family in time_font_families():
@@ -207,15 +219,22 @@ class AyarFormlari:
         if index < 0:
             index = dialog.cmb_time_font.findText(default_time_font_family())
         dialog.cmb_time_font.setCurrentIndex(max(index, 0))
+        dialog.cmb_time_font.setFixedWidth(140)
         dialog.cmb_time_font.currentTextChanged.connect(lambda f: dialog._apply_time_preview(font=f))
 
         dialog.spn_time_size = QtWidgets.QSpinBox()
         dialog.spn_time_size.setRange(20, 200)
+        dialog.spn_time_size.setFixedWidth(58)
         dialog.spn_time_size.setValue(ayarlar.time_font_size)
         dialog.spn_time_size.valueChanged.connect(lambda v: dialog._apply_time_preview(size=v))
 
+        dialog.chk_time_bold = QtWidgets.QCheckBox("Kalın")
+        dialog.chk_time_bold.setChecked(ayarlar.time_bold)
+        dialog.chk_time_bold.toggled.connect(lambda v: dialog._apply_time_preview(bold=v))
+
         dialog.sld_sec_scale = QtWidgets.QSlider(QtCore.Qt.Orientation.Horizontal)
         dialog.sld_sec_scale.setRange(30, 100)
+        dialog.sld_sec_scale.setFixedWidth(100)
         dialog.sld_sec_scale.setValue(int(ayarlar.time_seconds_scale * 100))
         dialog.sld_sec_scale.valueChanged.connect(dialog._apply_seconds_scale_preview)
         dialog.lbl_sec_scale_value = QtWidgets.QLabel(f"{dialog.sld_sec_scale.value()}%")
@@ -225,11 +244,21 @@ class AyarFormlari:
         dialog.chk_sec_visible.toggled.connect(lambda v: dialog._apply_time_preview(seconds_visible=not v))
 
         dialog.btn_time_color = QtWidgets.QPushButton(ayarlar.time_color)
+        dialog.btn_time_color.setFixedWidth(74)
         dialog.btn_time_color.clicked.connect(lambda: dialog._pick_color(dialog.btn_time_color))
 
-        f.addRow(dialog.chk_time_visible)
+        top_widget = QtWidgets.QWidget()
+        top_row = QtWidgets.QHBoxLayout(top_widget)
+        top_row.setContentsMargins(0, 0, 0, 0)
+        top_row.setSpacing(10)
+        top_row.addWidget(dialog.chk_time_visible)
+        top_row.addWidget(dialog.cmb_time_format)
         f.addRow("Font", dialog.cmb_time_font)
-        f.addRow("Boyut", dialog.spn_time_size)
+        size_row = QtWidgets.QHBoxLayout()
+        size_row.addWidget(dialog.spn_time_size)
+        size_row.addWidget(dialog.chk_time_bold)
+        size_row.addStretch()
+        f.addRow("Boyut", size_row)
         
         sec_scale_row = QtWidgets.QHBoxLayout()
         sec_scale_row.addWidget(dialog.sld_sec_scale)
@@ -237,9 +266,11 @@ class AyarFormlari:
         f.addRow("Saniye boyutu (%)", sec_scale_row)
         f.addRow(dialog.chk_sec_visible)
         f.addRow("Renk", dialog.btn_time_color)
-        f.addRow(self._birim_olcek_grubu("time", "Saat"))
+        time_scale_group = self._birim_olcek_grubu("time", "Saat")
+        time_scale_group.setMaximumWidth(180)
+        f.addRow(time_scale_group)
         
-        dialog._add_help_link(f)
+        dialog._add_help_link(f, top_widget)
         return w
 
     def tarih_sekme_olustur(self):

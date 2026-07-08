@@ -40,6 +40,8 @@ class PanelSettings:
     time_font_size: int = 30
     time_color: str = "#00FF7F"
     time_bold: bool = False
+    time_24h: bool = True
+    time_format_mode: str = "24h"
     time_seconds_scale: float = 0.7
     time_seconds_bold: bool = False
     time_seconds_visible: bool = True

@@ -7,6 +7,7 @@ from bildirim_servisi import BildirimServisi
 from pil_servisi import PilServisi
 from hatirlatici_servisi import HatirlaticiServisi
 from gorev_servisi import GorevServisi
+from alarm_servisi import AlarmServisi
 
 
 class WindowRuntimeMixin:
@@ -31,6 +32,10 @@ class WindowRuntimeMixin:
         self.hatirlatici_timer.timeout.connect(self.hatirlaticilari_kontrol_et)
         self.hatirlatici_timer.start(30000)
 
+        self.alarm_timer = QtCore.QTimer(self)
+        self.alarm_timer.timeout.connect(self.alarmlari_kontrol_et)
+        self.alarm_timer.start(10000)
+
         self.setContextMenuPolicy(QtCore.Qt.ContextMenuPolicy.CustomContextMenu)
         self.customContextMenuRequested.connect(self.show_menu)
 
@@ -39,4 +44,6 @@ class WindowRuntimeMixin:
         self.bildirim_servisi = BildirimServisi()
         self.hatirlatici_servisi = HatirlaticiServisi()
         self.gorev_servisi = GorevServisi()
+        self.alarm_servisi = AlarmServisi()
         self._aktif_popuplar = {}
+        self._aktif_alarm_popuplar = {}
