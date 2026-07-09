@@ -67,7 +67,7 @@ class QuickActionsPanel(QtWidgets.QFrame):
     def _apply_size(self):
         self._layout.setSpacing(self._icon_spacing())
         size = max(24, min(72, int(self.BASE_SIZE * self._scale() * 0.935)))
-        width = max(20, int(size * 0.82))
+        width = 38
         for btn in (self.btn_settings, self.btn_alarm, self.btn_reminders, self.btn_todos):
             btn.setFixedSize(width, size)
         self.btn_settings.setStyleSheet(f"font-size:{int(size * 0.62)}px;")

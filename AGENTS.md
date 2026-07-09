@@ -24,6 +24,7 @@ Working rules only. Product architecture is documented in `CORE.md`; task tracki
 
 ## Runtime Commands
 - `bismillah` or `eko`: strict scoped mode.
+- When `bismillah` or `eko` is active, work in "eko single item" / "eko single stage" mode: handle only one explicitly requested item or stage, then stop and report briefly.
 - In strict scoped mode: execute only the explicitly requested scope, do not scan unrelated files, do not broaden searches or changes, and do not perform automatic fixes.
 - In strict scoped mode: do not continue to adjacent tasks, commits, pushes, cleanup, or refactors unless the user explicitly asks for that exact step.
 - `banaver`: deliver requested artifact only.

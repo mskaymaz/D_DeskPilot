@@ -10,10 +10,10 @@ try:
 except ImportError:
     QAudioOutput = None
     QMediaPlayer = None
-try:
-    import winsound
-except ImportError:
-    winsound = None
+
+from alarm_sesleri import alarm_sesini_cal
+
+VARSAYILAN_TTS_METNI = "Belirlemiş olduğunuz zaman gelmiştir, hatırlatırım."
 
 
 class AlarmBildirimPenceresi(QtWidgets.QWidget):
@@ -108,15 +108,8 @@ class AlarmBildirimPenceresi(QtWidgets.QWidget):
         self.move(x, y)
 
     def _ses_cal(self):
-        if not winsound:
-            return
         ses_tipi = getattr(self.alarm, "ses_tipi", "Varsayılan")
-        sesler = {
-            "Varsayılan": winsound.MB_OK,
-            "Kısa zil": winsound.MB_ICONEXCLAMATION,
-            "Yumuşak zil": winsound.MB_ICONASTERISK,
-        }
-        winsound.MessageBeep(sesler.get(ses_tipi, winsound.MB_OK))
+        alarm_sesini_cal(ses_tipi)
 
     def _muzik_secili_mi(self):
         return getattr(self.alarm, "ses_tipi", "") == "Müzik seç"
@@ -151,13 +144,16 @@ class AlarmBildirimPenceresi(QtWidgets.QWidget):
     def _metni_oku(self):
         if not self._tts_secili_mi() or QTextToSpeech is None:
             return False
-        metin = (getattr(self.alarm, "tts_metni", "") or "").strip()
-        if not metin:
-            metin = " ".join(
-            parca.strip()
-            for parca in (self.alarm.baslik, self.alarm.aciklama)
-            if parca and parca.strip()
-            ) or f"Alarm zamanı geldi: {self.alarm.saat}"
+        parcalar = []
+        baslik = (getattr(self.alarm, "baslik", "") or "").strip()
+        aciklama = (getattr(self.alarm, "aciklama", "") or "").strip()
+        tts_metni = (getattr(self.alarm, "tts_metni", "") or "").strip() or VARSAYILAN_TTS_METNI
+        if baslik:
+            parcalar.append(f"Dikkat, önemli. {baslik}.")
+        if aciklama:
+            parcalar.append(aciklama)
+        parcalar.append(tts_metni)
+        metin = " ".join(parcalar) or f"Alarm zamanı geldi: {self.alarm.saat}"
         if self._tts is None:
             self._tts = QTextToSpeech(self)
             self._turkce_erkek_sesi_sec(self._tts)

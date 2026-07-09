@@ -2,9 +2,22 @@ import re
 from dataclasses import replace
 
 from PySide6 import QtCore, QtGui, QtWidgets
+try:
+    from PySide6.QtTextToSpeech import QTextToSpeech
+except ImportError:
+    QTextToSpeech = None
+try:
+    from PySide6.QtMultimedia import QAudioOutput, QMediaPlayer
+except ImportError:
+    QAudioOutput = None
+    QMediaPlayer = None
 
+from alarm_sesleri import alarm_sesini_cal
 from alarm_modeli import AlarmModeli, AlarmDurumu, AlarmTekrarTipi
 from utils import resource_path
+
+
+VARSAYILAN_TTS_METNI = "Belirlemiş olduğunuz zaman gelmiştir, hatırlatırım."
 
 
 class AlarmListesiDialog(QtWidgets.QDialog):
@@ -118,9 +131,10 @@ class AlarmListesiDialog(QtWidgets.QDialog):
         txt_baslik = QtWidgets.QLineEdit(alarm.baslik if alarm else self._siradaki_alarm_adi())
         txt_baslik.setFixedWidth(190)
         txt_aciklama = QtWidgets.QLineEdit(alarm.aciklama if alarm else "")
-        txt_tts_metni = QtWidgets.QPlainTextEdit(getattr(alarm, "tts_metni", "") if alarm else "")
+        tts_metni = getattr(alarm, "tts_metni", "") if alarm else ""
+        txt_tts_metni = QtWidgets.QPlainTextEdit(tts_metni or VARSAYILAN_TTS_METNI)
         txt_tts_metni.setFixedHeight(58)
-        txt_tts_metni.setPlaceholderText("Boşsa başlık ve açıklama okunur.")
+        txt_tts_metni.setPlaceholderText(VARSAYILAN_TTS_METNI)
         alarm_time = QtCore.QTime.fromString(alarm.saat, "HH:mm") if alarm else QtCore.QTime.currentTime()
         if not alarm_time.isValid():
             alarm_time = QtCore.QTime.currentTime()
@@ -147,6 +161,11 @@ class AlarmListesiDialog(QtWidgets.QDialog):
         secili_ses_dosyasi = {"path": getattr(alarm, "ses_dosyasi", "") if alarm else ""}
         btn_muzik_sec = QtWidgets.QPushButton("...")
         btn_muzik_sec.setFixedSize(28, 24)
+        btn_ses_onizle = QtWidgets.QPushButton()
+        btn_ses_onizle.setIcon(dialog.style().standardIcon(QtWidgets.QStyle.StandardPixmap.SP_MediaPlay))
+        btn_ses_onizle.setFixedSize(28, 24)
+        btn_ses_onizle.setToolTip("Seçili alarm sesini dinle")
+        onizleme = {"tts": None, "player": None, "audio": None}
         btn_muzik_sec.setToolTip("Müzik dosyası seç")
 
         def muzik_dosyasi_sec():
@@ -172,8 +191,53 @@ class AlarmListesiDialog(QtWidgets.QDialog):
             else:
                 cmb_ses.setToolTip("")
 
+        def onizlemeyi_durdur():
+            tts = onizleme.get("tts")
+            if tts:
+                tts.stop()
+            player = onizleme.get("player")
+            if player:
+                player.stop()
+
+        def tts_metin_onizle():
+            parcalar = []
+            baslik = txt_baslik.text().strip()
+            aciklama = txt_aciklama.text().strip()
+            metin = txt_tts_metni.toPlainText().strip() or VARSAYILAN_TTS_METNI
+            if baslik:
+                parcalar.append(f"Dikkat, önemli. {baslik}.")
+            if aciklama:
+                parcalar.append(aciklama)
+            parcalar.append(metin)
+            return " ".join(parcalar)
+
+        def alarm_sesi_onizle():
+            onizlemeyi_durdur()
+            secim = cmb_ses.currentText()
+            if secim == "TTS":
+                if QTextToSpeech is None:
+                    return
+                if onizleme["tts"] is None:
+                    onizleme["tts"] = QTextToSpeech(dialog)
+                onizleme["tts"].say(tts_metin_onizle())
+                return
+            if secim == "Müzik seç":
+                if QMediaPlayer is None or QAudioOutput is None:
+                    return
+                if not secili_ses_dosyasi["path"] and not muzik_dosyasi_sec():
+                    return
+                if onizleme["player"] is None:
+                    onizleme["audio"] = QAudioOutput(dialog)
+                    onizleme["player"] = QMediaPlayer(dialog)
+                    onizleme["player"].setAudioOutput(onizleme["audio"])
+                onizleme["player"].setSource(QtCore.QUrl.fromLocalFile(secili_ses_dosyasi["path"]))
+                onizleme["player"].play()
+                return
+            alarm_sesini_cal(secim)
+
         cmb_ses.currentTextChanged.connect(ses_tipi_degisti)
         btn_muzik_sec.clicked.connect(muzik_dosyasi_sec)
+        btn_ses_onizle.clicked.connect(alarm_sesi_onizle)
         ses_tipi_degisti(cmb_ses.currentText())
 
         spn_tekrar = QtWidgets.QSpinBox()
@@ -195,6 +259,7 @@ class AlarmListesiDialog(QtWidgets.QDialog):
         secenek_row.setSpacing(8)
         secenek_row.addWidget(cmb_ses)
         secenek_row.addWidget(btn_muzik_sec)
+        secenek_row.addWidget(btn_ses_onizle)
         secenek_row.addSpacing(10)
         secenek_row.addWidget(QtWidgets.QLabel("Tekrar arası"))
         secenek_row.addWidget(spn_tekrar)
@@ -237,8 +302,25 @@ class AlarmListesiDialog(QtWidgets.QDialog):
         buttons = QtWidgets.QDialogButtonBox(
             QtWidgets.QDialogButtonBox.StandardButton.Ok | QtWidgets.QDialogButtonBox.StandardButton.Cancel
         )
+        btn_varsayilan = buttons.addButton("Varsayılan", QtWidgets.QDialogButtonBox.ButtonRole.ResetRole)
+        btn_varsayilan.setIcon(dialog.style().standardIcon(QtWidgets.QStyle.StandardPixmap.SP_BrowserReload))
+        btn_varsayilan.setToolTip("Alarm ayarlarını varsayılana döndür")
         buttons.accepted.connect(dialog.accept)
         buttons.rejected.connect(dialog.reject)
+
+        def ayarlari_varsayilana_dondur():
+            secili_ses_dosyasi["path"] = ""
+            cmb_ses.setCurrentText("Varsayılan")
+            cmb_ses.setToolTip("")
+            txt_tts_metni.setPlainText(VARSAYILAN_TTS_METNI)
+            spn_tekrar.setValue(5)
+            spn_ertele.setValue(5)
+            cmb_tekrar.setCurrentIndex(max(0, cmb_tekrar.findData(AlarmTekrarTipi.GUNLUK)))
+            for chk in gunler:
+                chk.setChecked(False)
+            gunleri_guncelle()
+
+        btn_varsayilan.clicked.connect(ayarlari_varsayilana_dondur)
 
         aciklama_boslugu = QtWidgets.QWidget()
         aciklama_boslugu.setFixedHeight(15)
@@ -273,7 +355,7 @@ class AlarmListesiDialog(QtWidgets.QDialog):
                 ses_dosyasi=secili_ses_dosyasi["path"] if cmb_ses.currentText() == "Müzik seç" else "",
                 tekrar_araligi_saniye=spn_tekrar.value(),
                 tts_aktif=cmb_ses.currentText() == "TTS",
-                tts_metni=txt_tts_metni.toPlainText().strip(),
+                tts_metni=txt_tts_metni.toPlainText().strip() or VARSAYILAN_TTS_METNI,
                 snooze_dakika=spn_ertele.value(),
             )
         return AlarmModeli(
@@ -286,7 +368,7 @@ class AlarmListesiDialog(QtWidgets.QDialog):
             ses_dosyasi=secili_ses_dosyasi["path"] if cmb_ses.currentText() == "Müzik seç" else "",
             tekrar_araligi_saniye=spn_tekrar.value(),
             tts_aktif=cmb_ses.currentText() == "TTS",
-            tts_metni=txt_tts_metni.toPlainText().strip(),
+            tts_metni=txt_tts_metni.toPlainText().strip() or VARSAYILAN_TTS_METNI,
             snooze_dakika=spn_ertele.value(),
         )
 
