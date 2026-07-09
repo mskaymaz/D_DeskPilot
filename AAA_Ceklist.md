@@ -67,6 +67,8 @@ Teknik Terimler Sözlüğü
 - [x] Alarm listesi yönetimi
 - [x] Kaçırılan alarm bildirimi
 - [x] Sessiz mod desteği
+- [x] Alarm sesleri dinleme eklendi
+- [x] Alarm yapısını varsayılana döndürme butonu eklendi
 
 
 ### V2+
@@ -135,7 +137,7 @@ Teknik Terimler Sözlüğü
 - [ ] Birden fazla pil desteği
 
 
-# 5. Hatırlatıcı Modülü
+# 5. Hatırlatıcı Modülü (Reminder-YENİ)
 Bence özellikle şunlar kullanıcı tarafından her gün kullanılacak özellikler:
 
 ⭐⭐⭐⭐⭐ Yaklaşan hatırlatıcılar görünümü
@@ -285,7 +287,7 @@ Yani öncelik sıralamam şöyle olur:
 ---
 
 
-# 6. Todo Modülü
+# 6. Todo Modülü (YENİ)
 
 ## Görev Yönetimi
 
