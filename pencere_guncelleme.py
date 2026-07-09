@@ -1,7 +1,9 @@
 import time
 from datetime import datetime, timedelta
 from PySide6 import QtCore, QtGui, QtWidgets
+from core_settings import TIME_BASE_FONT_SIZE
 from log_servisi import log_kaydet
+from hicri_tarih_servisi import miladi_tarihten_hicriye
 
 try:
     import winsound
@@ -15,34 +17,47 @@ class PencereGuncellemeKarishimi:
     """
     def update_time(self):
         now = datetime.now()
-        time_text = self._format_time_html(now)
+        saat, saniye, ampm = self._format_time_parts(now)
         date_text = self._format_date(now)
-        self.time_label.setText(time_text)
+        hicri_text = self._format_hicri_date(now)
+        self._saat_etiketlerini_guncelle(
+            self.time_main_label,
+            self.time_seconds_label,
+            self.time_ampm_label,
+            saat,
+            saniye,
+            ampm
+        )
         self._saat_label_genisligini_sabitle()
         self.date_label.setText(date_text)
+        self.hicri_date_label.setText(hicri_text)
+        self._hafta_etiketlerini_guncelle(now)
         if self.free_time_window:
-            self.free_time_window.icerik.setText(time_text)
-            self.free_time_window.icerik.setAlignment(
-                QtCore.Qt.AlignmentFlag.AlignLeft | QtCore.Qt.AlignmentFlag.AlignVCenter
+            self._saat_etiketlerini_guncelle(
+                self.free_time_window.saat_etiketi,
+                self.free_time_window.saniye_etiketi,
+                self.free_time_window.ampm_etiketi,
+                saat,
+                saniye,
+                ampm
             )
             # HTML QLabel icin adjustSize() guvenilmez; font metrikleriyle acık hesap yap
             if not self.free_time_window.surukleme_konumu:
                 self._saat_pencere_boyut_guncelle()
         if self.free_date_window:
-            self.free_date_window.icerik.setText(date_text)
+            self.free_date_window.etiket.setText(date_text)
+            self.free_date_window.hicri_etiketi.setText(hicri_text)
+            self._hafta_etiketlerini_guncelle(now, self.free_date_window)
             if not self.free_date_window.surukleme_konumu:
                 self.free_date_window.icerik.adjustSize()
                 self.free_date_window.adjustSize()
     def _saat_label_genisligini_sabitle(self):
         genislik, _ = self._saat_olculerini_hesapla(20)
         self.time_label.setFixedWidth(genislik)
-        self.time_label.setAlignment(
-            QtCore.Qt.AlignmentFlag.AlignLeft | QtCore.Qt.AlignmentFlag.AlignVCenter
-        )
 
     def _saat_olculerini_hesapla(self, yatay_pay):
         scale = self.settings.global_scale * self.settings.time_scale
-        base_size = int(self.settings.time_font_size * scale)
+        base_size = int(TIME_BASE_FONT_SIZE * scale)
         sec_size = max(1, int(base_size * self.settings.time_seconds_scale))
         ampm_size = max(1, sec_size // 2)
         font = QtGui.QFont(self.settings.time_font_family, base_size)
@@ -223,13 +238,7 @@ class PencereGuncellemeKarishimi:
         self.alarm_servisi.alarm_ertele(alarm_id, dakika)
         self._aktif_alarm_popuplar.pop(alarm_id, None)
 
-    def _format_time_html(self, now):
-        scale = self.settings.global_scale * self.settings.time_scale
-        base_size = int(self.settings.time_font_size * scale)
-        sec_size = max(1, int(base_size * self.settings.time_seconds_scale))
-        ampm_size = max(1, sec_size // 2)
-        weight = "bold" if self.settings.time_bold else "normal"
-        color = self.settings.time_color
+    def _format_time_parts(self, now):
         format_mode = getattr(self.settings, "time_format_mode", "24h" if getattr(self.settings, "time_24h", True) else "12h_ampm")
         if format_mode == "24h":
             hhmm = now.strftime("%H:%M")
@@ -239,17 +248,19 @@ class PencereGuncellemeKarishimi:
             hhmm = now.strftime("%I:%M %p")
         if format_mode == "12h_ampm":
             saat, ampm = hhmm.rsplit(" ", 1)
-            if not self.settings.time_seconds_visible:
-                return (f"<span style='font-size:{base_size}px; font-weight:{weight}; color:{color};'>{saat}</span>"
-                        f"<span style='font-size:{ampm_size}px; color:{color};'> {ampm}</span>")
-        if not self.settings.time_seconds_visible:
-            return f"<span style='font-size:{base_size}px; font-weight:{weight}; color:{color};'>{hhmm}</span>"
-        if format_mode in ("24h", "12h_plain"):
-            return (f"<span style='font-size:{base_size}px; font-weight:{weight}; color:{color};'>{hhmm}</span>"
-                    f"<span style='font-size:{sec_size}px; color:{color};'>:{now.strftime('%S')}</span>")
-        return (f"<span style='font-size:{base_size}px; font-weight:{weight}; color:{color};'>{saat}</span>"
-                f"<span style='font-size:{sec_size}px; color:{color};'>:{now.strftime('%S')} </span>"
-                f"<span style='font-size:{ampm_size}px; color:{color};'>{ampm}</span>")
+        else:
+            saat, ampm = hhmm, ""
+        saniye = f":{now.strftime('%S')}" if self.settings.time_seconds_visible else ""
+        if saniye and ampm:
+            saniye += " "
+        return saat, saniye, ampm
+
+    def _saat_etiketlerini_guncelle(self, saat_etiketi, saniye_etiketi, ampm_etiketi, saat, saniye, ampm):
+        saat_etiketi.setText(saat)
+        saniye_etiketi.setText(saniye)
+        ampm_etiketi.setText(ampm)
+        saniye_etiketi.setVisible(bool(saniye))
+        ampm_etiketi.setVisible(bool(ampm))
 
     def _format_date(self, now):
         fmt = self.settings.date_format.strip()
@@ -266,6 +277,28 @@ class PencereGuncellemeKarishimi:
         }
         fmt = "".join(mapping.get(ch, ch) for ch in fmt)
         return now.strftime(fmt)
+
+    def _format_hicri_date(self, now):
+        return miladi_tarihten_hicriye(now.date()).formatla()
+
+    def _hafta_etiketlerini_guncelle(self, now, hedef=None):
+        if hedef is None:
+            ayrac = getattr(self, "date_week_separator_label", None)
+            sayi = getattr(self, "date_week_number_label", None)
+            yazi = getattr(self, "date_week_text_label", None)
+        else:
+            ayrac = getattr(hedef, "hafta_ayrac_etiketi", None)
+            sayi = getattr(hedef, "hafta_sayi_etiketi", None)
+            yazi = getattr(hedef, "hafta_yazi_etiketi", None)
+        if not ayrac or not sayi or not yazi:
+            return
+        goster = self.settings.date_visible and getattr(self.settings, "date_show_week_number", False)
+        ayrac.setText("◆")
+        sayi.setText(f"{now.isocalendar().week}.")
+        yazi.setText("HAFTA")
+        ayrac.setVisible(goster)
+        sayi.setVisible(goster)
+        yazi.setVisible(goster)
 
     def _stop_full_charge_blink(self):
         if self.full_charge_timer.isActive(): self.full_charge_timer.stop()

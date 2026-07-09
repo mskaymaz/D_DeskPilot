@@ -28,12 +28,22 @@ class SerbestDuzenKarishimi:
 
     def _apply_free_window_styles(self):
         if self.free_time_window:
-            self._apply_time_style(self.free_time_window.etiket)
+            self._apply_time_style(
+                self.free_time_window.saat_etiketi,
+                self.free_time_window.saniye_etiketi,
+                self.free_time_window.ampm_etiketi
+            )
             self.free_time_window.etiket.adjustSize()
             self.free_time_window.adjustSize()
 
         if self.free_date_window:
             self._apply_date_style(self.free_date_window.etiket)
+            if hasattr(self.free_date_window, "hafta_sayi_etiketi"):
+                self._apply_date_week_style(
+                    self.free_date_window.hafta_ayrac_etiketi,
+                    self.free_date_window.hafta_sayi_etiketi,
+                    self.free_date_window.hafta_yazi_etiketi
+                )
             self.free_date_window.etiket.adjustSize()
             self.free_date_window.adjustSize()
 
@@ -67,7 +77,7 @@ class SerbestDuzenKarishimi:
 
     def _capture_free_positions_from_grouped(self):
         time_global = self.mapToGlobal(self.time_label.pos())
-        date_global = self.mapToGlobal(self.date_label.pos())
+        date_global = self.mapToGlobal(self.date_row.pos())
         battery_global = self.mapToGlobal(self.battery_row.pos())
 
         self.settings.free_time_x = time_global.x()

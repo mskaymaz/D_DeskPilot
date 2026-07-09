@@ -80,16 +80,16 @@ Teknik Terimler Sözlüğü
 
 # 3. Tarih Modülü
 
-- [ ] Miladi tarih
-- [ ] Hicri tarih
-- [ ] Tarih formatları
-- [ ] Yazı tipi seçimi
-- [ ] Yazı boyutu
-- [ ] Yazı rengi ve biçimi
-- [ ] Tarih modülünü göster / gizle
-- [ ] Serbest konumlandırma
-- [ ] Gün adını gösterme (Pazartesi, Salı...)
-- [ ] Ay adını uzun / kısa gösterme (Ocak / Oca)
+- [x] Miladi tarih
+- [x] Hicri tarih
+- [x] Tarih formatları
+- [x] Yazı tipi seçimi (sadece kalın)
+- [x] Yazı boyutu
+- [x] Yazı rengi ve biçimi
+- [x] Tarih modülünü göster / gizle
+- [x] Serbest konumlandırma
+- [x] Gün adını gösterme (Pazartesi, Salı...)
+- [x] Ay adını uzun / kısa gösterme (Ocak / Oca)
 - [ ] Hafta numarasını gösterme
 - [ ] Hicri tarih gösterimini aç / kapat
 - [ ] Miladi ve Hicri tarih sıralamasını değiştirme

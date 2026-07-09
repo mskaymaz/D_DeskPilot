@@ -5,6 +5,9 @@ import shutil
 
 MODULE_ORDER_KEYS = ("battery", "time", "date")
 DEFAULT_MODULE_ORDER = list(MODULE_ORDER_KEYS)
+TIME_BASE_FONT_SIZE = 30
+DATE_BASE_FONT_SIZE = 30
+BATTERY_BASE_FONT_SIZE = 30
 
 
 def normalize_module_order(order):
@@ -37,7 +40,6 @@ class PanelSettings:
 
     time_visible: bool = True
     time_font_family: str = "Stencil"
-    time_font_size: int = 30
     time_color: str = "#00FF7F"
     time_bold: bool = False
     time_24h: bool = True
@@ -50,8 +52,8 @@ class PanelSettings:
     date_format: str = "g a y, h"
     date_font_family: str = "Segoe UI"
     date_color: str = "#000000"
-    date_font_size: int = 30
     date_bold: bool = False
+    date_show_week_number: bool = False
 
     battery_visible: bool = True
     battery_font_family: str = "Segoe UI"
@@ -59,7 +61,6 @@ class PanelSettings:
     battery_bold: bool = True
     battery_warning_level: int = 20
     battery_alert_interval: int = 10
-    battery_font_size: int = 30
     battery_alert_sound_type: str = "Uyarı 1"
     battery_full_alert_enabled: bool = False
     battery_full_alert_level: int = 100

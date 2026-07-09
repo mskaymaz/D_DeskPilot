@@ -6,6 +6,7 @@ except ImportError:
 from utils import resource_path, ICON_FILE
 from utils import log_altyapisini_kur, log_kaydet
 from quick_actions import QuickActionsPanel
+from alt_hizali_etiket import AltHizaliEtiket
 
 
 class WindowInitMixin:
@@ -36,9 +37,33 @@ class WindowInitMixin:
 
     def _init_widgets(self):
         self.date_label = QtWidgets.QLabel(alignment=QtCore.Qt.AlignmentFlag.AlignCenter)
+        self.date_week_separator_label = QtWidgets.QLabel("◆", alignment=QtCore.Qt.AlignmentFlag.AlignCenter)
+        self.date_week_number_label = QtWidgets.QLabel(alignment=QtCore.Qt.AlignmentFlag.AlignCenter)
+        self.date_week_text_label = QtWidgets.QLabel("HAFTA", alignment=QtCore.Qt.AlignmentFlag.AlignCenter)
+        self.hicri_date_label = QtWidgets.QLabel(alignment=QtCore.Qt.AlignmentFlag.AlignCenter)
+        self.date_week_separator_label.setVisible(False)
+        self.date_week_number_label.setVisible(False)
+        self.date_week_text_label.setVisible(False)
         self.battery_label = QtWidgets.QLabel(alignment=QtCore.Qt.AlignmentFlag.AlignCenter)
         self.battery_icon_label = QtWidgets.QLabel(alignment=QtCore.Qt.AlignmentFlag.AlignCenter)
         self.battery_icon_label.setVisible(False)
+
+        self.date_row = QtWidgets.QWidget()
+        self.date_row_layout = QtWidgets.QHBoxLayout(self.date_row)
+        self.date_row_layout.setContentsMargins(0, 0, 0, 0)
+        self.date_row_layout.setSpacing(0)
+        self.date_row_layout.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+        self.date_row_layout.addWidget(self.date_label, 0, QtCore.Qt.AlignmentFlag.AlignBottom)
+        self.date_row_layout.addWidget(self.date_week_separator_label, 0, QtCore.Qt.AlignmentFlag.AlignVCenter)
+        self.date_row_layout.addWidget(self.date_week_number_label, 0, QtCore.Qt.AlignmentFlag.AlignBottom)
+        self.date_row_layout.addWidget(self.date_week_text_label, 0, QtCore.Qt.AlignmentFlag.AlignBottom)
+
+        self.date_container = QtWidgets.QWidget()
+        self.date_container_layout = QtWidgets.QVBoxLayout(self.date_container)
+        self.date_container_layout.setContentsMargins(0, 0, 0, 0)
+        self.date_container_layout.setSpacing(0)
+        self.date_container_layout.addWidget(self.date_row)
+        self.date_container_layout.addWidget(self.hicri_date_label)
 
         self.battery_row = QtWidgets.QWidget()
         self.battery_row_layout = QtWidgets.QHBoxLayout(self.battery_row)
@@ -52,18 +77,35 @@ class WindowInitMixin:
         self.main_layout.setContentsMargins(0, 0, 0, 0)
         self.main_layout.setSpacing(0)
 
-        self.time_label = QtWidgets.QLabel(alignment=QtCore.Qt.AlignmentFlag.AlignCenter)
+        self.time_label = QtWidgets.QWidget()
+        self.time_label_layout = QtWidgets.QHBoxLayout(self.time_label)
+        self.time_label_layout.setContentsMargins(0, 0, 0, 0)
+        self.time_label_layout.setSpacing(0)
+        self.time_label_layout.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+        self.time_main_label = AltHizaliEtiket(alignment=QtCore.Qt.AlignmentFlag.AlignCenter)
+        self.time_seconds_label = AltHizaliEtiket(alignment=QtCore.Qt.AlignmentFlag.AlignCenter)
+        self.time_ampm_label = AltHizaliEtiket(alignment=QtCore.Qt.AlignmentFlag.AlignCenter)
+        self.time_label_layout.addWidget(self.time_main_label, 0, QtCore.Qt.AlignmentFlag.AlignBottom)
+        self.time_label_layout.addWidget(self.time_seconds_label, 0, QtCore.Qt.AlignmentFlag.AlignBottom)
+        self.time_label_layout.addWidget(self.time_ampm_label, 0, QtCore.Qt.AlignmentFlag.AlignBottom)
         self.setMouseTracking(True)
 
         self.main_layout.addWidget(self.battery_row)
         self.main_layout.addWidget(self.time_label)
-        self.main_layout.addWidget(self.date_label)
+        self.main_layout.addWidget(self.date_container)
 
         self.quick_actions = QuickActionsPanel(self, self)
 
         for lbl in (
             self.time_label,
+            self.time_main_label,
+            self.time_seconds_label,
+            self.time_ampm_label,
             self.date_label,
+            self.date_week_separator_label,
+            self.date_week_number_label,
+            self.date_week_text_label,
+            self.hicri_date_label,
             self.battery_label,
             self.battery_icon_label
         ):

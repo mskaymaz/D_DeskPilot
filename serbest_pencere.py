@@ -2,6 +2,7 @@ from PySide6 import QtCore, QtGui, QtWidgets
 from utils import resource_path, ICON_FILE
 from pencere_araclari import aktif_popup_veya_modal_var, en_ustte_tut, pencere_gorev_cubugunda_mi
 from quick_actions import QuickActionsPanel
+from alt_hizali_etiket import AltHizaliEtiket
 
 class SerbestSatirPenceresi(QtWidgets.QWidget):
     """
@@ -49,6 +50,45 @@ class SerbestSatirPenceresi(QtWidgets.QWidget):
             satir_layout.addWidget(self.pil_etiketi)
             satir_layout.addWidget(self.pil_ikon_etiketi)
             self.icerik = satir
+        elif self.tur == "date":
+            self.etiket = QtWidgets.QLabel(alignment=QtCore.Qt.AlignmentFlag.AlignCenter)
+            self.hafta_ayrac_etiketi = QtWidgets.QLabel("◆", alignment=QtCore.Qt.AlignmentFlag.AlignCenter)
+            self.hafta_sayi_etiketi = QtWidgets.QLabel(alignment=QtCore.Qt.AlignmentFlag.AlignCenter)
+            self.hafta_yazi_etiketi = QtWidgets.QLabel("HAFTA", alignment=QtCore.Qt.AlignmentFlag.AlignCenter)
+            self.hicri_etiketi = QtWidgets.QLabel(alignment=QtCore.Qt.AlignmentFlag.AlignCenter)
+            self.hafta_ayrac_etiketi.setVisible(False)
+            self.hafta_sayi_etiketi.setVisible(False)
+            self.hafta_yazi_etiketi.setVisible(False)
+
+            satir = QtWidgets.QWidget()
+            satir_layout = QtWidgets.QHBoxLayout(satir)
+            satir_layout.setContentsMargins(0, 0, 0, 0)
+            satir_layout.setSpacing(0)
+            satir_layout.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+            satir_layout.addWidget(self.etiket, 0, QtCore.Qt.AlignmentFlag.AlignBottom)
+            satir_layout.addWidget(self.hafta_ayrac_etiketi, 0, QtCore.Qt.AlignmentFlag.AlignVCenter)
+            satir_layout.addWidget(self.hafta_sayi_etiketi, 0, QtCore.Qt.AlignmentFlag.AlignBottom)
+            satir_layout.addWidget(self.hafta_yazi_etiketi, 0, QtCore.Qt.AlignmentFlag.AlignBottom)
+            kutu = QtWidgets.QWidget()
+            kutu_layout = QtWidgets.QVBoxLayout(kutu)
+            kutu_layout.setContentsMargins(0, 0, 0, 0)
+            kutu_layout.setSpacing(0)
+            kutu_layout.addWidget(satir)
+            kutu_layout.addWidget(self.hicri_etiketi)
+            self.icerik = kutu
+        elif self.tur == "time":
+            self.etiket = QtWidgets.QWidget()
+            satir_layout = QtWidgets.QHBoxLayout(self.etiket)
+            satir_layout.setContentsMargins(0, 0, 0, 0)
+            satir_layout.setSpacing(0)
+            satir_layout.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+            self.saat_etiketi = AltHizaliEtiket(alignment=QtCore.Qt.AlignmentFlag.AlignCenter)
+            self.saniye_etiketi = AltHizaliEtiket(alignment=QtCore.Qt.AlignmentFlag.AlignCenter)
+            self.ampm_etiketi = AltHizaliEtiket(alignment=QtCore.Qt.AlignmentFlag.AlignCenter)
+            satir_layout.addWidget(self.saat_etiketi, 0, QtCore.Qt.AlignmentFlag.AlignBottom)
+            satir_layout.addWidget(self.saniye_etiketi, 0, QtCore.Qt.AlignmentFlag.AlignBottom)
+            satir_layout.addWidget(self.ampm_etiketi, 0, QtCore.Qt.AlignmentFlag.AlignBottom)
+            self.icerik = self.etiket
         else:
             self.etiket = QtWidgets.QLabel(alignment=QtCore.Qt.AlignmentFlag.AlignCenter)
             self.icerik = self.etiket

@@ -177,11 +177,6 @@ class AyarFormlari:
         dialog.cmb_batt_font.setCurrentFont(QtGui.QFont(ayarlar.battery_font_family))
         dialog.cmb_batt_font.currentFontChanged.connect(dialog._apply_batt_preview)
 
-        dialog.spn_batt_size = QtWidgets.QSpinBox()
-        dialog.spn_batt_size.setRange(8, 100)
-        dialog.spn_batt_size.setValue(ayarlar.battery_font_size)
-        dialog.spn_batt_size.valueChanged.connect(dialog._apply_batt_preview)
-
         dialog.chk_batt_bold = QtWidgets.QCheckBox("Kalın")
         dialog.chk_batt_bold.setChecked(ayarlar.battery_bold)
         dialog.chk_batt_bold.toggled.connect(dialog._apply_batt_preview)
@@ -190,7 +185,6 @@ class AyarFormlari:
         f.addRow("Uyarı seviyesi (%)", dialog.spn_batt_warn)
         f.addRow("Renk", dialog.btn_batt_color)
         f.addRow("Font", dialog.cmb_batt_font)
-        f.addRow("Font boyutu", dialog.spn_batt_size)
         f.addRow(dialog.chk_batt_bold)
         f.addRow(self._birim_olcek_grubu("battery", "Pil"))
         
@@ -230,12 +224,6 @@ class AyarFormlari:
         dialog.cmb_time_font.setFixedWidth(140)
         dialog.cmb_time_font.currentTextChanged.connect(lambda f: dialog._apply_time_preview(font=f))
 
-        dialog.spn_time_size = QtWidgets.QSpinBox()
-        dialog.spn_time_size.setRange(20, 200)
-        dialog.spn_time_size.setFixedWidth(58)
-        dialog.spn_time_size.setValue(ayarlar.time_font_size)
-        dialog.spn_time_size.valueChanged.connect(lambda v: dialog._apply_time_preview(size=v))
-
         dialog.chk_time_bold = QtWidgets.QCheckBox("Kalın")
         dialog.chk_time_bold.setChecked(ayarlar.time_bold)
         dialog.chk_time_bold.toggled.connect(lambda v: dialog._apply_time_preview(bold=v))
@@ -262,11 +250,7 @@ class AyarFormlari:
         top_row.addWidget(dialog.chk_time_visible)
         top_row.addWidget(dialog.cmb_time_format)
         f.addRow("Font", dialog.cmb_time_font)
-        size_row = QtWidgets.QHBoxLayout()
-        size_row.addWidget(dialog.spn_time_size)
-        size_row.addWidget(dialog.chk_time_bold)
-        size_row.addStretch()
-        f.addRow("Boyut", size_row)
+        f.addRow(dialog.chk_time_bold)
         
         sec_scale_row = QtWidgets.QHBoxLayout()
         sec_scale_row.addWidget(dialog.sld_sec_scale)
@@ -291,17 +275,44 @@ class AyarFormlari:
         dialog.chk_date_visible.setChecked(ayarlar.date_visible)
         dialog.chk_date_visible.toggled.connect(lambda v: dialog._apply_date_preview(visible=v))
 
+        date_presets = [
+            ("Özel", ""),
+            ("Kısa gün + kısa ay", "g a y, h"),
+            ("Uzun gün + uzun ay", "g A Y, H"),
+            ("Gün ay yıl", "g a y"),
+            ("Sayısal", "%d.%m.%Y"),
+        ]
+        dialog.cmb_date_preset = QtWidgets.QComboBox()
+        for label, fmt in date_presets:
+            dialog.cmb_date_preset.addItem(label, fmt)
+
         dialog.txt_date_format = QtWidgets.QLineEdit(ayarlar.date_format)
-        dialog.txt_date_format.textChanged.connect(lambda _: dialog._set_dirty(True))
+
+        preset_index = dialog.cmb_date_preset.findData(ayarlar.date_format)
+        dialog.cmb_date_preset.setCurrentIndex(preset_index if preset_index >= 0 else 0)
+
+        def date_preset_changed():
+            fmt = dialog.cmb_date_preset.currentData()
+            if not fmt:
+                return
+            dialog.txt_date_format.blockSignals(True)
+            dialog.txt_date_format.setText(fmt)
+            dialog.txt_date_format.blockSignals(False)
+            dialog._apply_date_preview(format_text=fmt)
+
+        def date_format_changed(text):
+            preset_index = dialog.cmb_date_preset.findData(text)
+            dialog.cmb_date_preset.blockSignals(True)
+            dialog.cmb_date_preset.setCurrentIndex(preset_index if preset_index >= 0 else 0)
+            dialog.cmb_date_preset.blockSignals(False)
+            dialog._apply_date_preview(format_text=text)
+
+        dialog.cmb_date_preset.currentIndexChanged.connect(date_preset_changed)
+        dialog.txt_date_format.textChanged.connect(date_format_changed)
 
         dialog.cmb_date_font = QtWidgets.QFontComboBox()
         dialog.cmb_date_font.setCurrentFont(QtGui.QFont(ayarlar.date_font_family))
         dialog.cmb_date_font.currentFontChanged.connect(lambda f: dialog._apply_date_preview(font=f.family()))
-
-        dialog.spn_date_size = QtWidgets.QSpinBox()
-        dialog.spn_date_size.setRange(8, 100)
-        dialog.spn_date_size.setValue(ayarlar.date_font_size)
-        dialog.spn_date_size.valueChanged.connect(lambda v: dialog._apply_date_preview(size=v))
 
         dialog.btn_date_color = QtWidgets.QPushButton(ayarlar.date_color)
         dialog.btn_date_color.clicked.connect(lambda: dialog._pick_color(dialog.btn_date_color))
@@ -310,11 +321,16 @@ class AyarFormlari:
         dialog.chk_date_bold.setChecked(ayarlar.date_bold)
         dialog.chk_date_bold.toggled.connect(lambda v: dialog._apply_date_preview(bold=v))
 
+        dialog.chk_date_week_number = QtWidgets.QCheckBox("Hafta numarası göster")
+        dialog.chk_date_week_number.setChecked(getattr(ayarlar, "date_show_week_number", False))
+        dialog.chk_date_week_number.toggled.connect(lambda v: dialog._apply_date_preview(week_number=v))
+
         f.addRow(dialog.chk_date_visible)
+        f.addRow("Hazır format", dialog.cmb_date_preset)
         f.addRow("Format", dialog.txt_date_format)
+        f.addRow(dialog.chk_date_week_number)
         f.addRow("Font", dialog.cmb_date_font)
         f.addRow("Renk", dialog.btn_date_color)
-        f.addRow("Boyut", dialog.spn_date_size)
         f.addRow(dialog.chk_date_bold)
         f.addRow(self._birim_olcek_grubu("date", "Tarih"))
         

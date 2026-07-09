@@ -39,7 +39,7 @@ class WindowMouseMixin:
             return
         hit_rects = []
         content_rect = None
-        for w in (self.battery_row, self.time_label, self.date_label):
+        for w in (self.battery_row, self.time_label, self.date_row):
             if not w.isVisible():
                 continue
             cr = self.quick_actions.hit_rect_for_widget(w)

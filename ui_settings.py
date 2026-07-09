@@ -373,7 +373,6 @@ class SettingsDialog(QtWidgets.QDialog):
                 "- Tam dolu uyarı seviyesi (%): Tam dolu uyarısının devreye gireceği seviye.\n"
                 "- Renk: Pil satırının yazı rengi.\n"
                 "- Font: Pil satırı yazı tipi.\n"
-                "- Font boyutu: Pil satırı yazı boyutu.\n"
                 "- Kalın: Pil yazısını kalın yapar."
             )
         elif tab_name == "Saat":
@@ -383,7 +382,6 @@ class SettingsDialog(QtWidgets.QDialog):
                 "Saat ayarları (sırasıyla):\n"
                 "- Saat görünür: Saat satırını aç/kapat.\n"
                 "- Font: Saat yazı tipi.\n"
-                "- Boyut: Saat yazı boyutu.\n"
                 "- Saniye boyutu (%): Saniyelerin saat/dakikaya oranı.\n"
                 "- Saniye kalın: Saniyeleri kalın yapar.\n"
                 "- Saniyeyi gizle: Saniyeleri göstermez (sadece saat:dakika).\n"
@@ -406,7 +404,6 @@ class SettingsDialog(QtWidgets.QDialog):
                 "  % işaretli formatlar da geçerlidir (strftime).\n"
                 "- Font: Tarih yazı tipi.\n"
                 "- Renk: Tarih yazı rengi.\n"
-                "- Boyut: Tarih yazı boyutu.\n"
                 "- Kalın: Yazıyı kalınlaştırır."
             )
         else:
@@ -463,9 +460,8 @@ class SettingsDialog(QtWidgets.QDialog):
 
         box.move(x, y)
 
-    def _apply_time_preview(self, font=None, size=None, bold=None, visible=None, seconds_scale=None, seconds_bold=None, seconds_visible=None, time_24h=None, time_format_mode=None):
+    def _apply_time_preview(self, font=None, bold=None, visible=None, seconds_scale=None, seconds_bold=None, seconds_visible=None, time_24h=None, time_format_mode=None):
         if font is not None: self.settings.time_font_family = font
-        if size is not None: self.settings.time_font_size = size
         if bold is not None: self.settings.time_bold = bold
         if visible is not None: self.settings.time_visible = visible
         if seconds_scale is not None: self.settings.time_seconds_scale = seconds_scale
@@ -515,18 +511,18 @@ class SettingsDialog(QtWidgets.QDialog):
         self._set_dirty(True)
         if self.parent(): self.parent().apply_settings()
 
-    def _apply_date_preview(self, font=None, size=None, bold=None, visible=None):
+    def _apply_date_preview(self, font=None, bold=None, visible=None, format_text=None, week_number=None):
         if font is not None: self.settings.date_font_family = font
-        if size is not None: self.settings.date_font_size = size
         if bold is not None: self.settings.date_bold = bold
         if visible is not None: self.settings.date_visible = visible
+        if format_text is not None: self.settings.date_format = format_text
+        if week_number is not None: self.settings.date_show_week_number = week_number
         self._set_dirty(True)
         if self.parent(): self.parent().apply_settings()
 
     def _apply_batt_preview(self, _=None):
         self.settings.battery_visible = self.chk_batt_visible.isChecked()
         self.settings.battery_font_family = self.cmb_batt_font.currentFont().family()
-        self.settings.battery_font_size = self.spn_batt_size.value()
         self.settings.battery_bold = self.chk_batt_bold.isChecked()
         self.settings.battery_warning_level = self.spn_batt_warn.value()
         self._set_dirty(True)
@@ -566,6 +562,8 @@ class SettingsDialog(QtWidgets.QDialog):
         # Sadece line edit'ler gibi anlık tetiklenmeyenleri buradan alıyoruz.
         if hasattr(self, "txt_date_format"):
             self.settings.date_format = self.txt_date_format.text()
+        if hasattr(self, "chk_date_week_number"):
+            self.settings.date_show_week_number = self.chk_date_week_number.isChecked()
         if hasattr(self, "cmb_language"):
             self.settings.language = self.cmb_language.currentData() or "tr"
         if hasattr(self, "tbl_task_priorities"):
