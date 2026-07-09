@@ -28,6 +28,7 @@ class SettingsDialog(QtWidgets.QDialog):
         self._dirty = False
 
         self.setWindowIcon(QtGui.QIcon(resource_path(ICON_FILE)))
+        self.setMinimumWidth(330)
         self.tabs = QtWidgets.QTabWidget()
 
         self.form_yoneticisi = AyarFormlari(self, self.settings)
@@ -40,14 +41,24 @@ class SettingsDialog(QtWidgets.QDialog):
         self.btn_apply.setEnabled(False)
         self.btn_save = QtWidgets.QPushButton("Kaydet")
         self.btn_cancel = QtWidgets.QPushButton("İptal")
+        self.btn_panel_default = QtWidgets.QPushButton("Varsayılan")
+        for btn, width in (
+            (self.btn_cancel, 58),
+            (self.btn_apply, 64),
+            (self.btn_save, 58),
+            (self.btn_panel_default, 86),
+        ):
+            btn.setFixedWidth(width)
 
         self.btn_apply.clicked.connect(self.apply_now)
         self.btn_save.clicked.connect(self.save_and_close)
         self.btn_cancel.clicked.connect(self.reject)
+        self.btn_panel_default.clicked.connect(self._restore_current_tab_defaults)
 
 
 
         btns = QtWidgets.QHBoxLayout()
+        btns.addWidget(self.btn_panel_default)
         btns.addStretch()
         btns.addWidget(self.btn_cancel)
         btns.addWidget(self.btn_apply)
@@ -245,6 +256,17 @@ class SettingsDialog(QtWidgets.QDialog):
             order.append(self.lst_module_order.item(row).data(QtCore.Qt.ItemDataRole.UserRole))
         self.settings.module_order = normalize_module_order(order)
 
+    def _module_order_list_load(self):
+        if not hasattr(self, "lst_module_order"):
+            return
+        labels = {"battery": "Pil", "time": "Saat", "date": "Tarih"}
+        self.lst_module_order.clear()
+        for key in normalize_module_order(getattr(self.settings, "module_order", [])):
+            item = QtWidgets.QListWidgetItem(labels.get(key, key))
+            item.setData(QtCore.Qt.ItemDataRole.UserRole, key)
+            self.lst_module_order.addItem(item)
+        self.lst_module_order.setCurrentRow(0)
+
     def _move_module_order(self, direction):
         row = self.lst_module_order.currentRow()
         target = row + direction
@@ -306,6 +328,97 @@ class SettingsDialog(QtWidgets.QDialog):
             self.parent().apply_settings()
         self._set_dirty(False)
 
+    def _restore_current_tab_defaults(self):
+        defaults = PanelSettings()
+        tab_name = self.tabs.tabText(self.tabs.currentIndex())
+        fields_by_tab = {
+            "Genel": (
+                "language", "seffaflik", "her_zaman_ustte", "acilista_calistir", "sessiz_mod",
+                "free_layout_enabled", "coklu_monitor_modu", "reminder_visible", "todo_visible",
+                "global_scale", "spacing_battery_time_offset", "spacing_time_date_offset",
+                "spacing_battery_date_hidden_offset", "quick_actions_icon_size",
+                "quick_actions_icon_spacing", "module_order",
+            ),
+            "Pil": (
+                "battery_visible", "battery_font_family", "battery_color", "battery_bold",
+                "battery_warning_level", "battery_scale",
+            ),
+            "Saat": (
+                "time_visible", "time_font_family", "time_color", "time_bold", "time_24h",
+                "time_format_mode", "time_seconds_scale", "time_seconds_visible", "time_scale",
+            ),
+            "Tarih": (
+                "date_visible", "date_format", "date_font_family", "date_color", "date_bold",
+                "date_show_week_number", "date_scale",
+            ),
+        }
+        for field_name in fields_by_tab.get(tab_name, ()):
+            setattr(self.settings, field_name, getattr(defaults, field_name))
+        self._sync_current_tab_defaults(tab_name)
+        self._set_dirty(True)
+        if self.parent():
+            self.parent().apply_settings()
+
+    def _set_value_silent(self, widget, value):
+        widget.blockSignals(True)
+        widget.setValue(value)
+        widget.blockSignals(False)
+
+    def _set_checked_silent(self, widget, value):
+        widget.blockSignals(True)
+        widget.setChecked(value)
+        widget.blockSignals(False)
+
+    def _sync_current_tab_defaults(self, tab_name):
+        s = self.settings
+        if tab_name == "Genel":
+            self._set_checked_silent(self.chk_top, s.her_zaman_ustte)
+            self._set_checked_silent(self.chk_autostart, s.acilista_calistir)
+            self._set_checked_silent(self.chk_silent, s.sessiz_mod)
+            self._set_checked_silent(self.chk_free_layout, s.free_layout_enabled)
+            self._set_checked_silent(self.chk_multi_mon, s.coklu_monitor_modu)
+            self._set_checked_silent(self.chk_reminder_visible, s.reminder_visible)
+            self._set_checked_silent(self.chk_todo_visible, s.todo_visible)
+            self._set_value_silent(self.sld_opacity, int(s.seffaflik * 100))
+            self._set_value_silent(self.spn_opacity_value, int(s.seffaflik * 100))
+            self._set_value_silent(self.sld_scale, int(s.global_scale * 100))
+            self._set_value_silent(self.spn_scale_value, int(s.global_scale * 100))
+            self._set_value_silent(self.spn_space_bt, s.spacing_battery_time_offset)
+            self._set_value_silent(self.spn_space_td, s.spacing_time_date_offset)
+            self._set_value_silent(self.spn_space_bd, s.spacing_battery_date_hidden_offset)
+            self._set_value_silent(self.spn_quick_icon_size, s.quick_actions_icon_size)
+            self._set_value_silent(self.spn_quick_icon_spacing, s.quick_actions_icon_spacing)
+            self._module_order_list_load()
+        elif tab_name == "Pil":
+            self._set_checked_silent(self.chk_batt_visible, s.battery_visible)
+            self._set_checked_silent(self.chk_batt_bold, s.battery_bold)
+            self._set_value_silent(self.spn_batt_warn, s.battery_warning_level)
+            self.btn_batt_color.setText(s.battery_color)
+            self.cmb_batt_font.setCurrentFont(QtGui.QFont(s.battery_font_family))
+            self._set_value_silent(self.sld_battery_scale, int(s.battery_scale * 100))
+            self._set_value_silent(self.spn_battery_scale, int(s.battery_scale * 100))
+        elif tab_name == "Saat":
+            self._set_checked_silent(self.chk_time_visible, not s.time_visible)
+            self._set_checked_silent(self.chk_time_bold, s.time_bold)
+            self._set_checked_silent(self.chk_sec_visible, not s.time_seconds_visible)
+            self.cmb_time_format.setCurrentIndex(max(0, self.cmb_time_format.findData(s.time_format_mode)))
+            self.cmb_time_font.setCurrentIndex(max(0, self.cmb_time_font.findText(s.time_font_family)))
+            self.btn_time_color.setText(s.time_color)
+            self._set_value_silent(self.sld_sec_scale, int(s.time_seconds_scale * 100))
+            self.lbl_sec_scale_value.setText(f"{int(s.time_seconds_scale * 100)}%")
+            self._set_value_silent(self.sld_time_scale, int(s.time_scale * 100))
+            self._set_value_silent(self.spn_time_scale, int(s.time_scale * 100))
+        elif tab_name == "Tarih":
+            self._set_checked_silent(self.chk_date_visible, s.date_visible)
+            self._set_checked_silent(self.chk_date_bold, s.date_bold)
+            self._set_checked_silent(self.chk_date_week_number, s.date_show_week_number)
+            self.txt_date_format.setText(s.date_format)
+            self.cmb_date_preset.setCurrentIndex(max(0, self.cmb_date_preset.findData(s.date_format)))
+            self.cmb_date_font.setCurrentFont(QtGui.QFont(s.date_font_family))
+            self.btn_date_color.setText(s.date_color)
+            self._set_value_silent(self.sld_date_scale, int(s.date_scale * 100))
+            self._set_value_silent(self.spn_date_scale, int(s.date_scale * 100))
+
     def _add_help_link(self, form_layout, extra_widget=None):
         help_btn = QtWidgets.QPushButton("Yardım")
         help_btn.setFlat(True)
@@ -335,7 +448,7 @@ class SettingsDialog(QtWidgets.QDialog):
         top.setContentsMargins(0, 0, 0, 0)
         top.setSpacing(4)
         row = QtWidgets.QHBoxLayout()
-        row.setContentsMargins(0, 0, 0, 0)
+        row.setContentsMargins(0, 0, 30, 0)
         if extra_widget is not None:
             row.addWidget(extra_widget)
         row.addStretch()
@@ -486,6 +599,8 @@ class SettingsDialog(QtWidgets.QDialog):
         self.settings.spacing_battery_date_hidden_offset = self.spn_space_bd.value()
         if hasattr(self, "spn_quick_icon_spacing"):
             self.settings.quick_actions_icon_spacing = self.spn_quick_icon_spacing.value()
+        if hasattr(self, "spn_quick_icon_size"):
+            self.settings.quick_actions_icon_size = self.spn_quick_icon_size.value()
         self._set_dirty(True)
         if self.parent(): self.parent().apply_settings()
 
@@ -496,7 +611,8 @@ class SettingsDialog(QtWidgets.QDialog):
 
     def _apply_opacity_preview(self, value):
         self.settings.seffaflik = value / 100
-        self.lbl_opacity_value.setText(f"{value}%")
+        if hasattr(self, "spn_opacity_value"):
+            self.spn_opacity_value.blockSignals(True); self.spn_opacity_value.setValue(value); self.spn_opacity_value.blockSignals(False)
         self._set_dirty(True)
         if self.parent(): self.parent().apply_settings()
 

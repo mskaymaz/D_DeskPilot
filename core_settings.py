@@ -90,6 +90,7 @@ class PanelSettings:
     spacing_battery_time_offset: int = 0
     spacing_time_date_offset: int = 0
     spacing_battery_date_hidden_offset: int = 0
+    quick_actions_icon_size: int = 38
     quick_actions_icon_spacing: int = 2
     module_order: list = field(default_factory=lambda: list(DEFAULT_MODULE_ORDER))
 

@@ -96,6 +96,12 @@ Teknik Terimler Sözlüğü
 - [ ] Özel günleri vurgulama (Resmî ve dinî günler)
 - [ ] Bugünün anlamlı günü bilgisi (isteğe bağlı)
 
+ *********** Modüller arası boşluklar düzelmedi yarım kaldı *************
+Tarih format/preset ayarları: gün adı, ay kısa/uzun, hafta no opsiyonu.
+Hicri tarih hesaplama servisi. (Temel olarak yapıldı, görsel ayarlar kaldı)
+Tarih gösterim modu: sadece Miladi / sadece Hicri / Miladi+Hicri.
+Hicri/Miladi sıralama ve H/M geçiş düğmesi.
+
 ### V2+
 
 - [ ] Bölgesel takvim desteği

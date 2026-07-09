@@ -26,6 +26,7 @@ class AyarFormlari:
         slider = QtWidgets.QSlider(QtCore.Qt.Orientation.Horizontal)
         slider.setRange(50, 300)
         slider.setValue(deger)
+        slider.setFixedWidth(130)
 
         spin = QtWidgets.QSpinBox()
         spin.setRange(50, 300)
@@ -36,6 +37,8 @@ class AyarFormlari:
         slider.valueChanged.connect(spin.setValue)
         spin.valueChanged.connect(slider.setValue)
         slider.valueChanged.connect(lambda v: dialog._apply_module_scale_preview(hedef_tur, v))
+        setattr(dialog, f"sld_{hedef_tur}_scale", slider)
+        setattr(dialog, f"spn_{hedef_tur}_scale", spin)
 
         grup_layout.addWidget(slider)
         grup_layout.addWidget(spin)
@@ -46,6 +49,7 @@ class AyarFormlari:
         ayarlar = self.ayarlar
         w = QtWidgets.QWidget()
         f = QtWidgets.QFormLayout(w)
+        f.setFieldGrowthPolicy(QtWidgets.QFormLayout.FieldGrowthPolicy.FieldsStayAtSizeHint)
 
         dialog.chk_top = QtWidgets.QCheckBox("Her zaman üstte")
         dialog.chk_top.setChecked(ayarlar.her_zaman_ustte)
@@ -68,6 +72,7 @@ class AyarFormlari:
         dialog.chk_multi_mon.toggled.connect(lambda _: dialog._set_dirty(True))
 
         modul_grubu = QtWidgets.QGroupBox("Modül Görünürlüğü")
+        modul_grubu.setMaximumWidth(245)
         modul_layout = QtWidgets.QVBoxLayout(modul_grubu)
         dialog.chk_reminder_visible = QtWidgets.QCheckBox("Hatırlatıcı Modülü Aktif")
         dialog.chk_reminder_visible.setChecked(ayarlar.reminder_visible)
@@ -80,12 +85,19 @@ class AyarFormlari:
 
         dialog.sld_opacity = QtWidgets.QSlider(QtCore.Qt.Orientation.Horizontal)
         dialog.sld_opacity.setRange(10, 100)
+        dialog.sld_opacity.setFixedWidth(70)
         dialog.sld_opacity.setValue(int(ayarlar.seffaflik * 100))
         dialog.sld_opacity.valueChanged.connect(dialog._apply_opacity_preview)
-        dialog.lbl_opacity_value = QtWidgets.QLabel(f"{dialog.sld_opacity.value()}%")
+        dialog.spn_opacity_value = QtWidgets.QSpinBox()
+        dialog.spn_opacity_value.setRange(10, 100)
+        dialog.spn_opacity_value.setSuffix("%")
+        dialog.spn_opacity_value.setFixedWidth(58)
+        dialog.spn_opacity_value.setValue(dialog.sld_opacity.value())
+        dialog.spn_opacity_value.valueChanged.connect(dialog.sld_opacity.setValue)
 
         dialog.sld_scale = QtWidgets.QSlider(QtCore.Qt.Orientation.Horizontal)
         dialog.sld_scale.setRange(50, 250)
+        dialog.sld_scale.setFixedWidth(70)
         dialog.sld_scale.setValue(int(ayarlar.global_scale * 100))
         dialog.sld_scale.valueChanged.connect(dialog._apply_scale_preview)
         dialog.spn_scale_value = QtWidgets.QSpinBox()
@@ -109,17 +121,16 @@ class AyarFormlari:
         checkbox_row.addWidget(dialog._module_order_group(), 0, QtCore.Qt.AlignmentFlag.AlignTop)
         checkbox_row.addStretch()
         f.addRow(checkbox_row)
-        f.addRow(modul_grubu)
         
         opacity_row = QtWidgets.QHBoxLayout()
         opacity_row.addWidget(dialog.sld_opacity)
-        opacity_row.addWidget(dialog.lbl_opacity_value)
-        f.addRow("Şeffaflık (%)", opacity_row)
+        opacity_row.addWidget(dialog.spn_opacity_value)
+        f.addRow("Şeffaflık", opacity_row)
         
         scale_row = QtWidgets.QHBoxLayout()
         scale_row.addWidget(dialog.sld_scale)
         scale_row.addWidget(dialog.spn_scale_value)
-        f.addRow("Genel Ölçek (%)", scale_row)
+        f.addRow("Genel Ölçek", scale_row)
 
         dialog.spn_space_bt = QtWidgets.QSpinBox()
         dialog.spn_space_bt.setRange(-200, 200)
@@ -146,11 +157,20 @@ class AyarFormlari:
         dialog.spn_quick_icon_spacing.setValue(getattr(ayarlar, "quick_actions_icon_spacing", 2))
         dialog.spn_quick_icon_spacing.valueChanged.connect(dialog._apply_general_preview)
 
+        dialog.spn_quick_icon_size = QtWidgets.QSpinBox()
+        dialog.spn_quick_icon_size.setRange(24, 80)
+        dialog.spn_quick_icon_size.setSuffix(" px")
+        dialog.spn_quick_icon_size.setFixedWidth(68)
+        dialog.spn_quick_icon_size.setValue(getattr(ayarlar, "quick_actions_icon_size", 38))
+        dialog.spn_quick_icon_size.valueChanged.connect(dialog._apply_general_preview)
+
         f.addRow("Pil ↔ Saat boşluğu", dialog.spn_space_bt)
         f.addRow("Saat ↔ Tarih boşluğu", dialog.spn_space_td)
         f.addRow("Pil ↔ Tarih boşluğu (saat kapalıyken)", dialog.spn_space_bd)
+        f.addRow("Hover ikon boyutu", dialog.spn_quick_icon_size)
         f.addRow("Hover ikon aralığı", dialog.spn_quick_icon_spacing)
         
+        f.addRow(modul_grubu)
         f.labelForField(dialog.spn_space_bd).setText("Pil \u2194 Tarih bo\u015flu\u011fu")
         dialog._add_help_link(f, extra_widget)
         return w
@@ -160,6 +180,7 @@ class AyarFormlari:
         ayarlar = self.ayarlar
         w = QtWidgets.QWidget()
         f = QtWidgets.QFormLayout(w)
+        f.setFieldGrowthPolicy(QtWidgets.QFormLayout.FieldGrowthPolicy.FieldsStayAtSizeHint)
 
         dialog.chk_batt_visible = QtWidgets.QCheckBox("Pil bilgisi görünür")
         dialog.chk_batt_visible.setChecked(ayarlar.battery_visible)
@@ -171,9 +192,11 @@ class AyarFormlari:
         dialog.spn_batt_warn.valueChanged.connect(dialog._apply_batt_preview)
 
         dialog.btn_batt_color = QtWidgets.QPushButton(ayarlar.battery_color)
+        dialog.btn_batt_color.setFixedWidth(84)
         dialog.btn_batt_color.clicked.connect(lambda: dialog._pick_color(dialog.btn_batt_color))
 
         dialog.cmb_batt_font = QtWidgets.QFontComboBox()
+        dialog.cmb_batt_font.setFixedWidth(90)
         dialog.cmb_batt_font.setCurrentFont(QtGui.QFont(ayarlar.battery_font_family))
         dialog.cmb_batt_font.currentFontChanged.connect(dialog._apply_batt_preview)
 
@@ -186,7 +209,9 @@ class AyarFormlari:
         f.addRow("Renk", dialog.btn_batt_color)
         f.addRow("Font", dialog.cmb_batt_font)
         f.addRow(dialog.chk_batt_bold)
-        f.addRow(self._birim_olcek_grubu("battery", "Pil"))
+        battery_scale_group = self._birim_olcek_grubu("battery", "Pil")
+        battery_scale_group.setMaximumWidth(180)
+        f.addRow(battery_scale_group)
         
         dialog._add_help_link(f)
         return w
@@ -196,12 +221,14 @@ class AyarFormlari:
         ayarlar = self.ayarlar
         w = QtWidgets.QWidget()
         f = QtWidgets.QFormLayout(w)
+        f.setFieldGrowthPolicy(QtWidgets.QFormLayout.FieldGrowthPolicy.FieldsStayAtSizeHint)
 
         dialog.chk_time_visible = QtWidgets.QCheckBox("Saati Gizle")
         dialog.chk_time_visible.setChecked(not ayarlar.time_visible)
         dialog.chk_time_visible.toggled.connect(lambda v: dialog._apply_time_preview(visible=not v))
 
         dialog.cmb_time_format = QtWidgets.QComboBox()
+        dialog.cmb_time_format.setFixedWidth(120)
         dialog.cmb_time_format.addItem("24 saat", "24h")
         dialog.cmb_time_format.addItem("12 saat ÖS/ÖÖ", "12h_ampm")
         dialog.cmb_time_format.addItem("12 saat sade", "12h_plain")
@@ -248,7 +275,8 @@ class AyarFormlari:
         top_row.setContentsMargins(0, 0, 0, 0)
         top_row.setSpacing(10)
         top_row.addWidget(dialog.chk_time_visible)
-        top_row.addWidget(dialog.cmb_time_format)
+        top_row.addStretch()
+        f.addRow("Saat formatı", dialog.cmb_time_format)
         f.addRow("Font", dialog.cmb_time_font)
         f.addRow(dialog.chk_time_bold)
         
@@ -270,6 +298,7 @@ class AyarFormlari:
         ayarlar = self.ayarlar
         w = QtWidgets.QWidget()
         f = QtWidgets.QFormLayout(w)
+        f.setFieldGrowthPolicy(QtWidgets.QFormLayout.FieldGrowthPolicy.FieldsStayAtSizeHint)
 
         dialog.chk_date_visible = QtWidgets.QCheckBox("Tarih görünür")
         dialog.chk_date_visible.setChecked(ayarlar.date_visible)
@@ -283,10 +312,12 @@ class AyarFormlari:
             ("Sayısal", "%d.%m.%Y"),
         ]
         dialog.cmb_date_preset = QtWidgets.QComboBox()
+        dialog.cmb_date_preset.setFixedWidth(170)
         for label, fmt in date_presets:
             dialog.cmb_date_preset.addItem(label, fmt)
 
         dialog.txt_date_format = QtWidgets.QLineEdit(ayarlar.date_format)
+        dialog.txt_date_format.setFixedWidth(170)
 
         preset_index = dialog.cmb_date_preset.findData(ayarlar.date_format)
         dialog.cmb_date_preset.setCurrentIndex(preset_index if preset_index >= 0 else 0)
@@ -311,10 +342,12 @@ class AyarFormlari:
         dialog.txt_date_format.textChanged.connect(date_format_changed)
 
         dialog.cmb_date_font = QtWidgets.QFontComboBox()
+        dialog.cmb_date_font.setFixedWidth(144)
         dialog.cmb_date_font.setCurrentFont(QtGui.QFont(ayarlar.date_font_family))
         dialog.cmb_date_font.currentFontChanged.connect(lambda f: dialog._apply_date_preview(font=f.family()))
 
         dialog.btn_date_color = QtWidgets.QPushButton(ayarlar.date_color)
+        dialog.btn_date_color.setFixedWidth(84)
         dialog.btn_date_color.clicked.connect(lambda: dialog._pick_color(dialog.btn_date_color))
 
         dialog.chk_date_bold = QtWidgets.QCheckBox("Kalın")
@@ -332,7 +365,9 @@ class AyarFormlari:
         f.addRow("Font", dialog.cmb_date_font)
         f.addRow("Renk", dialog.btn_date_color)
         f.addRow(dialog.chk_date_bold)
-        f.addRow(self._birim_olcek_grubu("date", "Tarih"))
+        date_scale_group = self._birim_olcek_grubu("date", "Tarih")
+        date_scale_group.setMaximumWidth(180)
+        f.addRow(date_scale_group)
         
         dialog._add_help_link(f)
         return w

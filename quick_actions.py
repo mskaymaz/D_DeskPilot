@@ -5,8 +5,6 @@ from utils import resource_path
 
 
 class QuickActionsPanel(QtWidgets.QFrame):
-    BASE_SIZE = 46
-
     def __init__(self, owner, controller):
         super().__init__(owner)
         self.owner = owner
@@ -24,6 +22,7 @@ class QuickActionsPanel(QtWidgets.QFrame):
         self._layout = QtWidgets.QHBoxLayout(self)
         self._layout.setContentsMargins(0, 0, 0, 0)
         self._layout.setSpacing(self._icon_spacing())
+        self._layout.setSizeConstraint(QtWidgets.QLayout.SizeConstraint.SetFixedSize)
 
         self.btn_settings = QtWidgets.QPushButton("\u2699")
         self.btn_alarm = QtWidgets.QPushButton()
@@ -38,6 +37,7 @@ class QuickActionsPanel(QtWidgets.QFrame):
 
         for btn in (self.btn_settings, self.btn_alarm, self.btn_reminders, self.btn_todos):
             btn.setCursor(QtCore.Qt.CursorShape.PointingHandCursor)
+            btn.setSizePolicy(QtWidgets.QSizePolicy.Policy.Fixed, QtWidgets.QSizePolicy.Policy.Fixed)
             self._layout.addWidget(btn)
 
         self.btn_settings.clicked.connect(self._settings_clicked)
@@ -50,12 +50,13 @@ class QuickActionsPanel(QtWidgets.QFrame):
         anchor_pos = self._last_anchor_pos or self.mapToGlobal(self.rect().center())
         self.controller.show_settings_at(anchor_pos, hedef_tur=getattr(self.owner, "tur", None))
 
-    def _scale(self):
-        return float(getattr(getattr(self.controller, "settings", None), "global_scale", 1.0))
-
     def _icon_spacing(self):
         settings = getattr(self.controller, "settings", None) or getattr(self.owner, "ayarlar", None)
         return max(0, int(getattr(settings, "quick_actions_icon_spacing", 2) or 0))
+
+    def _icon_size(self):
+        settings = getattr(self.controller, "settings", None) or getattr(self.owner, "ayarlar", None)
+        return max(24, min(80, int(getattr(settings, "quick_actions_icon_size", 38) or 38)))
 
     def _apply_window_flags(self):
         flags = QtCore.Qt.WindowType.Tool | QtCore.Qt.WindowType.FramelessWindowHint
@@ -66,20 +67,19 @@ class QuickActionsPanel(QtWidgets.QFrame):
 
     def _apply_size(self):
         self._layout.setSpacing(self._icon_spacing())
-        size = max(24, min(72, int(self.BASE_SIZE * self._scale() * 0.935)))
-        width = 38
+        size = self._icon_size()
         for btn in (self.btn_settings, self.btn_alarm, self.btn_reminders, self.btn_todos):
-            btn.setFixedSize(width, size)
-        self.btn_settings.setStyleSheet(f"font-size:{int(size * 0.62)}px;")
+            btn.setFixedSize(size, size)
         alarm_icon_size = int(size * 0.84 * 0.76 * 1.32)
         self.btn_alarm.setIconSize(QtCore.QSize(alarm_icon_size, alarm_icon_size))
-        self.btn_reminders.setStyleSheet(f"font-size:{int(size * 0.62 * 0.90)}px;")
         self.btn_todos.setIconSize(QtCore.QSize(int(size * 0.84 * 0.76), int(size * 0.84 * 0.76)))
         self.setStyleSheet(
             "QFrame#quickActions{background:transparent;}"
-            f"QPushButton{{background:transparent;border:none;color:white;font-size:{max(14, int(size * 0.62))}px;}}"
+            f"QPushButton{{background:transparent;border:none;color:white;font-size:{max(14, int(size * 0.62))}px;padding:0px;margin:0px;}}"
             "QPushButton:hover{background:rgba(255,255,255,35);border-radius:8px;}"
         )
+        self.btn_settings.setStyleSheet(f"font-size:{int(size * 0.62)}px;padding:0px;margin:0px;")
+        self.btn_reminders.setStyleSheet(f"font-size:{int(size * 0.62 * 0.99)}px;padding:0px;margin:0px;")
         self.adjustSize()
 
     def _rendered_rect(self, widget):

@@ -116,7 +116,10 @@ class WindowSettingsMixin:
                 self.settings.spacing_battery_date_hidden
                 + getattr(self.settings, "spacing_battery_date_hidden_offset", 0)
             )
-        return int(value * scale)
+        if pair == {"battery", "time"}:
+            return 3
+        min_gap = 8
+        return max(min_gap, int(value * scale))
 
     def _rebuild_module_layout(self, scale):
         while self.main_layout.count():
@@ -125,7 +128,7 @@ class WindowSettingsMixin:
         modules = {
             "battery": (self.battery_row, self.settings.battery_visible),
             "time": (self.time_label, self.settings.time_visible),
-            "date": (self.date_row, self.settings.date_visible),
+            "date": (self.date_container, self.settings.date_visible),
         }
         visible = [
             (key, modules[key][0])
@@ -137,7 +140,7 @@ class WindowSettingsMixin:
         for key, widget in visible:
             if previous is not None:
                 self.main_layout.addSpacing(self._module_gap(previous, key, scale))
-            self.main_layout.addWidget(widget)
+            self.main_layout.addWidget(widget, 0, QtCore.Qt.AlignmentFlag.AlignHCenter)
             previous = key
 
     def _lock_label_height(self, label, _size):

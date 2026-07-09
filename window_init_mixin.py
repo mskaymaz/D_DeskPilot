@@ -44,8 +44,8 @@ class WindowInitMixin:
         self.date_week_separator_label.setVisible(False)
         self.date_week_number_label.setVisible(False)
         self.date_week_text_label.setVisible(False)
-        self.battery_label = QtWidgets.QLabel(alignment=QtCore.Qt.AlignmentFlag.AlignCenter)
-        self.battery_icon_label = QtWidgets.QLabel(alignment=QtCore.Qt.AlignmentFlag.AlignCenter)
+        self.battery_label = AltHizaliEtiket(alignment=QtCore.Qt.AlignmentFlag.AlignCenter)
+        self.battery_icon_label = AltHizaliEtiket(alignment=QtCore.Qt.AlignmentFlag.AlignCenter)
         self.battery_icon_label.setVisible(False)
 
         self.date_row = QtWidgets.QWidget()
@@ -62,8 +62,8 @@ class WindowInitMixin:
         self.date_container_layout = QtWidgets.QVBoxLayout(self.date_container)
         self.date_container_layout.setContentsMargins(0, 0, 0, 0)
         self.date_container_layout.setSpacing(0)
-        self.date_container_layout.addWidget(self.date_row)
-        self.date_container_layout.addWidget(self.hicri_date_label)
+        self.date_container_layout.addWidget(self.date_row, 0, QtCore.Qt.AlignmentFlag.AlignHCenter)
+        self.date_container_layout.addWidget(self.hicri_date_label, 0, QtCore.Qt.AlignmentFlag.AlignHCenter)
 
         self.battery_row = QtWidgets.QWidget()
         self.battery_row_layout = QtWidgets.QHBoxLayout(self.battery_row)
