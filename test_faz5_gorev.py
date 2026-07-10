@@ -1,6 +1,37 @@
+import os
 from datetime import datetime, timedelta
+
+import pytest
+
 from gorev_modeli import GorevModeli, GorevOnceligi
 from gorev_servisi import GorevServisi
+
+
+def test_gorev_karti_temel_regresyon():
+    """GorevKarti temel metin ve aciklama davranisini korur."""
+    os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
+    try:
+        from PySide6 import QtWidgets
+        from kart import GorevKarti
+    except ImportError:
+        pytest.skip("PySide6 yok")
+
+    app = QtWidgets.QApplication.instance() or QtWidgets.QApplication([])
+    gorev = GorevModeli(
+        baslik="Kart regresyon",
+        aciklama="Uzun aciklama " * 8,
+        oncelik=GorevOnceligi.YUKSEK,
+    )
+
+    kart = GorevKarti(gorev)
+
+    assert app is not None
+    assert kart.lbl_baslik.text() == "Kart regresyon"
+    assert kart.lbl_aciklama.text().endswith("...")
+    assert not kart.btn_aciklama.isHidden()
+    assert kart.tarih_panel.isHidden()
+
+    kart.deleteLater()
 
 def test_gorev_modeli_olusturma():
     """Görev modelinin temel alanlarını doğrular."""
