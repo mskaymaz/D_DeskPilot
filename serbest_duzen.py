@@ -76,9 +76,9 @@ class SerbestDuzenKarishimi:
         window.move(x, y)
 
     def _capture_free_positions_from_grouped(self):
-        time_global = self.mapToGlobal(self.time_label.pos())
-        date_global = self.mapToGlobal(self.date_row.pos())
-        battery_global = self.mapToGlobal(self.battery_row.pos())
+        time_global = self.time_label.mapToGlobal(QtCore.QPoint(0, 0))
+        date_global = self.date_container.mapToGlobal(QtCore.QPoint(0, 0))
+        battery_global = self.battery_row.mapToGlobal(QtCore.QPoint(0, 0))
 
         self.settings.free_time_x = time_global.x()
         self.settings.free_time_y = time_global.y()
@@ -96,6 +96,21 @@ class SerbestDuzenKarishimi:
 
         self.settings.free_layout_has_positions = True
         save_settings(self.settings)
+
+    def _place_free_windows_from_grouped(self):
+        positions = {
+            "time": self.time_label.mapToGlobal(QtCore.QPoint(0, 0)),
+            "date": self.date_container.mapToGlobal(QtCore.QPoint(0, 0)),
+            "battery": self.battery_row.mapToGlobal(QtCore.QPoint(0, 0)),
+        }
+        for kind, window in (
+            ("time", self.free_time_window),
+            ("date", self.free_date_window),
+            ("battery", self.free_battery_window),
+        ):
+            if window:
+                point = positions[kind]
+                window.move(point.x(), point.y())
 
     def _capture_current_free_positions(self):
         hedefler = (
@@ -139,23 +154,26 @@ class SerbestDuzenKarishimi:
             if pencere:
                 pencere.hide()
 
-    def _move_grouped_to_time_position(self):
-        if not self.settings.free_layout_has_positions:
+    def restore_grouped_mode(self):
+        if self.settings.settings_locked:
             return
-
-        target_x = self.settings.free_time_x - self.time_label.pos().x()
-        target_y = self.settings.free_time_y - self.time_label.pos().y()
-        target_x, target_y = self._clamp_window_position(
+        self.settings.group_locked = True
+        self.settings.free_layout_enabled = False
+        self._group_editing = False
+        self._free_layout_active = False
+        self._hide_free_windows()
+        self.apply_settings()
+        self.show()
+        x, y = self._clamp_window_position(
             self,
-            target_x,
-            target_y,
+            self.settings.pos_x,
+            self.settings.pos_y,
             allow_taskbar=False,
-            hedef_ekran_adi=self.settings.serbest_saat_ekran_adi,
+            hedef_ekran_adi=self.settings.grup_ekran_adi,
         )
-        self.move(target_x, target_y)
-        self.settings.pos_x = target_x
-        self.settings.pos_y = target_y
-        self.settings.grup_ekran_adi = self.settings.serbest_saat_ekran_adi
+        self.move(x, y)
+        self.settings.pos_x = x
+        self.settings.pos_y = y
         save_settings(self.settings)
 
     def tum_modulleri_topla(self):
@@ -163,13 +181,13 @@ class SerbestDuzenKarishimi:
         ekran = app.screenAt(QtGui.QCursor.pos()) or app.primaryScreen()
         alan = ekran.availableGeometry()
         log_kaydet(f"Tüm modüller '{ekran.name()}' ekranına toplanıyor.")
-        self.settings.module_order = list(DEFAULT_MODULE_ORDER)
-
-        if self.settings.free_layout_enabled:
-            self._capture_current_free_positions()
+        self.settings.group_locked = True
         self.settings.free_layout_enabled = False
+        self._group_editing = False
         self._free_layout_active = False
         self._hide_free_windows()
+        self.settings.module_order = list(DEFAULT_MODULE_ORDER)
+
         self.apply_settings()
         self.show()
         self.adjustSize()
@@ -183,7 +201,7 @@ class SerbestDuzenKarishimi:
         save_settings(self.settings)
 
     def _apply_free_layout_mode(self):
-        if self.settings.free_layout_enabled:
+        if self.settings.free_layout_enabled or self._group_editing:
             if not self._free_layout_active:
                 self._ensure_free_windows()
                 if not self.settings.free_layout_has_positions:
@@ -197,9 +215,75 @@ class SerbestDuzenKarishimi:
             self._free_layout_active = False
             self._hide_free_windows()
             self.show()
-            self._move_grouped_to_time_position()
         else:
             self._hide_free_windows()
+
+    def enter_group_edit_mode(self):
+        if self.settings.settings_locked:
+            return
+        self.settings.group_locked = False
+        self.settings.free_layout_enabled = False
+        self._group_editing = True
+        self._ensure_free_windows()
+        self._free_layout_active = True
+        self.apply_settings()
+        self._place_free_windows_from_grouped()
+        save_settings(self.settings)
+
+    def enter_free_modules_mode(self):
+        if self.settings.settings_locked:
+            return
+        self.settings.group_locked = False
+        self.settings.free_layout_enabled = True
+        self._group_editing = False
+        self._ensure_free_windows()
+        if not self.settings.free_layout_has_positions:
+            self._capture_free_positions_from_grouped()
+        self._free_layout_active = True
+        self.apply_settings()
+        save_settings(self.settings)
+
+    def lock_group_layout(self):
+        if self.settings.settings_locked:
+            return
+        if self.settings.free_layout_enabled:
+            self._capture_current_free_positions()
+        windows = {
+            "time": self.free_time_window,
+            "date": self.free_date_window,
+            "battery": self.free_battery_window,
+        }
+        positions = {
+            key: (window.x(), window.y())
+            for key, window in windows.items()
+            if window is not None
+        }
+        if not positions:
+            return
+
+        origin_x = min(x for x, _ in positions.values())
+        origin_y = min(y for _, y in positions.values())
+        self.settings.group_layout = {
+            key: {"x": x - origin_x, "y": y - origin_y}
+            for key, (x, y) in positions.items()
+        }
+        self.settings.pos_x = origin_x
+        self.settings.pos_y = origin_y
+        ekran = QtGui.QGuiApplication.screenAt(QtCore.QPoint(origin_x, origin_y))
+        if ekran:
+            self.settings.grup_ekran_adi = ekran.name()
+
+        self.settings.group_locked = True
+        self.settings.free_layout_enabled = False
+        self._group_editing = False
+        self._free_layout_active = False
+        self._hide_free_windows()
+        self.apply_settings()
+        self.show()
+        self.move(origin_x, origin_y)
+        self.settings.pos_x = origin_x
+        self.settings.pos_y = origin_y
+        save_settings(self.settings)
 
     def update_free_position(self, kind, x, y, ekran_adi=""):
         if self.settings.settings_locked:
@@ -218,4 +302,24 @@ class SerbestDuzenKarishimi:
         setattr(self.settings, alanlar[1], y)
         setattr(self.settings, alanlar[2], ekran_adi)
         self.settings.free_layout_has_positions = True
+        save_settings(self.settings)
+
+    def move_free_group(self, source, target_x, target_y):
+        if self.settings.settings_locked:
+            return
+
+        delta_x = target_x - source.x()
+        delta_y = target_y - source.y()
+        for window in (
+            self.free_time_window,
+            self.free_date_window,
+            self.free_battery_window,
+        ):
+            if window and window.isVisible():
+                window.move(window.x() + delta_x, window.y() + delta_y)
+
+    def update_free_group_position(self):
+        if self.settings.settings_locked:
+            return
+        self._capture_current_free_positions()
         save_settings(self.settings)

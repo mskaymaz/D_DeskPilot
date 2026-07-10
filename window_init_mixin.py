@@ -20,6 +20,10 @@ class WindowInitMixin:
         self.free_date_window = None
         self.free_battery_window = None
         self._free_layout_active = False
+        self._group_editing = (
+            not self.settings.group_locked and not self.settings.free_layout_enabled
+        )
+        self._group_drag = None
         self._keep_top_timer = None
 
     def _init_logging(self):
@@ -76,6 +80,9 @@ class WindowInitMixin:
         self.main_layout = QtWidgets.QVBoxLayout(self)
         self.main_layout.setContentsMargins(0, 0, 0, 0)
         self.main_layout.setSpacing(0)
+        self.group_canvas = QtWidgets.QWidget(self)
+        self.group_canvas.setMouseTracking(True)
+        self.group_canvas.setAttribute(QtCore.Qt.WidgetAttribute.WA_TransparentForMouseEvents)
 
         self.time_label = QtWidgets.QWidget()
         self.time_label_layout = QtWidgets.QHBoxLayout(self.time_label)
@@ -90,13 +97,13 @@ class WindowInitMixin:
         self.time_label_layout.addWidget(self.time_ampm_label, 0, QtCore.Qt.AlignmentFlag.AlignBottom)
         self.setMouseTracking(True)
 
-        self.main_layout.addWidget(self.battery_row)
-        self.main_layout.addWidget(self.time_label)
-        self.main_layout.addWidget(self.date_container)
+        self.main_layout.addWidget(self.group_canvas)
 
         self.quick_actions = QuickActionsPanel(self, self)
 
         for lbl in (
+            self.group_canvas,
+            self.battery_row,
             self.time_label,
             self.time_main_label,
             self.time_seconds_label,
@@ -107,7 +114,8 @@ class WindowInitMixin:
             self.date_week_text_label,
             self.hicri_date_label,
             self.battery_label,
-            self.battery_icon_label
+            self.battery_icon_label,
+            self.date_container,
         ):
             lbl.setAttribute(QtCore.Qt.WidgetAttribute.WA_TransparentForMouseEvents)
             lbl.setContentsMargins(0, 0, 0, 0)

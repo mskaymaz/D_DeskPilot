@@ -168,7 +168,40 @@ class QuickActionsPanel(QtWidgets.QFrame):
         if obj in self._hit_overlays and event.type() == QtCore.QEvent.Type.MouseMove:
             if hasattr(self.owner, "_quick_hover"):
                 self.owner._quick_hover(obj.mapTo(self.owner, event.position().toPoint()))
+            if getattr(self.owner, "drag_pos", None) or getattr(self.owner, "surukleme_konumu", None) or getattr(self.owner, "_group_drag", None):
+                self.owner.mouseMoveEvent(event)
             return False
+        if obj in self._hit_overlays:
+            if event.type() not in (
+                QtCore.QEvent.Type.MouseButtonPress,
+                QtCore.QEvent.Type.MouseButtonRelease,
+            ):
+                return super().eventFilter(obj, event)
+            global_pos = event.globalPosition().toPoint()
+            if event.type() == QtCore.QEvent.Type.MouseButtonPress:
+                if event.button() == QtCore.Qt.MouseButton.RightButton:
+                    local_pos = self.owner.mapFromGlobal(global_pos)
+                    if hasattr(self.owner, "_menuyu_goster"):
+                        self.owner._menuyu_goster(local_pos)
+                    elif hasattr(self.owner, "show_menu"):
+                        self.owner.show_menu(local_pos)
+                    return True
+                if event.button() == QtCore.Qt.MouseButton.LeftButton:
+                    if hasattr(self.owner, "surukleme_konumu"):
+                        self.owner.surukleme_konumu = global_pos - self.owner.frameGeometry().topLeft()
+                    elif getattr(self.owner, "_group_editing", False):
+                        local_pos = obj.mapTo(self.owner, event.position().toPoint())
+                        widget = self.owner._group_widget_at(local_pos)
+                        if widget is not None:
+                            canvas_pos = self.owner.group_canvas.mapFrom(self.owner, local_pos)
+                            self.owner._group_drag = (widget, canvas_pos - widget.pos())
+                    else:
+                        self.owner.drag_pos = global_pos - self.owner.frameGeometry().topLeft()
+                    return True
+            elif event.type() == QtCore.QEvent.Type.MouseButtonRelease:
+                if event.button() == QtCore.Qt.MouseButton.LeftButton:
+                    self.owner.mouseReleaseEvent(event)
+                    return True
         return super().eventFilter(obj, event)
 
     def place_for_widget(self, widget):

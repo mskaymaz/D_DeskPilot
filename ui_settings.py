@@ -326,6 +326,9 @@ class SettingsDialog(QtWidgets.QDialog):
         for field_name in PanelSettings.__dataclass_fields__:
             setattr(self.settings, field_name, getattr(self._original_settings, field_name))
         if self.parent():
+            self.parent()._group_editing = (
+                not self.settings.group_locked and not self.settings.free_layout_enabled
+            )
             self.parent().apply_settings()
         self._set_dirty(False)
 
@@ -335,7 +338,8 @@ class SettingsDialog(QtWidgets.QDialog):
         fields_by_tab = {
             "Genel": (
                 "language", "seffaflik", "her_zaman_ustte", "acilista_calistir", "sessiz_mod",
-                "free_layout_enabled", "coklu_monitor_modu", "alarm_visible", "reminder_visible",
+                "free_layout_enabled", "group_locked", "coklu_monitor_modu",
+                "alarm_visible", "reminder_visible",
                 "todo_visible",
                 "global_scale", "quick_actions_icon_size",
                 "quick_actions_icon_spacing", "module_order",
@@ -378,6 +382,7 @@ class SettingsDialog(QtWidgets.QDialog):
             self._set_checked_silent(self.chk_autostart, s.acilista_calistir)
             self._set_checked_silent(self.chk_silent, s.sessiz_mod)
             self._set_checked_silent(self.chk_free_layout, s.free_layout_enabled)
+            self._set_checked_silent(self.chk_group_locked, s.group_locked)
             self._set_checked_silent(self.chk_multi_mon, s.coklu_monitor_modu)
             self._set_checked_silent(self.chk_alarm_visible, s.alarm_visible)
             self._set_checked_silent(self.chk_reminder_visible, s.reminder_visible)
@@ -464,12 +469,14 @@ class SettingsDialog(QtWidgets.QDialog):
         tab_name = self.tabs.tabText(idx)
         if tab_name == "Genel":
             text = (
-                "Özet: Genel görünüm, saydamlık ve serbest dağıt bu sekmeden yönetilir.\n"
+                "Özet: Genel görünüm, saydamlık ve grup yerleşimi bu sekmeden yönetilir.\n"
                 "\n"
                 "Genel ayarlar (sırasıyla):\n"
                 "- Her zaman üstte: Pencerenin diğer uygulamaların üstünde kalmasını sağlar.\n"
                 "- Açılışta çalıştır: Uygulama Windows açılışında otomatik başlar.\n"
-                "- Serbest dağıt: Pil/Saat/Tarih satırları ayrı pencereler olur, her biri bağımsız taşınır.\n"
+                "- Grup kilitli: Modüller kaydedilmiş grup konumlarını korur ve birlikte taşınır.\n"
+                "- Modüller Serbest: Modüller kayıtlı bağımsız konumlarında ayrı ayrı taşınır.\n"
+                "- Grup kilidi kapalıyken: Modül üzerine gelerek modülü yeniden konumlandırabilirsiniz.\n"
                 "- Şeffaflık (%): Tüm satırların saydamlık seviyesini ayarlar.\n"
                 "- Hover ikon boyutu ve aralığı: Hızlı işlem simgelerinin görünümünü ayarlar."
             )
@@ -602,9 +609,27 @@ class SettingsDialog(QtWidgets.QDialog):
         if self.parent(): self.parent().apply_settings()
 
     def _apply_free_layout_preview(self, value):
-        self.settings.free_layout_enabled = value
+        if self.parent():
+            if value:
+                self.parent().enter_free_modules_mode()
+            else:
+                self.parent().restore_grouped_mode()
+            self._set_checked_silent(self.chk_group_locked, self.settings.group_locked)
+        else:
+            self.settings.free_layout_enabled = bool(value)
         self._set_dirty(True)
-        if self.parent(): self.parent().apply_settings()
+
+    def _apply_group_lock_preview(self, value):
+        if self.parent():
+            if value:
+                self.parent().lock_group_layout()
+            else:
+                self.parent().enter_group_edit_mode()
+        else:
+            self.settings.group_locked = bool(value)
+        if self.parent():
+            self._set_checked_silent(self.chk_free_layout, self.settings.free_layout_enabled)
+        self._set_dirty(True)
 
     def _apply_opacity_preview(self, value):
         self.settings.seffaflik = value / 100

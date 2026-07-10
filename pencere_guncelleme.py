@@ -51,6 +51,10 @@ class PencereGuncellemeKarishimi:
             if not self.free_date_window.surukleme_konumu:
                 self.free_date_window.icerik.adjustSize()
                 self.free_date_window.adjustSize()
+        if hasattr(self, "_rebuild_module_layout") and not getattr(self, "_group_drag", None):
+            self._rebuild_module_layout(self.settings.global_scale)
+            self.main_layout.activate()
+            self.adjustSize()
     def _saat_label_genisligini_sabitle(self):
         genislik, _ = self._saat_olculerini_hesapla(20)
         self.time_label.setFixedWidth(genislik)

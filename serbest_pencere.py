@@ -133,7 +133,11 @@ class SerbestSatirPenceresi(QtWidgets.QWidget):
             else:
                 self.quick_actions.delayed_hide()
         if self.surukleme_konumu:
-            self.move(e.globalPosition().toPoint() - self.surukleme_konumu)
+            hedef = e.globalPosition().toPoint() - self.surukleme_konumu
+            if self.ayarlar.group_locked:
+                self.kontrolcu.move_free_group(self, hedef.x(), hedef.y())
+            else:
+                self.move(hedef)
             self._ustte_tutma_guncelle()
 
     def mouseReleaseEvent(self, e):
@@ -142,9 +146,12 @@ class SerbestSatirPenceresi(QtWidgets.QWidget):
             return
         if self.surukleme_konumu:
             self.surukleme_konumu = None
-            ekran = QtGui.QGuiApplication.screenAt(self.pos())
-            ekran_adi = ekran.name() if ekran else ""
-            self.kontrolcu.update_free_position(self.tur, self.x(), self.y(), ekran_adi)
+            if self.ayarlar.group_locked:
+                self.kontrolcu.update_free_group_position()
+            elif not getattr(self.kontrolcu, "_group_editing", False):
+                ekran = QtGui.QGuiApplication.screenAt(self.pos())
+                ekran_adi = ekran.name() if ekran else ""
+                self.kontrolcu.update_free_position(self.tur, self.x(), self.y(), ekran_adi)
             self._ustte_tutma_guncelle()
 
     def _ustte_tutma_ayari(self):

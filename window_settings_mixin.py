@@ -88,6 +88,11 @@ class WindowSettingsMixin:
 
         self.layout().invalidate()
         self.main_layout.activate()
+        self._rebuild_module_layout(scale)
+        self.main_layout.activate()
+        self.adjustSize()
+        self._rebuild_module_layout(scale)
+        self.main_layout.activate()
         self.adjustSize()
         self.updateGeometry()
         self.setWindowOpacity(self.settings.seffaflik)
@@ -124,9 +129,6 @@ class WindowSettingsMixin:
         return max(min_gap, int(value * scale))
 
     def _rebuild_module_layout(self, scale):
-        while self.main_layout.count():
-            self.main_layout.takeAt(0)
-
         modules = {
             "battery": (self.battery_row, self.settings.battery_visible),
             "time": (self.time_label, self.settings.time_visible),
@@ -138,12 +140,41 @@ class WindowSettingsMixin:
             if modules[key][1]
         ]
 
-        previous = None
+        stored = getattr(self.settings, "group_layout", {})
+        valid = isinstance(stored, dict) and all(
+            isinstance(stored.get(key), dict)
+            and isinstance(stored[key].get("x"), int)
+            and isinstance(stored[key].get("y"), int)
+            for key, _ in visible
+        )
+        if not valid:
+            stored = {}
+            previous = None
+            y = 0
+            for key, widget in visible:
+                widget.adjustSize()
+                if previous is not None:
+                    y += self._module_gap(previous, key, scale)
+                stored[key] = {"x": 0, "y": y}
+                y += widget.height()
+                previous = key
+            self.settings.group_layout = stored
+
+        for key, (widget, is_visible) in modules.items():
+            widget.setParent(self.group_canvas)
+            widget.setVisible(is_visible)
+            if is_visible and key in stored:
+                widget.adjustSize()
+                widget.move(stored[key]["x"], stored[key]["y"])
+
+        right = 1
+        bottom = 1
         for key, widget in visible:
-            if previous is not None:
-                self.main_layout.addSpacing(self._module_gap(previous, key, scale))
-            self.main_layout.addWidget(widget, 0, QtCore.Qt.AlignmentFlag.AlignHCenter)
-            previous = key
+            position = stored[key]
+            right = max(right, position["x"] + widget.width())
+            bottom = max(bottom, position["y"] + widget.height())
+        self.group_canvas.setFixedSize(right, bottom)
+        self.group_canvas.adjustSize()
 
     def _lock_label_height(self, label, _size):
         fm = QtGui.QFontMetrics(label.font())

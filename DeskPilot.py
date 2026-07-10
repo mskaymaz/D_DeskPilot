@@ -12,6 +12,7 @@ from core_settings import load_settings
 from core_window import DraggableTransparentWindow, move_window_safely
 from sistem_tepsisi import SistemTepsisi
 from font_yonetimi import load_app_fonts, default_time_font_family
+from startup_splash import show_startup_splash
 
 _TEK_ORNEK_MUTEX = None
 
@@ -48,6 +49,7 @@ def main():
     load_app_fonts()
     locale.setlocale(locale.LC_TIME, "")
     app.setWindowIcon(QtGui.QIcon(resource_path(ICON_FILE)))
+    show_startup_splash(app)
 
     settings = load_settings()
     if core_settings.AYAR_KURTARMA_MESAJI:
@@ -61,7 +63,7 @@ def main():
     win.tepsi_ikonu = tray
     tray.show()
     
-    if not settings.free_layout_enabled:
+    if settings.group_locked:
         win.show()
         move_window_safely(win, settings)
 

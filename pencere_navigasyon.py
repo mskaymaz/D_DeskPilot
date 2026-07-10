@@ -48,6 +48,19 @@ class PencereNavigasyonKarishimi:
         act_silent.setCheckable(True)
         act_silent.setChecked(getattr(self.settings, "sessiz_mod", False))
 
+        menu.addSeparator()
+        act_free_layout = menu.addAction("Modüller Serbest")
+        act_free_layout.setCheckable(True)
+        act_free_layout.setChecked(self.settings.free_layout_enabled)
+        act_free_layout.setEnabled(not self.settings.settings_locked)
+
+        act_group_mode = menu.addAction(
+            "Grubu Ayarla" if self.settings.group_locked else "Grubu Kilitle"
+        )
+        act_group_mode.setEnabled(
+            not self.settings.settings_locked and not self.settings.free_layout_enabled
+        )
+
         if hedef_tur is None:
             fare_lokal = self.mapFromGlobal(global_pos)
             if self.time_label.isVisible() and self.time_label.geometry().contains(fare_lokal):
@@ -109,6 +122,16 @@ class PencereNavigasyonKarishimi:
                 self.settings_window.chk_silent.setChecked(self.settings.sessiz_mod)
                 self.settings_window.chk_silent.blockSignals(False)
             save_settings(self.settings)
+        elif action == act_free_layout:
+            if action.isChecked():
+                self.enter_free_modules_mode()
+            else:
+                self.restore_grouped_mode()
+        elif action == act_group_mode:
+            if self.settings.group_locked:
+                self.enter_group_edit_mode()
+            else:
+                self.lock_group_layout()
         elif action == act_collect:
             self.tum_modulleri_topla()
         elif action == act_exit:

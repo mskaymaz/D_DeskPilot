@@ -63,9 +63,13 @@ class AyarFormlari:
         dialog.chk_silent.setChecked(ayarlar.sessiz_mod)
         dialog.chk_silent.toggled.connect(lambda _: dialog._set_dirty(True))
 
-        dialog.chk_free_layout = QtWidgets.QCheckBox("Serbest dağıt")
+        dialog.chk_free_layout = QtWidgets.QCheckBox("Modüller Serbest")
         dialog.chk_free_layout.setChecked(ayarlar.free_layout_enabled)
         dialog.chk_free_layout.toggled.connect(dialog._apply_free_layout_preview)
+
+        dialog.chk_group_locked = QtWidgets.QCheckBox("Grup kilitli")
+        dialog.chk_group_locked.setChecked(ayarlar.group_locked)
+        dialog.chk_group_locked.toggled.connect(dialog._apply_group_lock_preview)
 
         dialog.chk_multi_mon = QtWidgets.QCheckBox("Çoklu Monitör Desteği")
         dialog.chk_multi_mon.setChecked(ayarlar.coklu_monitor_modu)
@@ -123,6 +127,7 @@ class AyarFormlari:
         checkbox_col.addWidget(dialog.chk_autostart)
         checkbox_col.addWidget(dialog.chk_silent)
         checkbox_col.addWidget(dialog.chk_free_layout)
+        checkbox_col.addWidget(dialog.chk_group_locked)
         checkbox_col.addWidget(dialog.chk_multi_mon)
         checkbox_row = QtWidgets.QHBoxLayout()
         checkbox_row.setContentsMargins(0, 0, 0, 0)

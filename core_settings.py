@@ -111,6 +111,8 @@ class PanelSettings:
     serbest_pil_ekran_adi: str = ""   # Task 7.1: Serbest pil ekran adı
 
     free_layout_enabled: bool = False
+    group_locked: bool = True
+    group_layout: dict = field(default_factory=dict)
     free_layout_has_positions: bool = False
     free_time_x: int = 0
     free_time_y: int = 0
@@ -229,6 +231,8 @@ def _validated_settings_data(data):
             clean[key] = value
 
     clean["module_order"] = normalize_module_order(clean.get("module_order"))
+    if clean.get("free_layout_enabled") and clean.get("group_locked"):
+        clean["free_layout_enabled"] = False
     return clean
 
 
