@@ -68,6 +68,10 @@ class QuickActionsPanel(QtWidgets.QFrame):
     def _apply_size(self):
         self._layout.setSpacing(self._icon_spacing())
         size = self._icon_size()
+        settings = getattr(self.controller, "settings", None) or getattr(self.owner, "ayarlar", None)
+        self.btn_alarm.setVisible(bool(getattr(settings, "alarm_visible", True)))
+        self.btn_reminders.setVisible(bool(getattr(settings, "reminder_visible", True)))
+        self.btn_todos.setVisible(bool(getattr(settings, "todo_visible", True)))
         for btn in (self.btn_settings, self.btn_alarm, self.btn_reminders, self.btn_todos):
             btn.setFixedSize(size, size)
         alarm_icon_size = int(size * 0.84 * 0.76 * 1.32)

@@ -31,8 +31,10 @@ class PencereNavigasyonKarishimi:
             act_settings = menu.addAction("Ayarlar")
         act_settings.setIcon(QtGui.QIcon(resource_path("img/icons/settings_icon.svg")))
         menu.addSeparator()
-        act_alarm = menu.addAction("Alarm")
-        act_alarm.setIcon(QtGui.QIcon(resource_path("img/icons/alarm_icon.svg")))
+        act_alarm = None
+        if self.settings.alarm_visible:
+            act_alarm = menu.addAction("Alarm")
+            act_alarm.setIcon(QtGui.QIcon(resource_path("img/icons/alarm_icon.svg")))
         act_menu_todos = None
         if self.settings.todo_visible:
             act_menu_todos = menu.addAction("Todo")
@@ -77,14 +79,6 @@ class PencereNavigasyonKarishimi:
 
         act_collect = menu.addAction("⊞  Tüm yapıyı ortada topla")
 
-        act_reminders = None
-        if False and self.settings.reminder_visible:
-            act_reminders = menu.addAction("🔔  Hatırlatıcı Listesi")
-
-        act_todos = None
-        if False and self.settings.todo_visible:
-            act_todos = menu.addAction("☑  Görev Listesi")
-
         menu.addSeparator()
         act_exit = menu.addAction("✕  Çıkış")
         act_exit.setIcon(QtGui.QIcon(resource_path("img/icons/exit_icon.svg")))
@@ -102,7 +96,7 @@ class PencereNavigasyonKarishimi:
 
         if action == act_settings and not self.settings.settings_locked:
             self.show_settings_at(settings_anchor_pos or global_pos)
-        elif action == act_alarm:
+        elif act_alarm is not None and action == act_alarm:
             self.show_alarm_list()
         elif act_menu_todos is not None and action == act_menu_todos:
             self.show_todo_list()
@@ -117,10 +111,6 @@ class PencereNavigasyonKarishimi:
             save_settings(self.settings)
         elif action == act_collect:
             self.tum_modulleri_topla()
-        elif action == act_reminders:
-            self.show_reminder_list()
-        elif action == act_todos:
-            self.show_todo_list()
         elif action == act_exit:
             QtWidgets.QApplication.quit()
 
@@ -146,6 +136,8 @@ class PencereNavigasyonKarishimi:
         self.settings_window.raise_()
 
     def show_reminder_list(self):
+        if not getattr(self.settings, "reminder_visible", True):
+            return
         if hasattr(self, "list_window") and self.list_window.isVisible():
             self.list_window.raise_()
             self.list_window.activateWindow()
@@ -157,6 +149,8 @@ class PencereNavigasyonKarishimi:
         self.list_window.raise_()
 
     def show_alarm_list(self):
+        if not getattr(self.settings, "alarm_visible", True):
+            return
         if hasattr(self, "alarm_window") and self.alarm_window.isVisible():
             self.alarm_window.raise_()
             self.alarm_window.activateWindow()
@@ -168,6 +162,8 @@ class PencereNavigasyonKarishimi:
         self.alarm_window.raise_()
 
     def show_todo_list(self):
+        if not getattr(self.settings, "todo_visible", True):
+            return
         if hasattr(self, "todo_window") and self.todo_window.isVisible():
             self.todo_window.raise_()
             self.todo_window.activateWindow()

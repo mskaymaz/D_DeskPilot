@@ -74,12 +74,22 @@ class AyarFormlari:
         modul_grubu = QtWidgets.QGroupBox("Modül Görünürlüğü")
         modul_grubu.setMaximumWidth(245)
         modul_layout = QtWidgets.QVBoxLayout(modul_grubu)
+        dialog.chk_alarm_visible = QtWidgets.QCheckBox("Alarm Modülü Aktif")
+        dialog.chk_alarm_visible.setChecked(ayarlar.alarm_visible)
+        dialog.chk_alarm_visible.toggled.connect(
+            lambda value: dialog._apply_visibility_preview("alarm_visible", value)
+        )
         dialog.chk_reminder_visible = QtWidgets.QCheckBox("Hatırlatıcı Modülü Aktif")
         dialog.chk_reminder_visible.setChecked(ayarlar.reminder_visible)
-        dialog.chk_reminder_visible.toggled.connect(lambda _: dialog._set_dirty(True))
+        dialog.chk_reminder_visible.toggled.connect(
+            lambda value: dialog._apply_visibility_preview("reminder_visible", value)
+        )
         dialog.chk_todo_visible = QtWidgets.QCheckBox("Görev Modülü Aktif")
         dialog.chk_todo_visible.setChecked(ayarlar.todo_visible)
-        dialog.chk_todo_visible.toggled.connect(lambda _: dialog._set_dirty(True))
+        dialog.chk_todo_visible.toggled.connect(
+            lambda value: dialog._apply_visibility_preview("todo_visible", value)
+        )
+        modul_layout.addWidget(dialog.chk_alarm_visible)
         modul_layout.addWidget(dialog.chk_reminder_visible)
         modul_layout.addWidget(dialog.chk_todo_visible)
 
@@ -132,24 +142,6 @@ class AyarFormlari:
         scale_row.addWidget(dialog.spn_scale_value)
         f.addRow("Genel Ölçek", scale_row)
 
-        dialog.spn_space_bt = QtWidgets.QSpinBox()
-        dialog.spn_space_bt.setRange(-200, 200)
-        dialog.spn_space_bt.setFixedWidth(58)
-        dialog.spn_space_bt.setValue(getattr(ayarlar, "spacing_battery_time_offset", 0))
-        dialog.spn_space_bt.valueChanged.connect(dialog._apply_general_preview)
-
-        dialog.spn_space_td = QtWidgets.QSpinBox()
-        dialog.spn_space_td.setRange(-200, 200)
-        dialog.spn_space_td.setFixedWidth(58)
-        dialog.spn_space_td.setValue(getattr(ayarlar, "spacing_time_date_offset", 0))
-        dialog.spn_space_td.valueChanged.connect(dialog._apply_general_preview)
-
-        dialog.spn_space_bd = QtWidgets.QSpinBox()
-        dialog.spn_space_bd.setRange(-200, 200)
-        dialog.spn_space_bd.setFixedWidth(58)
-        dialog.spn_space_bd.setValue(getattr(ayarlar, "spacing_battery_date_hidden_offset", 0))
-        dialog.spn_space_bd.valueChanged.connect(dialog._apply_general_preview)
-
         dialog.spn_quick_icon_spacing = QtWidgets.QSpinBox()
         dialog.spn_quick_icon_spacing.setRange(0, 40)
         dialog.spn_quick_icon_spacing.setSuffix(" px")
@@ -164,14 +156,10 @@ class AyarFormlari:
         dialog.spn_quick_icon_size.setValue(getattr(ayarlar, "quick_actions_icon_size", 38))
         dialog.spn_quick_icon_size.valueChanged.connect(dialog._apply_general_preview)
 
-        f.addRow("Pil ↔ Saat boşluğu", dialog.spn_space_bt)
-        f.addRow("Saat ↔ Tarih boşluğu", dialog.spn_space_td)
-        f.addRow("Pil ↔ Tarih boşluğu (saat kapalıyken)", dialog.spn_space_bd)
         f.addRow("Hover ikon boyutu", dialog.spn_quick_icon_size)
         f.addRow("Hover ikon aralığı", dialog.spn_quick_icon_spacing)
         
         f.addRow(modul_grubu)
-        f.labelForField(dialog.spn_space_bd).setText("Pil \u2194 Tarih bo\u015flu\u011fu")
         dialog._add_help_link(f, extra_widget)
         return w
 

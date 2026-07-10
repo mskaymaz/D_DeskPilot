@@ -76,6 +76,8 @@ class WindowSettingsMixin:
         self._rebuild_module_layout(scale)
         if hasattr(self, "quick_actions"):
             self.quick_actions._apply_size()
+        if hasattr(self, "tepsi_ikonu"):
+            self.tepsi_ikonu._menu_kur()
 
         self.main_layout.setContentsMargins(
             0,

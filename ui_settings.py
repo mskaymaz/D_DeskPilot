@@ -335,9 +335,9 @@ class SettingsDialog(QtWidgets.QDialog):
         fields_by_tab = {
             "Genel": (
                 "language", "seffaflik", "her_zaman_ustte", "acilista_calistir", "sessiz_mod",
-                "free_layout_enabled", "coklu_monitor_modu", "reminder_visible", "todo_visible",
-                "global_scale", "spacing_battery_time_offset", "spacing_time_date_offset",
-                "spacing_battery_date_hidden_offset", "quick_actions_icon_size",
+                "free_layout_enabled", "coklu_monitor_modu", "alarm_visible", "reminder_visible",
+                "todo_visible",
+                "global_scale", "quick_actions_icon_size",
                 "quick_actions_icon_spacing", "module_order",
             ),
             "Pil": (
@@ -379,15 +379,13 @@ class SettingsDialog(QtWidgets.QDialog):
             self._set_checked_silent(self.chk_silent, s.sessiz_mod)
             self._set_checked_silent(self.chk_free_layout, s.free_layout_enabled)
             self._set_checked_silent(self.chk_multi_mon, s.coklu_monitor_modu)
+            self._set_checked_silent(self.chk_alarm_visible, s.alarm_visible)
             self._set_checked_silent(self.chk_reminder_visible, s.reminder_visible)
             self._set_checked_silent(self.chk_todo_visible, s.todo_visible)
             self._set_value_silent(self.sld_opacity, int(s.seffaflik * 100))
             self._set_value_silent(self.spn_opacity_value, int(s.seffaflik * 100))
             self._set_value_silent(self.sld_scale, int(s.global_scale * 100))
             self._set_value_silent(self.spn_scale_value, int(s.global_scale * 100))
-            self._set_value_silent(self.spn_space_bt, s.spacing_battery_time_offset)
-            self._set_value_silent(self.spn_space_td, s.spacing_time_date_offset)
-            self._set_value_silent(self.spn_space_bd, s.spacing_battery_date_hidden_offset)
             self._set_value_silent(self.spn_quick_icon_size, s.quick_actions_icon_size)
             self._set_value_silent(self.spn_quick_icon_spacing, s.quick_actions_icon_spacing)
             self._module_order_list_load()
@@ -466,16 +464,14 @@ class SettingsDialog(QtWidgets.QDialog):
         tab_name = self.tabs.tabText(idx)
         if tab_name == "Genel":
             text = (
-                "Özet: Genel görünüm, saydamlık, satır aralıkları ve serbest dağıt bu sekmeden yönetilir.\n"
+                "Özet: Genel görünüm, saydamlık ve serbest dağıt bu sekmeden yönetilir.\n"
                 "\n"
                 "Genel ayarlar (sırasıyla):\n"
                 "- Her zaman üstte: Pencerenin diğer uygulamaların üstünde kalmasını sağlar.\n"
                 "- Açılışta çalıştır: Uygulama Windows açılışında otomatik başlar.\n"
                 "- Serbest dağıt: Pil/Saat/Tarih satırları ayrı pencereler olur, her biri bağımsız taşınır.\n"
                 "- Şeffaflık (%): Tüm satırların saydamlık seviyesini ayarlar.\n"
-                "- Pil ↔ Saat boşluğu: Pil satırı ile saat satırı arasındaki dikey mesafe.\n"
-                "- Saat ↔ Tarih boşluğu: Saat satırı ile tarih satırı arasındaki dikey mesafe.\n"
-                "- Pil ↔ Tarih boşluğu (saat kapalıyken): Saat görünmüyorsa pil ve tarih arası mesafe."
+                "- Hover ikon boyutu ve aralığı: Hızlı işlem simgelerinin görünümünü ayarlar."
             )
         elif tab_name == "Pil":
             text = (
@@ -598,9 +594,6 @@ class SettingsDialog(QtWidgets.QDialog):
         if self.parent(): self.parent().apply_settings()
 
     def _apply_general_preview(self, _=None):
-        self.settings.spacing_battery_time_offset = self.spn_space_bt.value()
-        self.settings.spacing_time_date_offset = self.spn_space_td.value()
-        self.settings.spacing_battery_date_hidden_offset = self.spn_space_bd.value()
         if hasattr(self, "spn_quick_icon_spacing"):
             self.settings.quick_actions_icon_spacing = self.spn_quick_icon_spacing.value()
         if hasattr(self, "spn_quick_icon_size"):
@@ -619,6 +612,12 @@ class SettingsDialog(QtWidgets.QDialog):
             self.spn_opacity_value.blockSignals(True); self.spn_opacity_value.setValue(value); self.spn_opacity_value.blockSignals(False)
         self._set_dirty(True)
         if self.parent(): self.parent().apply_settings()
+
+    def _apply_visibility_preview(self, field_name, value):
+        setattr(self.settings, field_name, bool(value))
+        self._set_dirty(True)
+        if self.parent():
+            self.parent().apply_settings()
 
     def _apply_scale_preview(self, value):
         self.settings.global_scale = value / 100

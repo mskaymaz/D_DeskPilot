@@ -66,8 +66,9 @@ class PanelSettings:
     battery_full_alert_enabled: bool = False
     battery_full_alert_level: int = 100
 
-    reminder_visible: bool = True # Task 6.1: Hatırlatıcı modülü görünürlüğü
-    todo_visible: bool = True      # Task 6.1: Görev modülü görünürlüğü
+    alarm_visible: bool = True     # Alarm modülü görünürlüğü
+    reminder_visible: bool = True  # Hatırlatıcı modülü görünürlüğü
+    todo_visible: bool = True      # Görev modülü görünürlüğü
 
 
     task_priorities: list = field(default_factory=lambda: [

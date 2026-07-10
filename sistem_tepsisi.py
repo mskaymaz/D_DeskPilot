@@ -20,9 +20,10 @@ class SistemTepsisi(QtWidgets.QSystemTrayIcon):
 
         menu.addSeparator()
 
-        act_alarm = menu.addAction("Alarm")
-        act_alarm.setIcon(QtGui.QIcon(resource_path("img/icons/alarm_icon.svg")))
-        act_alarm.triggered.connect(self.ana_pencere.show_alarm_list)
+        if self.ana_pencere.settings.alarm_visible:
+            act_alarm = menu.addAction("Alarm")
+            act_alarm.setIcon(QtGui.QIcon(resource_path("img/icons/alarm_icon.svg")))
+            act_alarm.triggered.connect(self.ana_pencere.show_alarm_list)
 
         if self.ana_pencere.settings.todo_visible:
             act_yeni_todo = menu.addAction("Todo")
