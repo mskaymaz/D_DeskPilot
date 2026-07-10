@@ -24,13 +24,15 @@ class SistemTepsisi(QtWidgets.QSystemTrayIcon):
         act_alarm.setIcon(QtGui.QIcon(resource_path("img/icons/alarm_icon.svg")))
         act_alarm.triggered.connect(self.ana_pencere.show_alarm_list)
 
-        act_yeni_todo = menu.addAction("Todo")
-        act_yeni_todo.setIcon(QtGui.QIcon(resource_path("img/icons/todo_icon.svg")))
-        act_yeni_todo.triggered.connect(self.ana_pencere.show_todo_list)
+        if self.ana_pencere.settings.todo_visible:
+            act_yeni_todo = menu.addAction("Todo")
+            act_yeni_todo.setIcon(QtGui.QIcon(resource_path("img/icons/todo_icon.svg")))
+            act_yeni_todo.triggered.connect(self.ana_pencere.show_todo_list)
 
-        act_yeni_hatirlatici = menu.addAction("Reminder")
-        act_yeni_hatirlatici.setIcon(QtGui.QIcon(resource_path("img/icons/reminder_icon.svg")))
-        act_yeni_hatirlatici.triggered.connect(self.ana_pencere.show_reminder_list)
+        if self.ana_pencere.settings.reminder_visible:
+            act_yeni_hatirlatici = menu.addAction("Reminder")
+            act_yeni_hatirlatici.setIcon(QtGui.QIcon(resource_path("img/icons/reminder_icon.svg")))
+            act_yeni_hatirlatici.triggered.connect(self.ana_pencere.show_reminder_list)
 
         menu.addSeparator()
 

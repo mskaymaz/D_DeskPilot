@@ -191,6 +191,17 @@ class AyarFormlari:
         dialog.spn_batt_warn.setValue(ayarlar.battery_warning_level)
         dialog.spn_batt_warn.valueChanged.connect(dialog._apply_batt_preview)
 
+        dialog.spn_batt_interval = QtWidgets.QSpinBox()
+        dialog.spn_batt_interval.setRange(1, 600)
+        dialog.spn_batt_interval.setSuffix(" sn")
+        dialog.spn_batt_interval.setValue(getattr(ayarlar, "battery_alert_interval", 10))
+        dialog.spn_batt_interval.valueChanged.connect(dialog._apply_batt_preview)
+
+        dialog.cmb_batt_sound = QtWidgets.QComboBox()
+        dialog.cmb_batt_sound.addItems(["Uyar\u0131 1", "Uyar\u0131 2", "Uyar\u0131 3"])
+        dialog.cmb_batt_sound.setCurrentText(getattr(ayarlar, "battery_alert_sound_type", "Uyar\u0131 1"))
+        dialog.cmb_batt_sound.currentTextChanged.connect(dialog._apply_batt_preview)
+
         dialog.btn_batt_color = QtWidgets.QPushButton(ayarlar.battery_color)
         dialog.btn_batt_color.setFixedWidth(84)
         dialog.btn_batt_color.clicked.connect(lambda: dialog._pick_color(dialog.btn_batt_color))
@@ -206,6 +217,8 @@ class AyarFormlari:
 
         f.addRow(dialog.chk_batt_visible)
         f.addRow("Uyarı seviyesi (%)", dialog.spn_batt_warn)
+        f.addRow("Uyarı aralığı", dialog.spn_batt_interval)
+        f.addRow("Uyarı sesi", dialog.cmb_batt_sound)
         f.addRow("Renk", dialog.btn_batt_color)
         f.addRow("Font", dialog.cmb_batt_font)
         f.addRow(dialog.chk_batt_bold)

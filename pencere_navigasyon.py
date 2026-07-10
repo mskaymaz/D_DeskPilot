@@ -33,10 +33,14 @@ class PencereNavigasyonKarishimi:
         menu.addSeparator()
         act_alarm = menu.addAction("Alarm")
         act_alarm.setIcon(QtGui.QIcon(resource_path("img/icons/alarm_icon.svg")))
-        act_menu_todos = menu.addAction("Todo")
-        act_menu_todos.setIcon(QtGui.QIcon(resource_path("img/icons/todo_icon.svg")))
-        act_menu_reminders = menu.addAction("Reminder")
-        act_menu_reminders.setIcon(QtGui.QIcon(resource_path("img/icons/reminder_icon.svg")))
+        act_menu_todos = None
+        if self.settings.todo_visible:
+            act_menu_todos = menu.addAction("Todo")
+            act_menu_todos.setIcon(QtGui.QIcon(resource_path("img/icons/todo_icon.svg")))
+        act_menu_reminders = None
+        if self.settings.reminder_visible:
+            act_menu_reminders = menu.addAction("Reminder")
+            act_menu_reminders.setIcon(QtGui.QIcon(resource_path("img/icons/reminder_icon.svg")))
         menu.addSeparator()
         act_silent = menu.addAction("Sessiz Mod")
         act_silent.setCheckable(True)
@@ -100,9 +104,9 @@ class PencereNavigasyonKarishimi:
             self.show_settings_at(settings_anchor_pos or global_pos)
         elif action == act_alarm:
             self.show_alarm_list()
-        elif action == act_menu_todos:
+        elif act_menu_todos is not None and action == act_menu_todos:
             self.show_todo_list()
-        elif action == act_menu_reminders:
+        elif act_menu_reminders is not None and action == act_menu_reminders:
             self.show_reminder_list()
         elif action == act_silent:
             self.settings.sessiz_mod = action.isChecked()

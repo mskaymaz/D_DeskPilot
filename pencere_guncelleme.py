@@ -60,6 +60,19 @@ class PencereGuncellemeKarishimi:
         base_size = int(TIME_BASE_FONT_SIZE * scale)
         sec_size = max(1, int(base_size * self.settings.time_seconds_scale))
         ampm_size = max(1, sec_size // 2)
+        format_mode = getattr(self.settings, "time_format_mode", "24h" if getattr(self.settings, "time_24h", True) else "12h_ampm")
+        cache_key = (
+            yatay_pay,
+            self.settings.time_font_family,
+            base_size,
+            sec_size,
+            ampm_size,
+            self.settings.time_bold,
+            self.settings.time_seconds_visible,
+            format_mode,
+        )
+        if getattr(self, "_saat_olcu_cache_key", None) == cache_key:
+            return self._saat_olcu_cache_value
         font = QtGui.QFont(self.settings.time_font_family, base_size)
         font.setBold(self.settings.time_bold)
         sec_font = QtGui.QFont(self.settings.time_font_family, sec_size)
@@ -67,14 +80,15 @@ class PencereGuncellemeKarishimi:
         fm = QtGui.QFontMetrics(font)
         sec_fm = QtGui.QFontMetrics(sec_font)
         ampm_fm = QtGui.QFontMetrics(ampm_font)
-        format_mode = getattr(self.settings, "time_format_mode", "24h" if getattr(self.settings, "time_24h", True) else "12h_ampm")
         genislik = fm.horizontalAdvance("88:88")
         if self.settings.time_seconds_visible:
             genislik += sec_fm.horizontalAdvance(":88" if format_mode in ("24h", "12h_plain") else ":88 ")
         if format_mode == "12h_ampm":
             genislik += ampm_fm.horizontalAdvance(" ÖÖ")
         yukseklik = fm.ascent() + fm.descent() + 6
-        return genislik + yatay_pay, yukseklik
+        self._saat_olcu_cache_key = cache_key
+        self._saat_olcu_cache_value = (genislik + yatay_pay, yukseklik)
+        return self._saat_olcu_cache_value
 
     def _saat_pencere_boyut_guncelle(self):
         """
@@ -119,18 +133,34 @@ class PencereGuncellemeKarishimi:
         low_alert = (not pil_verisi.sarjda and pil_verisi.yuzde <= self.settings.battery_warning_level)
 
         if full_alert:
-            if not self.full_charge_timer.isActive(): self.full_charge_timer.start()
+            now_ts = time.time()
+            interval = max(1, int(getattr(self.settings, "battery_alert_interval", 10)))
+            if now_ts - self._last_full_batt_alert_ts >= interval:
+                self._play_batt_alert_sound()
+                self._last_full_batt_alert_ts = now_ts
+            if not self.full_charge_timer.isActive():
+                self.full_charge_timer.start()
         else:
+            self._last_full_batt_alert_ts = 0
             self._stop_full_charge_blink()
 
         if low_alert and not full_alert:
-            if not self.low_batt_timer.isActive(): self.low_batt_timer.start()
+            now_ts = time.time()
+            interval = max(1, int(getattr(self.settings, "battery_alert_interval", 10)))
+            if now_ts - self._last_low_batt_alert_ts >= interval:
+                self._play_batt_alert_sound()
+                self._last_low_batt_alert_ts = now_ts
+            if not self.low_batt_timer.isActive():
+                self.low_batt_timer.start()
         else:
+            self._last_low_batt_alert_ts = 0
             self._stop_low_batt_blink()
 
         # Sistem Tepsisi Özeti (Task 8.2)
         if hasattr(self, "tepsi_ikonu"):
-            sonraki_h = self.hatirlatici_servisi.en_yakin_hatirlaticiyi_bul()
+            sonraki_h = None
+            if getattr(self, "hatirlatici_servisi", None):
+                sonraki_h = self.hatirlatici_servisi.en_yakin_hatirlaticiyi_bul()
             sonraki_metin = ""
             if sonraki_h:
                 zaman = sonraki_h.erteleme_zamani if sonraki_h.erteleme_zamani else sonraki_h.hatirlatma_zamani
@@ -146,9 +176,13 @@ class PencereGuncellemeKarishimi:
         gelenler = self.hatirlatici_servisi.zamani_gelenleri_tara()
         for h in gelenler:
             if h.id not in self._aktif_popuplar:
-                popup = HatirlaticiBildirimPenceresi(h)
+                popup = HatirlaticiBildirimPenceresi(
+                    h,
+                    sessiz_mod=getattr(self.settings, "sessiz_mod", False),
+                )
                 popup.tamamlandi_sinyali.connect(self._hatirlatici_tamamla)
                 popup.ertelendi_sinyali.connect(self._hatirlatici_ertele)
+                popup.destroyed.connect(lambda _=None, hid=h.id: self._aktif_popuplar.pop(hid, None))
                 popup.show()
                 self._aktif_popuplar[h.id] = popup
 
@@ -192,6 +226,7 @@ class PencereGuncellemeKarishimi:
             )
             popup.durduruldu_sinyali.connect(self._alarm_durdur)
             popup.ertelendi_sinyali.connect(self._alarm_ertele)
+            popup.destroyed.connect(lambda _=None, aid=alarm.id: self._aktif_alarm_popuplar.pop(aid, None))
             popup.show()
             self._aktif_alarm_popuplar[alarm.id] = popup
 
@@ -223,6 +258,10 @@ class PencereGuncellemeKarishimi:
         mesaj = f"{baslik} ({alarm.saat}) kaçırıldı."
         log_kaydet(mesaj)
         if hasattr(self, "tepsi_ikonu"):
+            anahtar = f"missed_alarm:{alarm.id}"
+            if getattr(self, "bildirim_servisi", None):
+                if not self.bildirim_servisi.bildirim_gonderilebilir_mi(anahtar):
+                    return
             self.tepsi_ikonu.showMessage(
                 "Kaçırılan alarm",
                 mesaj,
@@ -279,9 +318,22 @@ class PencereGuncellemeKarishimi:
         return now.strftime(fmt)
 
     def _format_hicri_date(self, now):
-        return miladi_tarihten_hicriye(now.date()).formatla()
+        cache_key = now.date()
+        if getattr(self, "_hicri_tarih_cache_key", None) == cache_key:
+            return self._hicri_tarih_cache_value
+        self._hicri_tarih_cache_key = cache_key
+        self._hicri_tarih_cache_value = miladi_tarihten_hicriye(now.date()).formatla()
+        return self._hicri_tarih_cache_value
 
     def _hafta_etiketlerini_guncelle(self, now, hedef=None):
+        goster = self.settings.date_visible and getattr(self.settings, "date_show_week_number", False)
+        cache_key = (now.date(), goster)
+        if getattr(self, "_hafta_cache_key", None) == cache_key:
+            hafta_sayi, hafta_yazi = self._hafta_cache_value
+        else:
+            hafta_sayi, hafta_yazi = f"{now.isocalendar().week}.", "HAFTA"
+            self._hafta_cache_key = cache_key
+            self._hafta_cache_value = (hafta_sayi, hafta_yazi)
         if hedef is None:
             ayrac = getattr(self, "date_week_separator_label", None)
             sayi = getattr(self, "date_week_number_label", None)
@@ -292,10 +344,9 @@ class PencereGuncellemeKarishimi:
             yazi = getattr(hedef, "hafta_yazi_etiketi", None)
         if not ayrac or not sayi or not yazi:
             return
-        goster = self.settings.date_visible and getattr(self.settings, "date_show_week_number", False)
         ayrac.setText("◆")
-        sayi.setText(f"{now.isocalendar().week}.")
-        yazi.setText("HAFTA")
+        sayi.setText(hafta_sayi)
+        yazi.setText(hafta_yazi)
         ayrac.setVisible(goster)
         sayi.setVisible(goster)
         yazi.setVisible(goster)
@@ -321,3 +372,19 @@ class PencereGuncellemeKarishimi:
         self.battery_label.setStyleSheet(style)
         if self.free_battery_window:
             self.free_battery_window.pil_etiketi.setStyleSheet(style)
+
+    def _play_batt_alert_sound(self):
+        if winsound is None or getattr(self.settings, "sessiz_mod", False):
+            return False
+        sound = str(getattr(self.settings, "battery_alert_sound_type", ""))
+        try:
+            if sound.endswith("2"):
+                winsound.MessageBeep(winsound.MB_ICONEXCLAMATION)
+            elif sound.endswith("3"):
+                winsound.MessageBeep(winsound.MB_ICONASTERISK)
+            else:
+                winsound.MessageBeep(winsound.MB_ICONHAND)
+            return True
+        except RuntimeError as e:
+            log_kaydet(f"Pil uyari sesi calinamadi: {e}", "warning")
+            return False

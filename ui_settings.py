@@ -7,6 +7,7 @@ from utils import set_autostart, resource_path, ICON_FILE, APP_ID
 import sys
 import locale
 import ctypes
+from datetime import datetime
 
 # ui_ayarlar_formlar modülünün mevcut olduğu varsayılmaktadır.
 from ui_ayarlar_formlar import AyarFormlari
@@ -341,7 +342,8 @@ class SettingsDialog(QtWidgets.QDialog):
             ),
             "Pil": (
                 "battery_visible", "battery_font_family", "battery_color", "battery_bold",
-                "battery_warning_level", "battery_scale",
+                "battery_warning_level", "battery_alert_interval", "battery_alert_sound_type",
+                "battery_scale",
             ),
             "Saat": (
                 "time_visible", "time_font_family", "time_color", "time_bold", "time_24h",
@@ -393,6 +395,8 @@ class SettingsDialog(QtWidgets.QDialog):
             self._set_checked_silent(self.chk_batt_visible, s.battery_visible)
             self._set_checked_silent(self.chk_batt_bold, s.battery_bold)
             self._set_value_silent(self.spn_batt_warn, s.battery_warning_level)
+            self._set_value_silent(self.spn_batt_interval, s.battery_alert_interval)
+            self.cmb_batt_sound.setCurrentText(s.battery_alert_sound_type)
             self.btn_batt_color.setText(s.battery_color)
             self.cmb_batt_font.setCurrentFont(QtGui.QFont(s.battery_font_family))
             self._set_value_silent(self.sld_battery_scale, int(s.battery_scale * 100))
@@ -631,16 +635,35 @@ class SettingsDialog(QtWidgets.QDialog):
         if font is not None: self.settings.date_font_family = font
         if bold is not None: self.settings.date_bold = bold
         if visible is not None: self.settings.date_visible = visible
-        if format_text is not None: self.settings.date_format = format_text
+        if format_text is not None:
+            if self._date_format_valid(format_text):
+                self.settings.date_format = format_text
+                self.txt_date_format.setStyleSheet("")
+            else:
+                self.txt_date_format.setStyleSheet("border: 1px solid #cc0000;")
         if week_number is not None: self.settings.date_show_week_number = week_number
         self._set_dirty(True)
         if self.parent(): self.parent().apply_settings()
+
+    def _date_format_valid(self, fmt):
+        fmt = (fmt or "").strip()
+        if not fmt:
+            return False
+        if "%" not in fmt:
+            return True
+        try:
+            datetime.now().strftime(fmt)
+            return True
+        except Exception:
+            return False
 
     def _apply_batt_preview(self, _=None):
         self.settings.battery_visible = self.chk_batt_visible.isChecked()
         self.settings.battery_font_family = self.cmb_batt_font.currentFont().family()
         self.settings.battery_bold = self.chk_batt_bold.isChecked()
         self.settings.battery_warning_level = self.spn_batt_warn.value()
+        self.settings.battery_alert_interval = self.spn_batt_interval.value()
+        self.settings.battery_alert_sound_type = self.cmb_batt_sound.currentText()
         self._set_dirty(True)
         if self.parent(): self.parent().apply_settings()
 
@@ -677,7 +700,11 @@ class SettingsDialog(QtWidgets.QDialog):
         # Ayarlar artık preview metodları üzerinden anlık olarak self.settings'e yazılıyor.
         # Sadece line edit'ler gibi anlık tetiklenmeyenleri buradan alıyoruz.
         if hasattr(self, "txt_date_format"):
-            self.settings.date_format = self.txt_date_format.text()
+            fmt = self.txt_date_format.text()
+            if self._date_format_valid(fmt):
+                self.settings.date_format = fmt
+            else:
+                QtWidgets.QMessageBox.warning(self, "Tarih Formatı", "Geçersiz tarih formatı kaydedilmedi.")
         if hasattr(self, "chk_date_week_number"):
             self.settings.date_show_week_number = self.chk_date_week_number.isChecked()
         if hasattr(self, "cmb_language"):

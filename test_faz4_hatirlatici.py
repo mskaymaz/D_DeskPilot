@@ -1,4 +1,3 @@
-import pytest
 from datetime import datetime, timedelta
 from hatirlatici_modeli import HatirlaticiModeli, TekrarTipi, HatirlaticiDurumu, asdict
 from hatirlatici_servisi import HatirlaticiServisi

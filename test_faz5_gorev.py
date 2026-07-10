@@ -1,4 +1,3 @@
-import pytest
 from datetime import datetime, timedelta
 from gorev_modeli import GorevModeli, GorevOnceligi
 from gorev_servisi import GorevServisi

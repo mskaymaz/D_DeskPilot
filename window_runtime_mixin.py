@@ -2,6 +2,7 @@ try:
     from PySide6 import QtCore
 except ImportError:
     from PyQt6 import QtCore
+from log_servisi import log_kaydet
 
 class WindowRuntimeMixin:
     def _zamanlayicilari_kur(self):
@@ -56,10 +57,19 @@ class WindowRuntimeMixin:
         from gorev_servisi import GorevServisi
         from alarm_servisi import AlarmServisi
 
-        self.pil_servisi = PilServisi(dusuk_esik=self.settings.battery_warning_level)
-        self.bildirim_servisi = BildirimServisi()
-        self.hatirlatici_servisi = HatirlaticiServisi()
-        self.gorev_servisi = GorevServisi()
-        self.alarm_servisi = AlarmServisi()
+        baslatmalar = (
+            ("pil_servisi", lambda: PilServisi(dusuk_esik=self.settings.battery_warning_level)),
+            ("bildirim_servisi", lambda: BildirimServisi(
+                varsayilan_soguma_suresi=self.settings.bildirim_soguma_suresi
+            )),
+            ("hatirlatici_servisi", HatirlaticiServisi),
+            ("gorev_servisi", GorevServisi),
+            ("alarm_servisi", AlarmServisi),
+        )
+        for ad, olustur in baslatmalar:
+            try:
+                setattr(self, ad, olustur())
+            except Exception as e:
+                log_kaydet(f"{ad} baslatilamadi: {e}", "error")
         self.update_battery()
         QtCore.QTimer.singleShot(500, self._baslangic_kacirilan_alarmlari_goster)

@@ -15,9 +15,10 @@ class HatirlaticiBildirimPenceresi(QtWidgets.QWidget):
     tamamlandi_sinyali = QtCore.Signal(str) # Hatırlatıcı ID
     ertelendi_sinyali = QtCore.Signal(str, int) # Hatırlatıcı ID, Dakika
 
-    def __init__(self, hatirlatici: HatirlaticiModeli, parent=None):
+    def __init__(self, hatirlatici: HatirlaticiModeli, parent=None, sessiz_mod=False):
         super().__init__(parent, QtCore.Qt.WindowType.FramelessWindowHint | QtCore.Qt.WindowType.WindowStaysOnTopHint | QtCore.Qt.WindowType.Tool)
         self.hatirlatici = hatirlatici
+        self.sessiz_mod = sessiz_mod
         self.setAttribute(QtCore.Qt.WidgetAttribute.WA_TranslucentBackground)
         
         self._arayuz_kur()

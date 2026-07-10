@@ -1,4 +1,3 @@
-import pytest
 import os
 import json
 from core_settings import PanelSettings, save_settings, load_settings, UYGULAMA_SURUMU

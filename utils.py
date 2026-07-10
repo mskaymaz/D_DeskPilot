@@ -1,8 +1,12 @@
 import sys
 import os
-import winreg
 import logging
 from datetime import datetime
+
+if sys.platform == "win32":
+    import winreg
+else:
+    winreg = None
 
 # Uygulama Kimlikleri
 APP_NAME = "DeskPilot"
@@ -77,7 +81,7 @@ def _first_existing_resource(*relative_paths: str) -> str:
             return relative_path
     return relative_paths[0]
 
-ICON_FILE = _first_existing_resource("assets/icon.ico", "deskpilot.ico")
+ICON_FILE = _first_existing_resource("deskpilot.ico", "assets/icon.ico")
 
 def _get_autostart_command():
     """Uygulamayı başlatacak komut satırını oluşturur."""

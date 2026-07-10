@@ -7,6 +7,7 @@ except ImportError:
     from PyQt6 import QtWidgets, QtGui
 
 from utils import APP_ID, resource_path, ICON_FILE, log_altyapisini_kur, log_kaydet
+import core_settings
 from core_settings import load_settings
 from core_window import DraggableTransparentWindow, move_window_safely
 from sistem_tepsisi import SistemTepsisi
@@ -49,6 +50,8 @@ def main():
     app.setWindowIcon(QtGui.QIcon(resource_path(ICON_FILE)))
 
     settings = load_settings()
+    if core_settings.AYAR_KURTARMA_MESAJI:
+        QtWidgets.QMessageBox.warning(None, "Ayar Kurtarma", core_settings.AYAR_KURTARMA_MESAJI)
     if settings.time_font_family in ('', 'Segoe UI', 'Stencil', 'digital7Regular', 'Digital-7'):
         settings.time_font_family = default_time_font_family()
     win = DraggableTransparentWindow(settings)

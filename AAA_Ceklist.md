@@ -529,6 +529,71 @@ Araç Muayenesi  5 gün geçti gibi
 - [ ] Manuel testler
 - [ ] Performans kontrolleri
 
+## Ortak Temizlik ve Stabilizasyon Listesi (2026-07-10)
+
+> Kaynak: GPT temizlik promptu + ChatGPT kod inceleme raporu.
+> Kural: Once dogrula, sonra tek guvenli yama uygula; calisan yapiyi bozmadan ilerle.
+
+### P0 - Calisiyor Gorunup Calismayan Ayarlar
+
+- [ ] Gomulu font yukleme sistemini dogrula ve `font_yonetimi.py` icinde gercek font kaydini etkinlestir.
+- [ ] Pil ses ayarini (`battery_alert_sound_type`) gercek pil uyari akisina bagla.
+- [ ] Pil tekrar/aralik ayarini (`battery_alert_interval`) gercek pil uyari akisina bagla.
+- [ ] Bildirim soguma ayarini (`bildirim_soguma_suresi`) merkezi bildirim akisinda kullan.
+- [ ] `BildirimServisi` servisinin gercek alarm/hatirlatici/pil bildirimleriyle baglantisini netlestir.
+- [ ] Sessiz modu alarm, hatirlatici ve pil dahil tum sesli bildirimlerde ortak uygula.
+- [ ] `todo_visible` ve `reminder_visible` ayarlarinin gercek etkisini UI adiyla uyumlu hale getir.
+
+### P1 - Calisma Guvenligi
+
+- [ ] Hatirlatici popup kapatilinca aktif popup sozluklerinden kaydi temizle.
+- [ ] Alarm popup kapatilinca aktif alarm popup sozluklerinden kaydi temizle.
+- [ ] Agir servis baslatmalarini ayri hata sinirlariyla izole et.
+- [ ] Tray/pil ozetinde servis `None` durumlarini guvenli ele al.
+- [ ] Ayar JSON degerlerini tip, aralik, renk ve dil kodu acisindan dogrula.
+- [ ] Bozuk ayar dosyasi yedeklenince kullaniciya kisa bilgi ver.
+- [ ] Kritik `except/pass` bloklarini sessiz yutmak yerine logla.
+
+### P2 - Performans ve Dogrulama
+
+- [ ] Saat genisligi hesaplarini font/olcek degismedikce cache'le.
+- [ ] Hicri tarih donusumunu saniyelik tick yerine gun/ayar degisiminde hesapla.
+- [ ] Hafta bilgisini saniyelik tick yerine gun/ayar degisiminde hesapla.
+- [ ] Tarih formatini kaydetmeden once dogrula.
+- [ ] Vulture sonucunu sadece proje-geneli referans dogrulamasindan sonra uygula.
+- [ ] Radon karmasiklik sonucunu once raporla; refactor sadece ayri izinle yap.
+
+### P3 - Test ve Platform Uyumlulugu
+
+- [ ] `winreg` importunu Windows disi test koleksiyonunu bozmayacak sekilde korumaya al.
+- [ ] GUI preview testini otomatik pytest koleksiyonundan cikar veya `tests/manual/` altina tasi.
+- [ ] Testlerin gercek APP_DATA yerine gecici dizin kullanmasini sagla.
+- [ ] Platform bagimsiz servis/model testlerini GUI ve Windows bagimliliklarindan ayir.
+- [ ] Sozdizimi kontrolunu her yamadan sonra `python -m py_compile` veya `compileall` ile dogrula.
+
+### P4 - Repo Temizligi
+
+- [ ] `__pycache__` ve `.pyc` dosyalarini repo disi tut; silmeden once git durumunu dogrula.
+- [ ] Eski exe artefactlarini (`dagitim/` altindaki eski DigitalSaat exe gibi) once raporla, sonra izinle kaldir.
+- [ ] `create_icon.py` gelistirme araciysa `tools/` altina tasimayi degerlendir.
+- [ ] `gorev_karti.py` dosyasini compat shim olarak belgele veya referans yoksa izinle kaldir.
+- [ ] Legacy spec/kaynaklarini aktif koddan ayri arsivleme planina al.
+- [ ] `requirements-dev.txt` olusturup test bagimliliklarini uretim requirements dosyasindan ayir.
+- [ ] Tek kanonik ikon kararini ver (`deskpilot.ico` / `assets/icon.ico`).
+- [ ] PyInstaller `upx=True` kararini guvenlik ve dagitim riski acisindan yeniden degerlendir.
+
+### P5 - Mimari Borc
+
+- [ ] PySide6/PyQt6 stratejisini tek standart veya tutarli fallback olarak belirle.
+- [ ] Mixin zorunlu alanlarini kisa interface notlariyla belgele.
+- [ ] Servisleri pencere icinde dogrudan kurmak yerine ileride enjekte edilebilir hale getir.
+- [ ] `ui_settings.py` icin yeni ayar eklemeden once bolme plani hazirla.
+- [ ] `kart.py` icin davranis degisikliklerinde regresyon testi ekle.
+
+### Sonraki Guvenli Adim
+
+- [ ] P0.1: Font yukleme sistemini dogrula, tek dosyada duzelt, syntax kontrolu yap.
+
 ### V2+
 
 - [ ] CI (Kod değiştikçe otomatik doğrulama sistemi.)
