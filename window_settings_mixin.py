@@ -3,7 +3,7 @@ try:
 except ImportError:
     from PyQt6 import QtCore, QtGui, QtWidgets
 
-from core_settings import BATTERY_BASE_FONT_SIZE, DATE_BASE_FONT_SIZE, TIME_BASE_FONT_SIZE, normalize_module_order
+from core_settings import BATTERY_BASE_FONT_SIZE, DATE_BASE_FONT_SIZE, TIME_BASE_FONT_SIZE, save_settings
 
 
 class WindowSettingsMixin:
@@ -40,6 +40,13 @@ class WindowSettingsMixin:
             self.date_week_number_label,
             self.date_week_text_label
         )
+        self._apply_date_display_mode(
+            self.date_stack_layout,
+            self.date_row,
+            self.date_label,
+            self.hicri_date_label,
+            self.date_switch_button
+        )
         self.date_container.setVisible(self.settings.date_visible)
         if self.free_date_window:
             self._apply_date_style(self.free_date_window.etiket)
@@ -50,6 +57,13 @@ class WindowSettingsMixin:
                     self.free_date_window.hafta_sayi_etiketi,
                     self.free_date_window.hafta_yazi_etiketi
                 )
+            self._apply_date_display_mode(
+                self.free_date_window.date_layout,
+                self.free_date_window.date_row,
+                self.free_date_window.etiket,
+                self.free_date_window.hicri_etiketi,
+                self.free_date_window.date_switch_button
+            )
             self.free_date_window.etiket.adjustSize()
             self.free_date_window.adjustSize()
             self.free_date_window.setVisible(
@@ -136,7 +150,7 @@ class WindowSettingsMixin:
         }
         visible = [
             (key, modules[key][0])
-            for key in normalize_module_order(getattr(self.settings, "module_order", []))
+            for key in ("battery", "time", "date")
             if modules[key][1]
         ]
 
@@ -250,6 +264,47 @@ class WindowSettingsMixin:
         )
         self._lock_label_height(label, size)
 
+    def _apply_date_display_mode(
+        self,
+        date_layout,
+        date_row,
+        miladi_label,
+        hicri_label,
+        switch_button=None,
+    ):
+        mode = getattr(self.settings, "date_display_mode", "miladi_hicri")
+        show_miladi = mode in {"miladi", "miladi_hicri"}
+        show_hicri = mode in {"hicri", "miladi_hicri"}
+        date_row.setVisible(self.settings.date_visible and show_miladi)
+        miladi_label.setVisible(self.settings.date_visible and show_miladi)
+        hicri_label.setVisible(self.settings.date_visible and show_hicri)
+        date_layout.removeWidget(date_row)
+        date_layout.removeWidget(hicri_label)
+        widgets = (hicri_label, date_row) if getattr(self.settings, "date_hicri_first", False) else (date_row, hicri_label)
+        for widget in widgets:
+            date_layout.addWidget(widget, 0, QtCore.Qt.AlignmentFlag.AlignHCenter)
+        if switch_button is not None:
+            switch_button.setText("H" if mode == "miladi" else "M")
+            switch_button.setVisible(self.settings.date_visible and mode in {"miladi", "hicri"})
+            self._set_date_switch_style(switch_button, False)
+
+    def _set_date_switch_style(self, button, hovered):
+        if not hovered:
+            button.setStyleSheet("background:transparent;border:none;color:transparent;")
+            return
+        color = "#16a34a" if button.text() == "H" else "#1e3a8a"
+        button.setStyleSheet(
+            f"background:{color};border:none;border-radius:12px;color:white;font-weight:700;"
+        )
+
+    def _toggle_date_display_mode(self):
+        mode = getattr(self.settings, "date_display_mode", "miladi")
+        if mode not in {"miladi", "hicri"}:
+            return
+        self.settings.date_display_mode = "hicri" if mode == "miladi" else "miladi"
+        self.apply_settings()
+        save_settings(self.settings)
+
     def _apply_date_week_style(self, separator_label, number_label, text_label):
         scale = self.settings.global_scale * self.settings.date_scale
         number_size = max(1, int(DATE_BASE_FONT_SIZE * scale * 0.80))
@@ -283,7 +338,8 @@ class WindowSettingsMixin:
 
     def _apply_hicri_date_style(self, label):
         scale = self.settings.global_scale * self.settings.date_scale
-        size = max(1, int(DATE_BASE_FONT_SIZE * scale * 0.55))
+        mode = getattr(self.settings, "date_display_mode", "miladi_hicri")
+        size = max(1, int(DATE_BASE_FONT_SIZE * scale * (1.0 if mode == "hicri" else 0.55)))
         font = QtGui.QFont(self.settings.date_font_family, size)
         label.setFont(font)
         label.setStyleSheet(

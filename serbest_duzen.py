@@ -3,7 +3,7 @@ try:
 except ImportError:
     from PyQt6 import QtCore, QtGui, QtWidgets
 
-from core_settings import DEFAULT_MODULE_ORDER, save_settings
+from core_settings import save_settings
 from log_servisi import log_kaydet
 from pencere_araclari import ekrani_bul
 from serbest_pencere import SerbestSatirPenceresi
@@ -186,8 +186,6 @@ class SerbestDuzenKarishimi:
         self._group_editing = False
         self._free_layout_active = False
         self._hide_free_windows()
-        self.settings.module_order = list(DEFAULT_MODULE_ORDER)
-
         self.apply_settings()
         self.show()
         self.adjustSize()

@@ -2,7 +2,7 @@ try:
     from PySide6 import QtCore, QtGui, QtWidgets
 except ImportError:
     from PyQt6 import QtCore, QtGui, QtWidgets
-from core_settings import PanelSettings, save_settings, load_settings, UYGULAMA_SURUMU, asdict, normalize_module_order
+from core_settings import PanelSettings, save_settings, load_settings, UYGULAMA_SURUMU, asdict
 from utils import set_autostart, resource_path, ICON_FILE, APP_ID
 import sys
 import locale
@@ -213,75 +213,6 @@ class SettingsDialog(QtWidgets.QDialog):
                 items.append({"key": key, "name": name[:7], "color": color})
         self.settings.task_priorities = items or default_task_priorities()
 
-    def _module_order_group(self):
-        group = QtWidgets.QGroupBox("Sıralama")
-        group.setFixedWidth(104)
-        layout = QtWidgets.QVBoxLayout(group)
-        layout.setContentsMargins(6, 6, 6, 6)
-        layout.setSpacing(4)
-        self.lst_module_order = QtWidgets.QListWidget()
-        self.lst_module_order.setFixedSize(90, 70)
-        self.lst_module_order.setSelectionMode(QtWidgets.QAbstractItemView.SelectionMode.SingleSelection)
-        labels = {"battery": "Pil", "time": "Saat", "date": "Tarih"}
-        for key in normalize_module_order(getattr(self.settings, "module_order", [])):
-            item = QtWidgets.QListWidgetItem(labels[key])
-            item.setData(QtCore.Qt.ItemDataRole.UserRole, key)
-            self.lst_module_order.addItem(item)
-        self.lst_module_order.setCurrentRow(0)
-
-        buttons = QtWidgets.QHBoxLayout()
-        buttons.setSpacing(4)
-        self.btn_module_up = QtWidgets.QPushButton()
-        self.btn_module_down = QtWidgets.QPushButton()
-        self.btn_module_up.setIcon(self.style().standardIcon(QtWidgets.QStyle.StandardPixmap.SP_ArrowUp))
-        self.btn_module_down.setIcon(self.style().standardIcon(QtWidgets.QStyle.StandardPixmap.SP_ArrowDown))
-        self.btn_module_up.setToolTip("Yukarı")
-        self.btn_module_down.setToolTip("Aşağı")
-        self.btn_module_up.setFixedSize(28, 24)
-        self.btn_module_down.setFixedSize(28, 24)
-        self.btn_module_up.clicked.connect(lambda: self._move_module_order(-1))
-        self.btn_module_down.clicked.connect(lambda: self._move_module_order(1))
-        buttons.addStretch()
-        buttons.addWidget(self.btn_module_up)
-        buttons.addWidget(self.btn_module_down)
-        buttons.addStretch()
-        layout.addWidget(self.lst_module_order)
-        layout.addLayout(buttons)
-        return group
-
-    def _sync_module_order_from_list(self):
-        if not hasattr(self, "lst_module_order"):
-            return
-        order = []
-        for row in range(self.lst_module_order.count()):
-            order.append(self.lst_module_order.item(row).data(QtCore.Qt.ItemDataRole.UserRole))
-        self.settings.module_order = normalize_module_order(order)
-
-    def _module_order_list_load(self):
-        if not hasattr(self, "lst_module_order"):
-            return
-        labels = {"battery": "Pil", "time": "Saat", "date": "Tarih"}
-        self.lst_module_order.clear()
-        for key in normalize_module_order(getattr(self.settings, "module_order", [])):
-            item = QtWidgets.QListWidgetItem(labels.get(key, key))
-            item.setData(QtCore.Qt.ItemDataRole.UserRole, key)
-            self.lst_module_order.addItem(item)
-        self.lst_module_order.setCurrentRow(0)
-
-    def _move_module_order(self, direction):
-        row = self.lst_module_order.currentRow()
-        target = row + direction
-        if row < 0 or target < 0 or target >= self.lst_module_order.count():
-            return
-        item = self.lst_module_order.takeItem(row)
-        self.lst_module_order.insertItem(target, item)
-        self.lst_module_order.setCurrentRow(target)
-        self._sync_module_order_from_list()
-        self._set_dirty(True)
-        if self.parent():
-            self.parent().apply_settings()
-
-
     def apply_now(self):
         prev_autostart = self.settings.acilista_calistir
         s = self.get_settings()
@@ -342,7 +273,7 @@ class SettingsDialog(QtWidgets.QDialog):
                 "alarm_visible", "reminder_visible",
                 "todo_visible",
                 "global_scale", "quick_actions_icon_size",
-                "quick_actions_icon_spacing", "module_order",
+                "quick_actions_icon_spacing",
             ),
             "Pil": (
                 "battery_visible", "battery_font_family", "battery_color", "battery_bold",
@@ -355,7 +286,7 @@ class SettingsDialog(QtWidgets.QDialog):
             ),
             "Tarih": (
                 "date_visible", "date_format", "date_font_family", "date_color", "date_bold",
-                "date_show_week_number", "date_scale",
+                "date_show_week_number", "date_display_mode", "date_hicri_first", "date_scale",
             ),
         }
         for field_name in fields_by_tab.get(tab_name, ()):
@@ -393,7 +324,6 @@ class SettingsDialog(QtWidgets.QDialog):
             self._set_value_silent(self.spn_scale_value, int(s.global_scale * 100))
             self._set_value_silent(self.spn_quick_icon_size, s.quick_actions_icon_size)
             self._set_value_silent(self.spn_quick_icon_spacing, s.quick_actions_icon_spacing)
-            self._module_order_list_load()
         elif tab_name == "Pil":
             self._set_checked_silent(self.chk_batt_visible, s.battery_visible)
             self._set_checked_silent(self.chk_batt_bold, s.battery_bold)
@@ -419,6 +349,14 @@ class SettingsDialog(QtWidgets.QDialog):
             self._set_checked_silent(self.chk_date_visible, s.date_visible)
             self._set_checked_silent(self.chk_date_bold, s.date_bold)
             self._set_checked_silent(self.chk_date_week_number, s.date_show_week_number)
+            self._set_checked_silent(
+                self.chk_date_hicri_first,
+                getattr(s, "date_hicri_first", False)
+            )
+            self._set_checked_silent(
+                self.chk_date_both,
+                getattr(s, "date_display_mode", "miladi_hicri") == "miladi_hicri"
+            )
             self.txt_date_format.setText(s.date_format)
             self.cmb_date_preset.setCurrentIndex(max(0, self.cmb_date_preset.findData(s.date_format)))
             self.cmb_date_font.setCurrentFont(QtGui.QFont(s.date_font_family))
@@ -655,7 +593,16 @@ class SettingsDialog(QtWidgets.QDialog):
         self._set_dirty(True)
         if self.parent(): self.parent().apply_settings()
 
-    def _apply_date_preview(self, font=None, bold=None, visible=None, format_text=None, week_number=None):
+    def _apply_date_preview(
+        self,
+        font=None,
+        bold=None,
+        visible=None,
+        format_text=None,
+        week_number=None,
+        display_mode=None,
+        hicri_first=None,
+    ):
         if font is not None: self.settings.date_font_family = font
         if bold is not None: self.settings.date_bold = bold
         if visible is not None: self.settings.date_visible = visible
@@ -666,6 +613,10 @@ class SettingsDialog(QtWidgets.QDialog):
             else:
                 self.txt_date_format.setStyleSheet("border: 1px solid #cc0000;")
         if week_number is not None: self.settings.date_show_week_number = week_number
+        if display_mode in {"miladi", "hicri", "miladi_hicri"}:
+            self.settings.date_display_mode = display_mode
+        if hicri_first is not None:
+            self.settings.date_hicri_first = hicri_first
         self._set_dirty(True)
         if self.parent(): self.parent().apply_settings()
 
@@ -731,12 +682,17 @@ class SettingsDialog(QtWidgets.QDialog):
                 QtWidgets.QMessageBox.warning(self, "Tarih Formatı", "Geçersiz tarih formatı kaydedilmedi.")
         if hasattr(self, "chk_date_week_number"):
             self.settings.date_show_week_number = self.chk_date_week_number.isChecked()
+        if hasattr(self, "chk_date_both"):
+            if self.chk_date_both.isChecked():
+                self.settings.date_display_mode = "miladi_hicri"
+            elif getattr(self.settings, "date_display_mode", "miladi") not in {"miladi", "hicri"}:
+                self.settings.date_display_mode = "miladi"
+        if hasattr(self, "chk_date_hicri_first"):
+            self.settings.date_hicri_first = self.chk_date_hicri_first.isChecked()
         if hasattr(self, "cmb_language"):
             self.settings.language = self.cmb_language.currentData() or "tr"
         if hasattr(self, "tbl_task_priorities"):
             self._sync_task_priorities_from_table()
-        if hasattr(self, "lst_module_order"):
-            self._sync_module_order_from_list()
         return self.settings
 
 

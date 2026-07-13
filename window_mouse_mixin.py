@@ -7,6 +7,14 @@ from core_settings import save_settings
 
 
 class WindowMouseMixin:
+    def _update_date_switch_hover(self, pos):
+        button = getattr(self, "date_switch_button", None)
+        if button is None or not button.isVisible():
+            return
+        top_left = button.mapTo(self, QtCore.QPoint(0, 0))
+        rect = QtCore.QRect(top_left, button.size())
+        self._set_date_switch_style(button, rect.contains(pos))
+
     def _group_widget_at(self, pos):
         canvas_pos = self.group_canvas.mapFrom(self, pos)
         modules = (self.battery_row, self.time_label, self.date_container)
@@ -48,6 +56,15 @@ class WindowMouseMixin:
         self.group_canvas.setFixedSize(right, bottom)
 
     def mousePressEvent(self, e):
+        if (
+            e.button() == QtCore.Qt.MouseButton.LeftButton
+            and getattr(self, "date_switch_button", None) is not None
+            and self.date_switch_button.isVisible()
+        ):
+            top_left = self.date_switch_button.mapTo(self, QtCore.QPoint(0, 0))
+            if QtCore.QRect(top_left, self.date_switch_button.size()).contains(e.position().toPoint()):
+                self._toggle_date_display_mode()
+                return
         if self.settings.settings_locked:
             return
         if e.button() == QtCore.Qt.MouseButton.LeftButton:
@@ -65,6 +82,7 @@ class WindowMouseMixin:
             self.drag_pos = e.globalPosition().toPoint() - self.frameGeometry().topLeft()
 
     def mouseMoveEvent(self, e):
+        self._update_date_switch_hover(e.position().toPoint())
         if self.settings.settings_locked:
             return
         if self._group_drag:

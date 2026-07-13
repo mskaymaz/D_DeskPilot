@@ -3,22 +3,9 @@ import json
 import os
 import shutil
 
-MODULE_ORDER_KEYS = ("battery", "time", "date")
-DEFAULT_MODULE_ORDER = list(MODULE_ORDER_KEYS)
 TIME_BASE_FONT_SIZE = 30
 DATE_BASE_FONT_SIZE = 30
 BATTERY_BASE_FONT_SIZE = 30
-
-
-def normalize_module_order(order):
-    result = []
-    for key in order if isinstance(order, list) else []:
-        if key in MODULE_ORDER_KEYS and key not in result:
-            result.append(key)
-    for key in MODULE_ORDER_KEYS:
-        if key not in result:
-            result.append(key)
-    return result
 
 from utils import APP_DATA_DIR, SETTINGS_FILE, log_kaydet
 
@@ -55,6 +42,8 @@ class PanelSettings:
     date_color: str = "#000000"
     date_bold: bool = False
     date_show_week_number: bool = False
+    date_display_mode: str = "miladi_hicri"
+    date_hicri_first: bool = False
 
     battery_visible: bool = True
     battery_font_family: str = "Segoe UI"
@@ -94,8 +83,6 @@ class PanelSettings:
     spacing_battery_date_hidden_offset: int = 0
     quick_actions_icon_size: int = 38
     quick_actions_icon_spacing: int = 2
-    module_order: list = field(default_factory=lambda: list(DEFAULT_MODULE_ORDER))
-
     coklu_monitor_modu: bool = True # Task 7.4: Modülleri farklı ekranlara dağıtma izni
 
     # --- Ayrı seffafliklar ---
@@ -219,8 +206,9 @@ def _validated_settings_data(data):
         elif key == "time_format_mode":
             if value in {"24h", "12h_ampm", "12h_plain"}:
                 clean[key] = value
-        elif key == "module_order":
-            clean[key] = normalize_module_order(value)
+        elif key == "date_display_mode":
+            if value in {"miladi", "hicri", "miladi_hicri"}:
+                clean[key] = value
         elif isinstance(default, str):
             if isinstance(value, str):
                 clean[key] = value
@@ -230,7 +218,6 @@ def _validated_settings_data(data):
         else:
             clean[key] = value
 
-    clean["module_order"] = normalize_module_order(clean.get("module_order"))
     if clean.get("free_layout_enabled") and clean.get("group_locked"):
         clean["free_layout_enabled"] = False
     return clean

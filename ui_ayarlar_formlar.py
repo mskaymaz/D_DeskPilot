@@ -129,13 +129,7 @@ class AyarFormlari:
         checkbox_col.addWidget(dialog.chk_free_layout)
         checkbox_col.addWidget(dialog.chk_group_locked)
         checkbox_col.addWidget(dialog.chk_multi_mon)
-        checkbox_row = QtWidgets.QHBoxLayout()
-        checkbox_row.setContentsMargins(0, 0, 0, 0)
-        checkbox_row.setSpacing(10)
-        checkbox_row.addLayout(checkbox_col)
-        checkbox_row.addWidget(dialog._module_order_group(), 0, QtCore.Qt.AlignmentFlag.AlignTop)
-        checkbox_row.addStretch()
-        f.addRow(checkbox_row)
+        f.addRow(checkbox_col)
         
         opacity_row = QtWidgets.QHBoxLayout()
         opacity_row.addWidget(dialog.sld_opacity)
@@ -310,6 +304,16 @@ class AyarFormlari:
         dialog.chk_date_visible.setChecked(ayarlar.date_visible)
         dialog.chk_date_visible.toggled.connect(lambda v: dialog._apply_date_preview(visible=v))
 
+        dialog.chk_date_both = QtWidgets.QCheckBox("Miladi + Hicri göster")
+        dialog.chk_date_both.setChecked(
+            getattr(ayarlar, "date_display_mode", "miladi_hicri") == "miladi_hicri"
+        )
+        dialog.chk_date_both.toggled.connect(
+            lambda v: dialog._apply_date_preview(
+                display_mode="miladi_hicri" if v else "miladi"
+            )
+        )
+
         date_presets = [
             ("Özel", ""),
             ("Kısa gün + kısa ay", "g a y, h"),
@@ -364,10 +368,17 @@ class AyarFormlari:
         dialog.chk_date_week_number.setChecked(getattr(ayarlar, "date_show_week_number", False))
         dialog.chk_date_week_number.toggled.connect(lambda v: dialog._apply_date_preview(week_number=v))
 
+        dialog.chk_date_hicri_first = QtWidgets.QCheckBox("Hicri tarihi \u00f6nce g\u00f6ster")
+        dialog.chk_date_hicri_first.setChecked(getattr(ayarlar, "date_hicri_first", False))
+        dialog.chk_date_hicri_first.toggled.connect(
+            lambda v: dialog._apply_date_preview(hicri_first=v)
+        )
         f.addRow(dialog.chk_date_visible)
+        f.addRow(dialog.chk_date_both)
         f.addRow("Hazır format", dialog.cmb_date_preset)
         f.addRow("Format", dialog.txt_date_format)
         f.addRow(dialog.chk_date_week_number)
+        f.addRow(dialog.chk_date_hicri_first)
         f.addRow("Font", dialog.cmb_date_font)
         f.addRow("Renk", dialog.btn_date_color)
         f.addRow(dialog.chk_date_bold)
