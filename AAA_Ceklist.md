@@ -96,7 +96,7 @@ Teknik Terimler Sözlüğü
 - [ ] Özel günleri vurgulama (Resmî ve dinî günler)
 - [ ] Bugünün anlamlı günü bilgisi (isteğe bağlı)
 
- *********** Modüller arası boşluklar düzelmedi yarım kaldı *************
+
 Tarih format/preset ayarları: gün adı, ay kısa/uzun, hafta no opsiyonu.
 Hicri tarih hesaplama servisi. (Temel olarak yapıldı, görsel ayarlar kaldı)
 Tarih gösterim modu: sadece Miladi / sadece Hicri / Miladi+Hicri.
@@ -112,10 +112,10 @@ Hicri/Miladi sıralama ve H/M geçiş düğmesi.
 
 # 4. Pil Modülü
 
-- [ ] Pil yüzdesi
-- [ ] Şarj durumu
+- [x] Pil yüzdesi
+- [x] Şarj durumu
 - [ ] Şarj oluyor / Dolu / Pilde çalışıyor bilgisi
-- [ ] Düşük pil bildirimi
+- [x] Düşük pil bildirimi
 - [ ] Kritik pil uyarısı
 - [ ] Tam şarj bildirimi
 - [ ] Şarj kablosu takıldı / çıkarıldı bildirimi
@@ -125,13 +125,13 @@ Hicri/Miladi sıralama ve H/M geçiş düğmesi.
 - [ ] Pil yüzdesini göster / gizle
 - [ ] Pil durum metnini göster / gizle
 - [ ] Bildirim seviyelerini kullanıcı belirleyebilsin
-- [ ] Sessiz mod desteği
+- [x ] Sessiz mod desteği
 - [ ] Pil bilgisi okunamıyorsa güvenli durum gösterimi
-- [ ] Dizüstü / Masaüstü uyumluluğu
-- [ ] Serbest konumlandırma
-- [ ] Yazı tipi seçimi
-- [ ] Yazı boyutu
-- [ ] Yazı rengi ve biçimi
+- [x] Dizüstü / Masaüstü uyumluluğu
+- [x] Serbest konumlandırma
+- [x] Yazı tipi seçimi
+- [x] Yazı boyutu
+- [x] Yazı rengi ve biçimi
 
 ### V2+
 
@@ -597,3 +597,5 @@ Araç Muayenesi  5 gün geçti gibi
 - [2] Benchmark (Performans karşılaştırma testleri.)
 
 Not: Alarm kısmı bitti.
+
+Not: Pil modülünde pil yüzdesi ve “Şarj oluyor / Dolu / Pilde çalışıyor” bilgisi tamamlandı. Sıradaki eko tek adım: Düşük pil bildirimi.

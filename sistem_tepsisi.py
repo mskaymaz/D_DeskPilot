@@ -66,6 +66,10 @@ class SistemTepsisi(QtWidgets.QSystemTrayIcon):
                 self.ana_pencere.show()
 
     def ozet_guncelle(self, pil_yuzdesi, sarjda, sonraki_hatirlatici_metni):
-        sarj_durumu = "(\u015earjda)" if sarjda else ""
+        sarj_durumu = (
+            "Dolu" if sarjda and pil_yuzdesi >= 100
+            else "\u015earj oluyor" if sarjda
+            else "Pilde \u00e7al\u0131\u015f\u0131yor"
+        )
         hatirlatici_bilgi = f"\nSonraki: {sonraki_hatirlatici_metni}" if sonraki_hatirlatici_metni else ""
-        self.setToolTip(f"DeskPilot\nPil: %{pil_yuzdesi} {sarj_durumu}{hatirlatici_bilgi}")
+        self.setToolTip(f"DeskPilot\nPil: %{pil_yuzdesi} ({sarj_durumu}){hatirlatici_bilgi}")

@@ -121,7 +121,7 @@ class PencereGuncellemeKarishimi:
             log_kaydet("Şarj durumu değişti.")
 
         sarj_ikonu = "⚡" if pil_verisi.sarjda else ""
-        batt_text = f"Pil: {pil_verisi.yuzde}%"
+        batt_text = f"Pil: {pil_verisi.yuzde}% ({pil_verisi.sarj_durum_metni})"
         
         self.battery_label.setText(batt_text)
         self.battery_icon_label.setText(sarj_ikonu)

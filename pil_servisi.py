@@ -29,11 +29,18 @@ class PilServisi:
             elif yuzde <= self.dusuk_esik:
                 durum = "Dusuk"
 
+            sarj_durum_metni = (
+                "Dolu" if sarjda and yuzde >= 100
+                else "\u015earj oluyor" if sarjda
+                else "Pilde \u00e7al\u0131\u015f\u0131yor"
+            )
+
             return PilDurumu(
                 yuzde=yuzde,
                 sarjda=sarjda,
                 durum_metni=durum,
                 zaman_damgasi=datetime.now(),
+                sarj_durum_metni=sarj_durum_metni,
                 kalan_sure=pil.secsleft if pil.secsleft != psutil.POWER_TIME_UNLIMITED else None
             )
         except Exception as e:
