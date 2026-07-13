@@ -287,6 +287,7 @@ class SettingsDialog(QtWidgets.QDialog):
             "Tarih": (
                 "date_visible", "date_format", "date_font_family", "date_color", "date_bold",
                 "date_show_week_number", "date_display_mode", "date_hicri_first", "date_scale",
+                "date_hicri_scale",
             ),
         }
         for field_name in fields_by_tab.get(tab_name, ()):
@@ -363,6 +364,8 @@ class SettingsDialog(QtWidgets.QDialog):
             self.btn_date_color.setText(s.date_color)
             self._set_value_silent(self.sld_date_scale, int(s.date_scale * 100))
             self._set_value_silent(self.spn_date_scale, int(s.date_scale * 100))
+            self._set_value_silent(self.sld_date_hicri_scale, int(s.date_hicri_scale * 100))
+            self._set_value_silent(self.spn_date_hicri_scale, int(s.date_hicri_scale * 100))
 
     def _add_help_link(self, form_layout, extra_widget=None):
         help_btn = QtWidgets.QPushButton("Yardım")

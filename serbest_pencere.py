@@ -57,7 +57,7 @@ class SerbestSatirPenceresi(QtWidgets.QWidget):
             self.hafta_yazi_etiketi = QtWidgets.QLabel("HAFTA", alignment=QtCore.Qt.AlignmentFlag.AlignCenter)
             self.hicri_etiketi = QtWidgets.QLabel(alignment=QtCore.Qt.AlignmentFlag.AlignCenter)
             self.date_switch_button = QtWidgets.QPushButton()
-            self.date_switch_button.setFixedSize(24, 24)
+            self.date_switch_button.setFixedSize(30, 30)
             self.date_switch_button.setFocusPolicy(QtCore.Qt.FocusPolicy.NoFocus)
             self.hafta_ayrac_etiketi.setVisible(False)
             self.hafta_sayi_etiketi.setVisible(False)
@@ -145,10 +145,15 @@ class SerbestSatirPenceresi(QtWidgets.QWidget):
 
     def mouseMoveEvent(self, e):
         button = getattr(self, "date_switch_button", None)
-        if button is not None and button.isVisible():
-            top_left = button.mapTo(self, QtCore.QPoint(0, 0))
-            rect = QtCore.QRect(top_left, button.size())
-            self.kontrolcu._set_date_switch_style(button, rect.contains(e.position().toPoint()))
+        if button is not None:
+            mode = getattr(self.ayarlar, "date_display_mode", "miladi_hicri")
+            inside = (
+                self.ayarlar.date_visible
+                and mode in {"miladi", "hicri"}
+                and self.icerik.rect().contains(e.position().toPoint())
+            )
+            button.setVisible(self.ayarlar.date_visible and mode in {"miladi", "hicri"})
+            self.kontrolcu._set_date_switch_style(button, inside)
         if self.ayarlar.settings_locked: return
         if not self.surukleme_konumu:
             hit_rect = self.quick_actions.hit_rect_for_widget(self.icerik)

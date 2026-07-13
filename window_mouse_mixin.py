@@ -9,11 +9,17 @@ from core_settings import save_settings
 class WindowMouseMixin:
     def _update_date_switch_hover(self, pos):
         button = getattr(self, "date_switch_button", None)
-        if button is None or not button.isVisible():
+        if button is None:
             return
-        top_left = button.mapTo(self, QtCore.QPoint(0, 0))
-        rect = QtCore.QRect(top_left, button.size())
-        self._set_date_switch_style(button, rect.contains(pos))
+        mode = getattr(self.settings, "date_display_mode", "miladi_hicri")
+        if not self.settings.date_visible or mode not in {"miladi", "hicri"}:
+            button.setVisible(False)
+            return
+        button.setVisible(True)
+        top_left = self.date_container.mapTo(self, QtCore.QPoint(0, 0))
+        date_rect = QtCore.QRect(top_left, self.date_container.size())
+        inside = date_rect.contains(pos)
+        self._set_date_switch_style(button, inside)
 
     def _group_widget_at(self, pos):
         canvas_pos = self.group_canvas.mapFrom(self, pos)

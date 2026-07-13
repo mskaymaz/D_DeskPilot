@@ -72,6 +72,7 @@ class PanelSettings:
     global_scale: float = 1.0      # Task 6.3: Genel ölçeklendirme çarpanı
     time_scale: float = 1.0        # Bağımsız saat ölçeği
     date_scale: float = 1.0        # Bağımsız tarih ölçeği
+    date_hicri_scale: float = 1.0  # Bağımsız Hicri tarih ölçeği
     battery_scale: float = 1.0     # Bağımsız pil ölçeği
 
     # --- Ayrı dikey boşluklar ---
@@ -179,6 +180,7 @@ def _validated_settings_data(data):
         "global_scale": (0.5, 2.5),
         "time_scale": (0.5, 3.0),
         "date_scale": (0.5, 3.0),
+        "date_hicri_scale": (0.5, 3.0),
         "battery_scale": (0.5, 3.0),
         "time_seconds_scale": (0.3, 1.0),
     }

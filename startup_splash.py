@@ -9,7 +9,7 @@ from utils import resource_path
 class StartupSplash(QtWidgets.QWidget):
     """MSKLabs ve DeskPilot logolarını kısa bir başlangıç geçişiyle gösterir."""
 
-    LOGO_MAX_SIZE = 440
+    LOGO_MAX_SIZE = 442  # 520 px panelin yaklaşık %85'i
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -36,9 +36,9 @@ class StartupSplash(QtWidgets.QWidget):
             label.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
             label.setGeometry(self._logo_stack.rect())
 
-        self._msk_label.setPixmap(self._logo_pixmap("img/logos/MSKLabsLogo.svg"))
+        self._msk_label.setPixmap(self._logo_pixmap("img/logos/MSKLabsLogoSml.svg"))
         self._deskpilot_label.setPixmap(
-            self._logo_pixmap("img/logos/DeskPilot logo transparent.png")
+            self._logo_pixmap("img/logos/DeskPilotLogo.svg")
         )
 
         layout = QtWidgets.QVBoxLayout(self)

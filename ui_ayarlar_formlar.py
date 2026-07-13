@@ -15,10 +15,10 @@ class AyarFormlari:
         self.dialog = dialog
         self.ayarlar = ayarlar
 
-    def _birim_olcek_grubu(self, hedef_tur, baslik):
+    def _birim_olcek_grubu(self, hedef_tur, baslik, grup_basligi=None):
         dialog = self.dialog
         deger = int(float(getattr(self.ayarlar, f"{hedef_tur}_scale", 1.0)) * 100)
-        grup = QtWidgets.QGroupBox(f"{baslik} büyütme")
+        grup = QtWidgets.QGroupBox(grup_basligi or f"{baslik} büyütme")
         grup_layout = QtWidgets.QHBoxLayout(grup)
         grup_layout.setContentsMargins(10, 8, 10, 8)
         grup_layout.setSpacing(8)
@@ -382,9 +382,16 @@ class AyarFormlari:
         f.addRow("Font", dialog.cmb_date_font)
         f.addRow("Renk", dialog.btn_date_color)
         f.addRow(dialog.chk_date_bold)
-        date_scale_group = self._birim_olcek_grubu("date", "Tarih")
+        date_scale_group = self._birim_olcek_grubu(
+            "date", "Miladi Tarih", "Miladi Tarih Boyutlandırma"
+        )
         date_scale_group.setMaximumWidth(180)
         f.addRow(date_scale_group)
+        date_hicri_scale_group = self._birim_olcek_grubu(
+            "date_hicri", "Hicri Tarih", "Hicri Tarih Boyutlandırma"
+        )
+        date_hicri_scale_group.setMaximumWidth(180)
+        f.addRow(date_hicri_scale_group)
         
         dialog._add_help_link(f)
         return w

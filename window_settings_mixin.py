@@ -290,11 +290,12 @@ class WindowSettingsMixin:
 
     def _set_date_switch_style(self, button, hovered):
         if not hovered:
-            button.setStyleSheet("background:transparent;border:none;color:transparent;")
+            button.setStyleSheet("background:transparent;border:none;color:transparent;font-size:14px;")
             return
         color = "#16a34a" if button.text() == "H" else "#1e3a8a"
+        background = color if hovered else ("rgba(22,163,74,150)" if button.text() == "H" else "rgba(30,58,138,150)")
         button.setStyleSheet(
-            f"background:{color};border:none;border-radius:12px;color:white;font-weight:700;"
+            f"background:{background};border:none;border-radius:15px;color:white;font-weight:700;font-size:14px;"
         )
 
     def _toggle_date_display_mode(self):
@@ -337,10 +338,11 @@ class WindowSettingsMixin:
             label.setVisible(self.settings.date_visible and getattr(self.settings, "date_show_week_number", False))
 
     def _apply_hicri_date_style(self, label):
-        scale = self.settings.global_scale * self.settings.date_scale
+        scale = self.settings.global_scale * self.settings.date_hicri_scale
         mode = getattr(self.settings, "date_display_mode", "miladi_hicri")
         size = max(1, int(DATE_BASE_FONT_SIZE * scale * (1.0 if mode == "hicri" else 0.55)))
         font = QtGui.QFont(self.settings.date_font_family, size)
+        font.setBold(self.settings.date_bold)
         label.setFont(font)
         label.setStyleSheet(
             f"color:{self.settings.date_color};"

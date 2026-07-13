@@ -46,7 +46,7 @@ class WindowInitMixin:
         self.date_week_text_label = QtWidgets.QLabel("HAFTA", alignment=QtCore.Qt.AlignmentFlag.AlignCenter)
         self.hicri_date_label = QtWidgets.QLabel(alignment=QtCore.Qt.AlignmentFlag.AlignCenter)
         self.date_switch_button = QtWidgets.QPushButton()
-        self.date_switch_button.setFixedSize(24, 24)
+        self.date_switch_button.setFixedSize(30, 30)
         self.date_switch_button.setFocusPolicy(QtCore.Qt.FocusPolicy.NoFocus)
         self.date_switch_button.setAttribute(QtCore.Qt.WidgetAttribute.WA_TransparentForMouseEvents)
         self.date_week_separator_label.setVisible(False)
