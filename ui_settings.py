@@ -268,7 +268,8 @@ class SettingsDialog(QtWidgets.QDialog):
         tab_name = self.tabs.tabText(self.tabs.currentIndex())
         fields_by_tab = {
             "Genel": (
-                "language", "seffaflik", "her_zaman_ustte", "acilista_calistir", "sessiz_mod",
+                "language", "seffaflik", "her_zaman_ustte", "acilista_calistir",
+                "acilis_animasyonu_goster", "sessiz_mod",
                 "free_layout_enabled", "group_locked", "coklu_monitor_modu",
                 "alarm_visible", "reminder_visible",
                 "todo_visible",
@@ -312,6 +313,7 @@ class SettingsDialog(QtWidgets.QDialog):
         if tab_name == "Genel":
             self._set_checked_silent(self.chk_top, s.her_zaman_ustte)
             self._set_checked_silent(self.chk_autostart, s.acilista_calistir)
+            self._set_checked_silent(self.chk_startup_animation, s.acilis_animasyonu_goster)
             self._set_checked_silent(self.chk_silent, s.sessiz_mod)
             self._set_checked_silent(self.chk_free_layout, s.free_layout_enabled)
             self._set_checked_silent(self.chk_group_locked, s.group_locked)
@@ -692,6 +694,8 @@ class SettingsDialog(QtWidgets.QDialog):
                 self.settings.date_display_mode = "miladi"
         if hasattr(self, "chk_date_hicri_first"):
             self.settings.date_hicri_first = self.chk_date_hicri_first.isChecked()
+        if hasattr(self, "chk_startup_animation"):
+            self.settings.acilis_animasyonu_goster = self.chk_startup_animation.isChecked()
         if hasattr(self, "cmb_language"):
             self.settings.language = self.cmb_language.currentData() or "tr"
         if hasattr(self, "tbl_task_priorities"):

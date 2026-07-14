@@ -1,6 +1,6 @@
 import time
 from datetime import datetime, timedelta
-from PySide6 import QtCore, QtGui, QtWidgets
+from PySide6 import QtCore, QtGui, QtSvg, QtWidgets
 from core_settings import TIME_BASE_FONT_SIZE
 from log_servisi import log_kaydet
 from hicri_tarih_servisi import miladi_tarihten_hicriye
@@ -9,6 +9,15 @@ try:
     import winsound
 except ImportError:
     winsound = None
+
+
+BATTERY_ICON_PATHS = (
+    "M320-80q-17 0-28.5-11.5T280-120v-640q0-17 11.5-28.5T320-800h80v-80h160v80h80q17 0 28.5 11.5T680-760v640q0 17-11.5 28.5T640-80H320Zm40-560h240v-80H360v80Z",
+    "M320-80q-17 0-28.5-11.5T280-120v-640q0-17 11.5-28.5T320-800h80v-80h160v80h80q17 0 28.5 11.5T680-760v640q0 17-11.5 28.5T640-80H320Zm40-480h240v-160H360v160Z",
+    "M320-80q-17 0-28.5-11.5T280-120v-640q0-17 11.5-28.5T320-800h80v-80h160v80h80q17 0 28.5 11.5T680-760v640q0 17-11.5 28.5T640-80H320Zm40-400h240v-240H360v240Z",
+    "M320-80q-17 0-28.5-11.5T280-120v-640q0-17 11.5-28.5T320-800h80v-80h160v80h80q17 0 28.5 11.5T680-760v640q0 17-11.5 28.5T640-80H320Zm40-320h240v-320H360v320Z",
+    "M320-80q-17 0-28.5-11.5T280-120v-640q0-17 11.5-28.5T320-800h80v-80h160v80h80q17 0 28.5 11.5T680-760v640q0 17-11.5 28.5T640-80H320Zm40-240h240v-400H360v400Z",
+)
 
 class PencereGuncellemeKarishimi:
     """
@@ -120,17 +129,25 @@ class PencereGuncellemeKarishimi:
         if self.pil_servisi.sarj_durumu_degisti_mi(pil_verisi.sarjda):
             log_kaydet("Şarj durumu değişti.")
 
-        sarj_ikonu = "⚡" if pil_verisi.sarjda else ""
-        batt_text = f"Pil: {pil_verisi.yuzde}% ({pil_verisi.sarj_durum_metni})"
+        batt_text = f"Pil: {pil_verisi.yuzde}%"
         
         self.battery_label.setText(batt_text)
-        self.battery_icon_label.setText(sarj_ikonu)
-        self.battery_icon_label.setVisible(pil_verisi.sarjda)
+        self.battery_icon_label.setVisible(True)
+        self._set_battery_icon_color(
+            self._battery_icon_color(pil_verisi.yuzde),
+            percentage=pil_verisi.yuzde,
+            charging=pil_verisi.sarjda,
+        )
 
         if self.free_battery_window:
             self.free_battery_window.pil_etiketi.setText(batt_text)
-            self.free_battery_window.pil_ikon_etiketi.setText(sarj_ikonu)
-            self.free_battery_window.pil_ikon_etiketi.setVisible(pil_verisi.sarjda)
+            self.free_battery_window.pil_ikon_etiketi.setVisible(True)
+            self._set_battery_icon_color(
+                self._battery_icon_color(pil_verisi.yuzde),
+                self.free_battery_window.pil_ikon_etiketi,
+                percentage=pil_verisi.yuzde,
+                charging=pil_verisi.sarjda,
+            )
         # Uyarı Mantığı
         full_alert = (self.settings.battery_full_alert_enabled and pil_verisi.sarjda 
                       and pil_verisi.yuzde >= self.settings.battery_full_alert_level)
@@ -376,6 +393,59 @@ class PencereGuncellemeKarishimi:
         self.battery_label.setStyleSheet(style)
         if self.free_battery_window:
             self.free_battery_window.pil_etiketi.setStyleSheet(style)
+
+    def _battery_icon_color(self, percentage):
+        if percentage <= 20:
+            return "#dc2626"
+        if percentage <= 40:
+            return "#f97316"
+        if percentage <= 60:
+            return "#eab308"
+        if percentage <= 85:
+            return "#d4a017"
+        return "#16a34a"
+
+    def _battery_icon_pixmap(self, color, percentage, label):
+        if percentage > 85:
+            icon_index = 0
+        elif percentage > 60:
+            icon_index = 1
+        elif percentage > 40:
+            icon_index = 2
+        elif percentage > 20:
+            icon_index = 3
+        else:
+            icon_index = 4
+        svg = (
+            '<svg xmlns="http://www.w3.org/2000/svg" '
+            'width="24px" height="24px" viewBox="0 -960 960 960">'
+            f'<path fill="{color}" d="{BATTERY_ICON_PATHS[icon_index]}"/>'
+            "</svg>"
+        )
+        renderer = QtSvg.QSvgRenderer(QtCore.QByteArray(svg.encode("utf-8")))
+        size = max(1, int(label.font().pointSizeF() * 1.2))
+        pixmap = QtGui.QPixmap(size, size)
+        pixmap.fill(QtCore.Qt.GlobalColor.transparent)
+        painter = QtGui.QPainter(pixmap)
+        renderer.render(painter)
+        painter.end()
+        return pixmap
+
+    def _set_battery_icon_color(self, color, label=None, percentage=None, charging=False):
+        label = label or self.battery_icon_label
+        if charging:
+            label.setPixmap(QtGui.QPixmap())
+            label.setText("\u26a1")
+            lightning_size = max(1, int(label.font().pointSizeF() * 0.7))
+            label.setStyleSheet(
+                f"color:{color};"
+                f"opacity:{self.settings.battery_opacity};"
+                f"font-size:{lightning_size}pt;"
+                "font-family:'Segoe MDL2 Assets';"
+            )
+            return
+        label.setText("")
+        label.setPixmap(self._battery_icon_pixmap(color, percentage, label))
 
     def _play_batt_alert_sound(self):
         if winsound is None or getattr(self.settings, "sessiz_mod", False):

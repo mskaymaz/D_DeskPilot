@@ -23,6 +23,7 @@ class PanelSettings:
     seffaflik: float = 0.85
     her_zaman_ustte: bool = True
     acilista_calistir: bool = True
+    acilis_animasyonu_goster: bool = False
     sessiz_mod: bool = False # Task 3.3: Sesli uyarilari kapatir
     bildirim_soguma_suresi: int = 60 # Task 3.2: Saniye cinsinden
 

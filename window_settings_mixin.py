@@ -303,8 +303,51 @@ class WindowSettingsMixin:
         if mode not in {"miladi", "hicri"}:
             return
         self.settings.date_display_mode = "hicri" if mode == "miladi" else "miladi"
-        self.apply_settings()
+        self._refresh_date_display_only()
         save_settings(self.settings)
+
+    def _refresh_date_display_only(self):
+        self._apply_hicri_date_style(self.hicri_date_label)
+        self._apply_date_display_mode(
+            self.date_stack_layout,
+            self.date_row,
+            self.date_label,
+            self.hicri_date_label,
+            self.date_switch_button,
+        )
+        self.date_stack_layout.invalidate()
+        self.date_stack.adjustSize()
+        self.date_container.adjustSize()
+        self.date_container.updateGeometry()
+
+        if self.free_date_window:
+            self._apply_hicri_date_style(self.free_date_window.hicri_etiketi)
+            self._apply_date_display_mode(
+                self.free_date_window.date_layout,
+                self.free_date_window.date_row,
+                self.free_date_window.etiket,
+                self.free_date_window.hicri_etiketi,
+                self.free_date_window.date_switch_button,
+            )
+            self.free_date_window.icerik.adjustSize()
+            self.free_date_window.adjustSize()
+            self.free_date_window.updateGeometry()
+
+        self._refresh_group_canvas_bounds()
+        self.main_layout.activate()
+        self.updateGeometry()
+
+    def _refresh_group_canvas_bounds(self):
+        modules = (
+            (self.battery_row, self.settings.battery_visible),
+            (self.time_label, self.settings.time_visible),
+            (self.date_container, self.settings.date_visible),
+        )
+        visible = [widget for widget, enabled in modules if enabled]
+        right = max((widget.x() + widget.width() for widget in visible), default=1)
+        bottom = max((widget.y() + widget.height() for widget in visible), default=1)
+        self.group_canvas.setFixedSize(max(1, right), max(1, bottom))
+        self.group_canvas.updateGeometry()
 
     def _apply_date_week_style(self, separator_label, number_label, text_label):
         scale = self.settings.global_scale * self.settings.date_scale
@@ -366,9 +409,10 @@ class WindowSettingsMixin:
         )
         self._lock_label_height(label, size)
 
-        icon_size = max(1.0, float(size) * 0.8)
-        # Use a symbol font to avoid emoji-size overrides
-        bif = QtGui.QFont("Segoe UI Symbol")
+        # The vertical battery SVG needs a little more room than the text.
+        icon_size = max(1.0, float(size) * 1.04)
+        # Use Windows' monochrome icon font so the icon color is controllable.
+        bif = QtGui.QFont("Segoe MDL2 Assets")
         bif.setPointSizeF(icon_size)
         bif.setBold(False)
         icon_label.setFont(bif)
@@ -376,9 +420,12 @@ class WindowSettingsMixin:
             f"color:{self.settings.battery_color};"
             f"opacity:{self.settings.battery_opacity};"
             f"font-size:{icon_size}px;"
-            "font-family:'Segoe UI Symbol';"
+            "font-family:'Segoe MDL2 Assets';"
         )
-        self._lock_label_height(icon_label, int(icon_size))
+        icon_label.setAlignment(
+            QtCore.Qt.AlignmentFlag.AlignHCenter | QtCore.Qt.AlignmentFlag.AlignBottom
+        )
+        icon_label.setFixedHeight(max(1, int(icon_size * 1.25)))
 
     def _refresh_battery_rows(self):
         self.battery_row_layout.invalidate()

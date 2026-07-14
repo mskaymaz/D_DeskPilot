@@ -83,9 +83,15 @@ class WindowInitMixin:
         self.battery_row_layout = QtWidgets.QHBoxLayout(self.battery_row)
         self.battery_row_layout.setContentsMargins(0, 0, 0, 0)
         self.battery_row_layout.setSpacing(4)
-        self.battery_row_layout.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
-        self.battery_row_layout.addWidget(self.battery_label)
-        self.battery_row_layout.addWidget(self.battery_icon_label)
+        self.battery_row_layout.setAlignment(
+            QtCore.Qt.AlignmentFlag.AlignHCenter | QtCore.Qt.AlignmentFlag.AlignBottom
+        )
+        self.battery_row_layout.addWidget(
+            self.battery_label, 0, QtCore.Qt.AlignmentFlag.AlignBottom
+        )
+        self.battery_row_layout.addWidget(
+            self.battery_icon_label, 0, QtCore.Qt.AlignmentFlag.AlignBottom
+        )
 
         self.main_layout = QtWidgets.QVBoxLayout(self)
         self.main_layout.setContentsMargins(0, 0, 0, 0)

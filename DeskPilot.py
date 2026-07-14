@@ -49,9 +49,10 @@ def main():
     load_app_fonts()
     locale.setlocale(locale.LC_TIME, "")
     app.setWindowIcon(QtGui.QIcon(resource_path(ICON_FILE)))
-    show_startup_splash(app)
-
     settings = load_settings()
+    if settings.acilis_animasyonu_goster:
+        show_startup_splash(app)
+
     if core_settings.AYAR_KURTARMA_MESAJI:
         QtWidgets.QMessageBox.warning(None, "Ayar Kurtarma", core_settings.AYAR_KURTARMA_MESAJI)
     if settings.time_font_family in ('', 'Segoe UI', 'Stencil', 'digital7Regular', 'Digital-7'):

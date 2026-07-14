@@ -59,6 +59,10 @@ class AyarFormlari:
         dialog.chk_autostart.setChecked(ayarlar.acilista_calistir)
         dialog.chk_autostart.toggled.connect(lambda _: dialog._set_dirty(True))
 
+        dialog.chk_startup_animation = QtWidgets.QCheckBox("Açılış animasyonunu göster")
+        dialog.chk_startup_animation.setChecked(ayarlar.acilis_animasyonu_goster)
+        dialog.chk_startup_animation.toggled.connect(lambda _: dialog._set_dirty(True))
+
         dialog.chk_silent = QtWidgets.QCheckBox("Sessiz Mod")
         dialog.chk_silent.setChecked(ayarlar.sessiz_mod)
         dialog.chk_silent.toggled.connect(lambda _: dialog._set_dirty(True))
@@ -125,6 +129,7 @@ class AyarFormlari:
         checkbox_col.setSpacing(0)
         checkbox_col.addWidget(dialog.chk_top)
         checkbox_col.addWidget(dialog.chk_autostart)
+        checkbox_col.addWidget(dialog.chk_startup_animation)
         checkbox_col.addWidget(dialog.chk_silent)
         checkbox_col.addWidget(dialog.chk_free_layout)
         checkbox_col.addWidget(dialog.chk_group_locked)

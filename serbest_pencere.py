@@ -46,9 +46,15 @@ class SerbestSatirPenceresi(QtWidgets.QWidget):
             satir_layout = QtWidgets.QHBoxLayout(satir)
             satir_layout.setContentsMargins(0, 0, 0, 0)
             satir_layout.setSpacing(4)
-            satir_layout.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
-            satir_layout.addWidget(self.pil_etiketi)
-            satir_layout.addWidget(self.pil_ikon_etiketi)
+            satir_layout.setAlignment(
+                QtCore.Qt.AlignmentFlag.AlignHCenter | QtCore.Qt.AlignmentFlag.AlignBottom
+            )
+            satir_layout.addWidget(
+                self.pil_etiketi, 0, QtCore.Qt.AlignmentFlag.AlignBottom
+            )
+            satir_layout.addWidget(
+                self.pil_ikon_etiketi, 0, QtCore.Qt.AlignmentFlag.AlignBottom
+            )
             self.icerik = satir
         elif self.tur == "date":
             self.etiket = QtWidgets.QLabel(alignment=QtCore.Qt.AlignmentFlag.AlignCenter)

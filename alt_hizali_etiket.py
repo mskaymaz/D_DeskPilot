@@ -8,6 +8,7 @@ class AltHizaliEtiket(QtWidgets.QLabel):
     def paintEvent(self, event):
         metin = self.text()
         if not metin:
+            super().paintEvent(event)
             return
         painter = QtGui.QPainter(self)
         painter.setFont(self.font())
