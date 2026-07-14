@@ -1,7 +1,7 @@
 import time
 from datetime import datetime, timedelta
 from PySide6 import QtCore, QtGui, QtSvg, QtWidgets
-from core_settings import TIME_BASE_FONT_SIZE
+from core_settings import BATTERY_BASE_FONT_SIZE, TIME_BASE_FONT_SIZE
 from log_servisi import log_kaydet
 from hicri_tarih_servisi import miladi_tarihten_hicriye
 
@@ -423,7 +423,8 @@ class PencereGuncellemeKarishimi:
             "</svg>"
         )
         renderer = QtSvg.QSvgRenderer(QtCore.QByteArray(svg.encode("utf-8")))
-        size = max(1, int(label.font().pointSizeF() * 1.2))
+        scale = self.settings.global_scale * self.settings.battery_scale
+        size = max(1, int(BATTERY_BASE_FONT_SIZE * scale * 1.04 * 1.2))
         pixmap = QtGui.QPixmap(size, size)
         pixmap.fill(QtCore.Qt.GlobalColor.transparent)
         painter = QtGui.QPainter(pixmap)
@@ -436,12 +437,14 @@ class PencereGuncellemeKarishimi:
         if charging:
             label.setPixmap(QtGui.QPixmap())
             label.setText("\u26a1")
-            lightning_size = max(1, int(label.font().pointSizeF() * 0.7))
+            scale = self.settings.global_scale * self.settings.battery_scale
+            lightning_size = max(1, int(BATTERY_BASE_FONT_SIZE * scale * 1.04 * 0.7))
+            lightning_font = QtGui.QFont("Segoe UI Symbol", lightning_size)
+            label.setFont(lightning_font)
             label.setStyleSheet(
                 f"color:{color};"
                 f"opacity:{self.settings.battery_opacity};"
-                f"font-size:{lightning_size}pt;"
-                "font-family:'Segoe MDL2 Assets';"
+                "font-family:'Segoe UI Symbol';"
             )
             return
         label.setText("")

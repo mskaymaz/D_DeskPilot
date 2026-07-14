@@ -411,8 +411,8 @@ class WindowSettingsMixin:
 
         # The vertical battery SVG needs a little more room than the text.
         icon_size = max(1.0, float(size) * 1.04)
-        # Use Windows' monochrome icon font so the icon color is controllable.
-        bif = QtGui.QFont("Segoe MDL2 Assets")
+        # Use a symbol font that contains the Unicode lightning character.
+        bif = QtGui.QFont("Segoe UI Symbol")
         bif.setPointSizeF(icon_size)
         bif.setBold(False)
         icon_label.setFont(bif)
@@ -420,12 +420,15 @@ class WindowSettingsMixin:
             f"color:{self.settings.battery_color};"
             f"opacity:{self.settings.battery_opacity};"
             f"font-size:{icon_size}px;"
-            "font-family:'Segoe MDL2 Assets';"
+            "font-family:'Segoe UI Symbol';"
         )
         icon_label.setAlignment(
             QtCore.Qt.AlignmentFlag.AlignHCenter | QtCore.Qt.AlignmentFlag.AlignBottom
         )
-        icon_label.setFixedHeight(max(1, int(icon_size * 1.25)))
+        icon_label.setFixedSize(
+            max(1, int(icon_size * 1.2)),
+            max(1, int(icon_size * 1.25)),
+        )
 
     def _refresh_battery_rows(self):
         self.battery_row_layout.invalidate()

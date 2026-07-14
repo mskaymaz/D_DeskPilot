@@ -21,7 +21,7 @@ class AyarFormlari:
         grup = QtWidgets.QGroupBox(grup_basligi or f"{baslik} büyütme")
         grup_layout = QtWidgets.QHBoxLayout(grup)
         grup_layout.setContentsMargins(10, 8, 10, 8)
-        grup_layout.setSpacing(8)
+        grup_layout.setSpacing(3)
 
         slider = QtWidgets.QSlider(QtCore.Qt.Orientation.Horizontal)
         slider.setRange(50, 300)
@@ -215,7 +215,7 @@ class AyarFormlari:
         f.addRow("Font", dialog.cmb_batt_font)
         f.addRow(dialog.chk_batt_bold)
         battery_scale_group = self._birim_olcek_grubu("battery", "Pil")
-        battery_scale_group.setMaximumWidth(180)
+        battery_scale_group.setMaximumWidth(240)
         f.addRow(battery_scale_group)
         
         dialog._add_help_link(f)
@@ -292,7 +292,7 @@ class AyarFormlari:
         f.addRow(dialog.chk_sec_visible)
         f.addRow("Renk", dialog.btn_time_color)
         time_scale_group = self._birim_olcek_grubu("time", "Saat")
-        time_scale_group.setMaximumWidth(180)
+        time_scale_group.setMaximumWidth(240)
         f.addRow(time_scale_group)
         
         dialog._add_help_link(f, top_widget)
@@ -390,12 +390,12 @@ class AyarFormlari:
         date_scale_group = self._birim_olcek_grubu(
             "date", "Miladi Tarih", "Miladi Tarih Boyutlandırma"
         )
-        date_scale_group.setMaximumWidth(180)
+        date_scale_group.setMaximumWidth(240)
         f.addRow(date_scale_group)
         date_hicri_scale_group = self._birim_olcek_grubu(
             "date_hicri", "Hicri Tarih", "Hicri Tarih Boyutlandırma"
         )
-        date_hicri_scale_group.setMaximumWidth(180)
+        date_hicri_scale_group.setMaximumWidth(240)
         f.addRow(date_hicri_scale_group)
         
         dialog._add_help_link(f)
