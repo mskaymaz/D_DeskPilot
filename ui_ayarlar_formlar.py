@@ -59,6 +59,11 @@ class AyarFormlari:
         dialog.chk_autostart.setChecked(ayarlar.acilista_calistir)
         dialog.chk_autostart.toggled.connect(lambda _: dialog._set_dirty(True))
 
+        layout_window = QtWidgets.QHBoxLayout()
+        layout_window.setContentsMargins(0, 0, 0, 0)
+        layout_window.addWidget(dialog.chk_top)
+        layout_window.addWidget(dialog.chk_autostart)
+
         dialog.chk_startup_animation = QtWidgets.QCheckBox("Açılış animasyonunu göster")
         dialog.chk_startup_animation.setChecked(ayarlar.acilis_animasyonu_goster)
         dialog.chk_startup_animation.toggled.connect(lambda _: dialog._set_dirty(True))
@@ -67,17 +72,31 @@ class AyarFormlari:
         dialog.chk_silent.setChecked(ayarlar.sessiz_mod)
         dialog.chk_silent.toggled.connect(lambda _: dialog._set_dirty(True))
 
-        dialog.chk_free_layout = QtWidgets.QCheckBox("Modüller Serbest")
-        dialog.chk_free_layout.setChecked(ayarlar.free_layout_enabled)
-        dialog.chk_free_layout.toggled.connect(dialog._apply_free_layout_preview)
+        dialog.chk_tray_notifications = QtWidgets.QCheckBox(
+            "Sistem tepsisi bildirimlerini göster"
+        )
+        dialog.chk_tray_notifications.setChecked(
+            getattr(ayarlar, "tray_notifications_enabled", True)
+        )
+        dialog.chk_tray_notifications.toggled.connect(lambda _: dialog._set_dirty(True))
 
-        dialog.chk_group_locked = QtWidgets.QCheckBox("Grup kilitli")
-        dialog.chk_group_locked.setChecked(ayarlar.group_locked)
-        dialog.chk_group_locked.toggled.connect(dialog._apply_group_lock_preview)
+        ana_pencere = dialog.parent()
+        grouped = not ayarlar.free_layout_enabled
+        group_editing = bool(getattr(ana_pencere, "_group_editing", False))
 
-        dialog.chk_multi_mon = QtWidgets.QCheckBox("Çoklu Monitör Desteği")
-        dialog.chk_multi_mon.setChecked(ayarlar.coklu_monitor_modu)
-        dialog.chk_multi_mon.toggled.connect(lambda _: dialog._set_dirty(True))
+        dialog.chk_group_locked = QtWidgets.QCheckBox("Modülleri Grupla")
+        dialog.chk_group_locked.setChecked(grouped)
+        dialog.chk_group_locked.toggled.connect(dialog._apply_group_mode_preview)
+
+        dialog.chk_group_adjust = QtWidgets.QCheckBox("Modülleri Ayarla")
+        dialog.chk_group_adjust.setChecked(grouped and not group_editing)
+        dialog.chk_group_adjust.setEnabled(grouped)
+        dialog.chk_group_adjust.toggled.connect(dialog._apply_group_adjust_preview)
+
+        layout_modes = QtWidgets.QHBoxLayout()
+        layout_modes.setContentsMargins(0, 0, 0, 0)
+        layout_modes.addWidget(dialog.chk_group_locked)
+        layout_modes.addWidget(dialog.chk_group_adjust)
 
         modul_grubu = QtWidgets.QGroupBox("Modül Görünürlüğü")
         modul_grubu.setMaximumWidth(245)
@@ -127,13 +146,11 @@ class AyarFormlari:
         checkbox_col = QtWidgets.QVBoxLayout()
         checkbox_col.setContentsMargins(0, 0, 0, 0)
         checkbox_col.setSpacing(0)
-        checkbox_col.addWidget(dialog.chk_top)
-        checkbox_col.addWidget(dialog.chk_autostart)
+        checkbox_col.addLayout(layout_window)
         checkbox_col.addWidget(dialog.chk_startup_animation)
         checkbox_col.addWidget(dialog.chk_silent)
-        checkbox_col.addWidget(dialog.chk_free_layout)
-        checkbox_col.addWidget(dialog.chk_group_locked)
-        checkbox_col.addWidget(dialog.chk_multi_mon)
+        checkbox_col.addWidget(dialog.chk_tray_notifications)
+        checkbox_col.addLayout(layout_modes)
         f.addRow(checkbox_col)
         
         opacity_row = QtWidgets.QHBoxLayout()

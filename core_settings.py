@@ -25,6 +25,7 @@ class PanelSettings:
     acilista_calistir: bool = True
     acilis_animasyonu_goster: bool = False
     sessiz_mod: bool = False # Task 3.3: Sesli uyarilari kapatir
+    tray_notifications_enabled: bool = True
     bildirim_soguma_suresi: int = 60 # Task 3.2: Saniye cinsinden
 
     time_visible: bool = True
@@ -221,6 +222,7 @@ def _validated_settings_data(data):
         else:
             clean[key] = value
 
+    clean["coklu_monitor_modu"] = True
     if clean.get("free_layout_enabled") and clean.get("group_locked"):
         clean["free_layout_enabled"] = False
     return clean

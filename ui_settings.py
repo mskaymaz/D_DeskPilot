@@ -269,8 +269,8 @@ class SettingsDialog(QtWidgets.QDialog):
         fields_by_tab = {
             "Genel": (
                 "language", "seffaflik", "her_zaman_ustte", "acilista_calistir",
-                "acilis_animasyonu_goster", "sessiz_mod",
-                "free_layout_enabled", "group_locked", "coklu_monitor_modu",
+                "acilis_animasyonu_goster", "sessiz_mod", "tray_notifications_enabled",
+                "free_layout_enabled", "group_locked",
                 "alarm_visible", "reminder_visible",
                 "todo_visible",
                 "global_scale", "quick_actions_icon_size",
@@ -315,9 +315,15 @@ class SettingsDialog(QtWidgets.QDialog):
             self._set_checked_silent(self.chk_autostart, s.acilista_calistir)
             self._set_checked_silent(self.chk_startup_animation, s.acilis_animasyonu_goster)
             self._set_checked_silent(self.chk_silent, s.sessiz_mod)
-            self._set_checked_silent(self.chk_free_layout, s.free_layout_enabled)
-            self._set_checked_silent(self.chk_group_locked, s.group_locked)
-            self._set_checked_silent(self.chk_multi_mon, s.coklu_monitor_modu)
+            self._set_checked_silent(
+                self.chk_tray_notifications,
+                getattr(s, "tray_notifications_enabled", True),
+            )
+            grouped = not s.free_layout_enabled
+            group_editing = bool(getattr(self.parent(), "_group_editing", False))
+            self._set_checked_silent(self.chk_group_locked, grouped)
+            self._set_checked_silent(self.chk_group_adjust, grouped and not group_editing)
+            self.chk_group_adjust.setEnabled(grouped)
             self._set_checked_silent(self.chk_alarm_visible, s.alarm_visible)
             self._set_checked_silent(self.chk_reminder_visible, s.reminder_visible)
             self._set_checked_silent(self.chk_todo_visible, s.todo_visible)
@@ -417,8 +423,8 @@ class SettingsDialog(QtWidgets.QDialog):
                 "Genel ayarlar (sırasıyla):\n"
                 "- Her zaman üstte: Pencerenin diğer uygulamaların üstünde kalmasını sağlar.\n"
                 "- Açılışta çalıştır: Uygulama Windows açılışında otomatik başlar.\n"
-                "- Grup kilitli: Modüller kaydedilmiş grup konumlarını korur ve birlikte taşınır.\n"
-                "- Modüller Serbest: Modüller kayıtlı bağımsız konumlarında ayrı ayrı taşınır.\n"
+                "- Modülleri Grupla: Modüller kaydedilmiş grup konumlarını korur ve birlikte taşınır.\n"
+                "- Modülleri Ayarla: Modüller kayıtlı bağımsız konumlarında ayrı ayrı taşınır.\n"
                 "- Grup kilidi kapalıyken: Modül üzerine gelerek modülü yeniden konumlandırabilirsiniz.\n"
                 "- Şeffaflık (%): Tüm satırların saydamlık seviyesini ayarlar.\n"
                 "- Hover ikon boyutu ve aralığı: Hızlı işlem simgelerinin görünümünü ayarlar."
@@ -551,18 +557,26 @@ class SettingsDialog(QtWidgets.QDialog):
         self._set_dirty(True)
         if self.parent(): self.parent().apply_settings()
 
-    def _apply_free_layout_preview(self, value):
+    def _sync_group_mode_widgets(self):
+        grouped = not self.settings.free_layout_enabled
+        group_editing = bool(getattr(self.parent(), "_group_editing", False))
+        self._set_checked_silent(self.chk_group_locked, grouped)
+        self._set_checked_silent(self.chk_group_adjust, grouped and not group_editing)
+        self.chk_group_adjust.setEnabled(grouped)
+
+    def _apply_group_mode_preview(self, value):
         if self.parent():
             if value:
-                self.parent().enter_free_modules_mode()
-            else:
                 self.parent().restore_grouped_mode()
-            self._set_checked_silent(self.chk_group_locked, self.settings.group_locked)
+            else:
+                self.parent().enter_free_modules_mode()
         else:
-            self.settings.free_layout_enabled = bool(value)
+            self.settings.free_layout_enabled = not bool(value)
+            self.settings.group_locked = bool(value)
+        self._sync_group_mode_widgets()
         self._set_dirty(True)
 
-    def _apply_group_lock_preview(self, value):
+    def _apply_group_adjust_preview(self, value):
         if self.parent():
             if value:
                 self.parent().lock_group_layout()
@@ -570,8 +584,7 @@ class SettingsDialog(QtWidgets.QDialog):
                 self.parent().enter_group_edit_mode()
         else:
             self.settings.group_locked = bool(value)
-        if self.parent():
-            self._set_checked_silent(self.chk_free_layout, self.settings.free_layout_enabled)
+        self._sync_group_mode_widgets()
         self._set_dirty(True)
 
     def _apply_opacity_preview(self, value):
@@ -696,6 +709,8 @@ class SettingsDialog(QtWidgets.QDialog):
             self.settings.date_hicri_first = self.chk_date_hicri_first.isChecked()
         if hasattr(self, "chk_startup_animation"):
             self.settings.acilis_animasyonu_goster = self.chk_startup_animation.isChecked()
+        if hasattr(self, "chk_tray_notifications"):
+            self.settings.tray_notifications_enabled = self.chk_tray_notifications.isChecked()
         if hasattr(self, "cmb_language"):
             self.settings.language = self.cmb_language.currentData() or "tr"
         if hasattr(self, "tbl_task_priorities"):

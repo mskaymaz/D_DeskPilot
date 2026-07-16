@@ -1,5 +1,6 @@
 from PySide6 import QtCore, QtGui, QtWidgets
 from utils import resource_path, ICON_FILE
+from pil_servisi import pil_yuzdesini_formatla
 
 
 class SistemTepsisi(QtWidgets.QSystemTrayIcon):
@@ -66,10 +67,7 @@ class SistemTepsisi(QtWidgets.QSystemTrayIcon):
                 self.ana_pencere.show()
 
     def ozet_guncelle(self, pil_yuzdesi, sarjda, sonraki_hatirlatici_metni):
-        sarj_durumu = (
-            "Dolu" if sarjda and pil_yuzdesi >= 100
-            else "\u015earj oluyor" if sarjda
-            else "Pilde \u00e7al\u0131\u015f\u0131yor"
-        )
         hatirlatici_bilgi = f"\nSonraki: {sonraki_hatirlatici_metni}" if sonraki_hatirlatici_metni else ""
-        self.setToolTip(f"DeskPilot\nPil: %{pil_yuzdesi} ({sarj_durumu}){hatirlatici_bilgi}")
+        dil = getattr(self.ana_pencere.settings, "language", "tr")
+        yuzde_metni = pil_yuzdesini_formatla(pil_yuzdesi, dil)
+        self.setToolTip(f"DeskPilot\nPil: {yuzde_metni}{hatirlatici_bilgi}")

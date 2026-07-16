@@ -231,3 +231,9 @@ class QuickActionsPanel(QtWidgets.QFrame):
 
     def delayed_hide(self):
         self._hide_timer.start(500)
+
+    def hide_for_owner_move(self):
+        self._hide_timer.stop()
+        self._last_anchor_pos = None
+        self.show_hit_rects([])
+        self.hide()

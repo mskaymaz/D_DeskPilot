@@ -114,10 +114,10 @@ Hicri/Miladi sıralama ve H/M geçiş düğmesi.
 
 - [x] Pil yüzdesi
 - [x] Şarj durumu
-- [ ] Şarj oluyor / Dolu / Pilde çalışıyor bilgisi
+- [x] Şarj oluyor / Dolu / Pilde çalışıyor bilgisi
 - [x] Düşük pil bildirimi
-- [ ] Kritik pil uyarısı
-- [ ] Tam şarj bildirimi
+- [X] Kritik pil uyarısı
+- [x] Tam şarj bildirimi
 - [ ] Şarj kablosu takıldı / çıkarıldı bildirimi
 - [ ] Kalan tahmini kullanım süresi
 - [ ] Tam doluma kalan tahmini süre

@@ -4,6 +4,7 @@ from PySide6 import QtCore, QtGui, QtSvg, QtWidgets
 from core_settings import BATTERY_BASE_FONT_SIZE, TIME_BASE_FONT_SIZE
 from log_servisi import log_kaydet
 from hicri_tarih_servisi import miladi_tarihten_hicriye
+from pil_servisi import pil_yuzdesini_formatla
 
 try:
     import winsound
@@ -129,7 +130,11 @@ class PencereGuncellemeKarishimi:
         if self.pil_servisi.sarj_durumu_degisti_mi(pil_verisi.sarjda):
             log_kaydet("Şarj durumu değişti.")
 
-        batt_text = f"Pil: {pil_verisi.yuzde}%"
+        yuzde_metni = pil_yuzdesini_formatla(
+            pil_verisi.yuzde,
+            getattr(self.settings, "language", "tr"),
+        )
+        batt_text = f"Pil: {yuzde_metni}"
         
         self.battery_label.setText(batt_text)
         self.battery_icon_label.setVisible(True)
@@ -159,10 +164,24 @@ class PencereGuncellemeKarishimi:
             if now_ts - self._last_full_batt_alert_ts >= interval:
                 self._play_batt_alert_sound()
                 self._last_full_batt_alert_ts = now_ts
+            if not getattr(self, "_full_charge_notified", False):
+                bildirim_servisi = getattr(self, "bildirim_servisi", None)
+                if (
+                    hasattr(self, "tepsi_ikonu")
+                    and bildirim_servisi
+                    and bildirim_servisi.bildirim_gonderilebilir_mi("full_battery")
+                ):
+                    self._full_charge_notified = self._tepsi_bildirimi_goster(
+                        "Pil doldu",
+                        f"Pil seviyesi {yuzde_metni} seviyesine ulaştı.",
+                        QtWidgets.QSystemTrayIcon.MessageIcon.Information,
+                        5000,
+                    )
             if not self.full_charge_timer.isActive():
                 self.full_charge_timer.start()
         else:
             self._last_full_batt_alert_ts = 0
+            self._full_charge_notified = False
             self._stop_full_charge_blink()
 
         if low_alert and not full_alert:
@@ -176,6 +195,21 @@ class PencereGuncellemeKarishimi:
         else:
             self._last_low_batt_alert_ts = 0
             self._stop_low_batt_blink()
+
+        critical_alert = (
+            not pil_verisi.sarjda and pil_verisi.durum_metni == "Kritik"
+        )
+        if critical_alert and hasattr(self, "tepsi_ikonu"):
+            bildirim_servisi = getattr(self, "bildirim_servisi", None)
+            if bildirim_servisi and bildirim_servisi.bildirim_gonderilebilir_mi(
+                "critical_battery"
+            ):
+                self._tepsi_bildirimi_goster(
+                    "Kritik pil uyarısı",
+                    f"Pil seviyesi {yuzde_metni}. Lütfen şarja takın.",
+                    QtWidgets.QSystemTrayIcon.MessageIcon.Critical,
+                    5000,
+                )
 
         # Sistem Tepsisi Özeti (Task 8.2)
         if hasattr(self, "tepsi_ikonu"):
@@ -283,7 +317,7 @@ class PencereGuncellemeKarishimi:
             if getattr(self, "bildirim_servisi", None):
                 if not self.bildirim_servisi.bildirim_gonderilebilir_mi(anahtar):
                     return
-            self.tepsi_ikonu.showMessage(
+            self._tepsi_bildirimi_goster(
                 "Kaçırılan alarm",
                 mesaj,
                 QtWidgets.QSystemTrayIcon.MessageIcon.Warning,
@@ -400,13 +434,13 @@ class PencereGuncellemeKarishimi:
         if percentage <= 40:
             return "#f97316"
         if percentage <= 60:
-            return "#eab308"
-        if percentage <= 85:
-            return "#d4a017"
+            return "#facc15"
+        if percentage <= 80:
+            return "#65d600"
         return "#16a34a"
 
     def _battery_icon_pixmap(self, color, percentage, label):
-        if percentage > 85:
+        if percentage > 80:
             icon_index = 0
         elif percentage > 60:
             icon_index = 1
@@ -449,6 +483,15 @@ class PencereGuncellemeKarishimi:
             return
         label.setText("")
         label.setPixmap(self._battery_icon_pixmap(color, percentage, label))
+
+    def _tepsi_bildirimi_goster(self, baslik, mesaj, ikon, sure=5000):
+        if not getattr(self.settings, "tray_notifications_enabled", True):
+            return False
+        tepsi_ikonu = getattr(self, "tepsi_ikonu", None)
+        if not tepsi_ikonu:
+            return False
+        tepsi_ikonu.showMessage(baslik, mesaj, ikon, sure)
+        return True
 
     def _play_batt_alert_sound(self):
         if winsound is None or getattr(self.settings, "sessiz_mod", False):

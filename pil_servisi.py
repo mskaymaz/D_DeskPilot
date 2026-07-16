@@ -4,6 +4,12 @@ from datetime import datetime
 from typing import Optional
 from pil_modeli import PilDurumu
 
+
+def pil_yuzdesini_formatla(yuzde: int, dil: str = "tr") -> str:
+    """Pil yuzdesini secili dilin yazim bicimine gore formatlar."""
+    return f"%{yuzde}" if str(dil or "tr").lower() == "tr" else f"{yuzde}%"
+
+
 class PilServisi:
     """Pil bilgilerini okuyan ve esik degerlerini kontrol eden servis."""
     
