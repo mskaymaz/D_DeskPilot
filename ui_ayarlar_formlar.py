@@ -191,13 +191,13 @@ class AyarFormlari:
         f = QtWidgets.QFormLayout(w)
         f.setFieldGrowthPolicy(QtWidgets.QFormLayout.FieldGrowthPolicy.FieldsStayAtSizeHint)
 
-        dialog.chk_batt_visible = QtWidgets.QCheckBox("Pil bilgisi görünür")
-        dialog.chk_batt_visible.setChecked(ayarlar.battery_visible)
+        dialog.chk_batt_visible = QtWidgets.QCheckBox("Pil Bilgisini Gizle")
+        dialog.chk_batt_visible.setChecked(not ayarlar.battery_visible)
         dialog.chk_batt_visible.toggled.connect(dialog._apply_batt_preview)
 
-        dialog.chk_batt_icon_visible = QtWidgets.QCheckBox("Pil simgesi görünür")
+        dialog.chk_batt_icon_visible = QtWidgets.QCheckBox("Pil Simgesini Gizle")
         dialog.chk_batt_icon_visible.setChecked(
-            getattr(ayarlar, "battery_icon_visible", True)
+            not getattr(ayarlar, "battery_icon_visible", True)
         )
         dialog.chk_batt_icon_visible.toggled.connect(dialog._apply_batt_preview)
 
@@ -238,8 +238,10 @@ class AyarFormlari:
         dialog.chk_batt_bold.setChecked(ayarlar.battery_bold)
         dialog.chk_batt_bold.toggled.connect(dialog._apply_batt_preview)
 
-        f.addRow(dialog.chk_batt_visible)
-        f.addRow(dialog.chk_batt_icon_visible)
+        pil_gorunum_satiri = QtWidgets.QHBoxLayout()
+        pil_gorunum_satiri.addWidget(dialog.chk_batt_visible)
+        pil_gorunum_satiri.addWidget(dialog.chk_batt_icon_visible)
+        f.addRow(pil_gorunum_satiri)
         f.addRow(dialog.chk_batt_unavailable_test)
         f.addRow("Uyarı seviyesi (%)", dialog.spn_batt_warn)
         f.addRow("Uyarı aralığı", dialog.spn_batt_interval)
@@ -338,9 +340,11 @@ class AyarFormlari:
         f = QtWidgets.QFormLayout(w)
         f.setFieldGrowthPolicy(QtWidgets.QFormLayout.FieldGrowthPolicy.FieldsStayAtSizeHint)
 
-        dialog.chk_date_visible = QtWidgets.QCheckBox("Tarih görünür")
-        dialog.chk_date_visible.setChecked(ayarlar.date_visible)
-        dialog.chk_date_visible.toggled.connect(lambda v: dialog._apply_date_preview(visible=v))
+        dialog.chk_date_visible = QtWidgets.QCheckBox("Tarih Bilgisini Gizle")
+        dialog.chk_date_visible.setChecked(not ayarlar.date_visible)
+        dialog.chk_date_visible.toggled.connect(
+            lambda v: dialog._apply_date_preview(visible=not v)
+        )
 
         dialog.chk_date_both = QtWidgets.QCheckBox("Miladi + Hicri göster")
         dialog.chk_date_both.setChecked(
@@ -406,7 +410,7 @@ class AyarFormlari:
         dialog.chk_date_week_number.setChecked(getattr(ayarlar, "date_show_week_number", False))
         dialog.chk_date_week_number.toggled.connect(lambda v: dialog._apply_date_preview(week_number=v))
 
-        dialog.chk_date_hicri_first = QtWidgets.QCheckBox("Hicri tarihi \u00f6nce g\u00f6ster")
+        dialog.chk_date_hicri_first = QtWidgets.QCheckBox("Hicri Tarihi Üstte Göster")
         dialog.chk_date_hicri_first.setChecked(getattr(ayarlar, "date_hicri_first", False))
         dialog.chk_date_hicri_first.toggled.connect(
             lambda v: dialog._apply_date_preview(hicri_first=v)

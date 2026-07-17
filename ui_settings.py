@@ -334,10 +334,10 @@ class SettingsDialog(QtWidgets.QDialog):
             self._set_value_silent(self.spn_quick_icon_size, s.quick_actions_icon_size)
             self._set_value_silent(self.spn_quick_icon_spacing, s.quick_actions_icon_spacing)
         elif tab_name == "Pil":
-            self._set_checked_silent(self.chk_batt_visible, s.battery_visible)
+            self._set_checked_silent(self.chk_batt_visible, not s.battery_visible)
             self._set_checked_silent(
                 self.chk_batt_icon_visible,
-                getattr(s, "battery_icon_visible", True),
+                not getattr(s, "battery_icon_visible", True),
             )
             self._set_checked_silent(
                 self.chk_batt_unavailable_test,
@@ -363,7 +363,7 @@ class SettingsDialog(QtWidgets.QDialog):
             self._set_value_silent(self.sld_time_scale, int(s.time_scale * 100))
             self._set_value_silent(self.spn_time_scale, int(s.time_scale * 100))
         elif tab_name == "Tarih":
-            self._set_checked_silent(self.chk_date_visible, s.date_visible)
+            self._set_checked_silent(self.chk_date_visible, not s.date_visible)
             self._set_checked_silent(self.chk_date_bold, s.date_bold)
             self._set_checked_silent(self.chk_date_week_number, s.date_show_week_number)
             self._set_checked_silent(
@@ -442,8 +442,8 @@ class SettingsDialog(QtWidgets.QDialog):
                 "Özet: Pil satırının görünümü ve uyarı davranışları bu sekmeden ayarlanır.\n"
                 "\n"
                 "Pil ayarları (sırasıyla):\n"
-                "- Pil bilgisi görünür: Pil satırını aç/kapat.\n"
-                "- Pil simgesi görünür: Pil simgesini aç/kapat.\n"
+                "- Pil Bilgisini Gizle: Pil satırını gizler.\n"
+                "- Pil Simgesini Gizle: Pil simgesini gizler.\n"
                 "- Test: Pil bilgisi alınamıyor: Pil verisi okunamıyormuş gibi güvenli durumu gösterir.\n"
                 "- Uyarı seviyesi (%): Pil bu seviyenin altına düşünce uyarı verir.\n"
                 "- Uyarı aralığı (sn): Uyarıların kaç saniyede bir tekrar edeceği.\n"
@@ -472,7 +472,7 @@ class SettingsDialog(QtWidgets.QDialog):
                 "Özet: Tarih satırının görünümü ve formatı bu sekmeden ayarlanır.\n"
                 "\n"
                 "Tarih ayarları (sırasıyla):\n"
-                "- Tarih görünür: Tarih satırını aç/kapat.\n"
+                "- Tarih Bilgisini Gizle: Tarih satırını gizler.\n"
                 "- Format: Tarihin yazım biçimini belirler.\n"
                 "  Özel kısa format harfleri:\n"
                 "  g = gün (01-31), G = gün (01-31)\n"
@@ -661,8 +661,8 @@ class SettingsDialog(QtWidgets.QDialog):
             return False
 
     def _apply_batt_preview(self, _=None):
-        self.settings.battery_visible = self.chk_batt_visible.isChecked()
-        self.settings.battery_icon_visible = self.chk_batt_icon_visible.isChecked()
+        self.settings.battery_visible = not self.chk_batt_visible.isChecked()
+        self.settings.battery_icon_visible = not self.chk_batt_icon_visible.isChecked()
         self.settings.battery_unavailable_test = self.chk_batt_unavailable_test.isChecked()
         self.settings.battery_font_family = self.cmb_batt_font.currentFont().family()
         self.settings.battery_bold = self.chk_batt_bold.isChecked()
