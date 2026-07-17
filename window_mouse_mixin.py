@@ -84,8 +84,10 @@ class WindowMouseMixin:
                         widget,
                         canvas_pos - widget.pos(),
                     )
+                    self.grabMouse()
                     return
             self.drag_pos = e.globalPosition().toPoint() - self.frameGeometry().topLeft()
+            self.grabMouse()
 
     def mouseMoveEvent(self, e):
         self._update_date_switch_hover(e.position().toPoint())
@@ -118,10 +120,12 @@ class WindowMouseMixin:
     def mouseReleaseEvent(self, e):
         if self._group_drag:
             self._group_drag = None
+            self.releaseMouse()
             self._save_group_layout()
             self.adjustSize()
             return
         self.drag_pos = None
+        self.releaseMouse()
         if self.settings.settings_locked:
             return
         self.settings.pos_x = self.x()

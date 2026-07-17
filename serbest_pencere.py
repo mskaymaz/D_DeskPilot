@@ -148,6 +148,7 @@ class SerbestSatirPenceresi(QtWidgets.QWidget):
         if self.ayarlar.settings_locked: return
         if e.button() == QtCore.Qt.MouseButton.LeftButton:
             self.surukleme_konumu = e.globalPosition().toPoint() - self.frameGeometry().topLeft()
+            self.grabMouse()
 
     def mouseMoveEvent(self, e):
         button = getattr(self, "date_switch_button", None)
@@ -177,6 +178,7 @@ class SerbestSatirPenceresi(QtWidgets.QWidget):
             self._ustte_tutma_guncelle()
 
     def mouseReleaseEvent(self, e):
+        self.releaseMouse()
         if self.ayarlar.settings_locked:
             self.surukleme_konumu = None
             return

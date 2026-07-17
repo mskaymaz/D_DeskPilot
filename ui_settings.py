@@ -322,7 +322,7 @@ class SettingsDialog(QtWidgets.QDialog):
             grouped = not s.free_layout_enabled
             group_editing = bool(getattr(self.parent(), "_group_editing", False))
             self._set_checked_silent(self.chk_group_locked, grouped)
-            self._set_checked_silent(self.chk_group_adjust, grouped and not group_editing)
+            self._set_checked_silent(self.chk_group_adjust, grouped and group_editing)
             self.chk_group_adjust.setEnabled(grouped)
             self._set_checked_silent(self.chk_alarm_visible, s.alarm_visible)
             self._set_checked_silent(self.chk_reminder_visible, s.reminder_visible)
@@ -424,7 +424,7 @@ class SettingsDialog(QtWidgets.QDialog):
                 "- Her zaman üstte: Pencerenin diğer uygulamaların üstünde kalmasını sağlar.\n"
                 "- Açılışta çalıştır: Uygulama Windows açılışında otomatik başlar.\n"
                 "- Modülleri Grupla: Modüller kaydedilmiş grup konumlarını korur ve birlikte taşınır.\n"
-                "- Modülleri Ayarla: Modüller kayıtlı bağımsız konumlarında ayrı ayrı taşınır.\n"
+                "- Modül Grubunu Ayarla: İşaretliyken grup düzenlenebilir; işaret kaldırılınca ayar tamamlanır ve modüller birlikte taşınır.\n"
                 "- Grup kilidi kapalıyken: Modül üzerine gelerek modülü yeniden konumlandırabilirsiniz.\n"
                 "- Şeffaflık (%): Tüm satırların saydamlık seviyesini ayarlar.\n"
                 "- Hover ikon boyutu ve aralığı: Hızlı işlem simgelerinin görünümünü ayarlar."
@@ -561,7 +561,7 @@ class SettingsDialog(QtWidgets.QDialog):
         grouped = not self.settings.free_layout_enabled
         group_editing = bool(getattr(self.parent(), "_group_editing", False))
         self._set_checked_silent(self.chk_group_locked, grouped)
-        self._set_checked_silent(self.chk_group_adjust, grouped and not group_editing)
+        self._set_checked_silent(self.chk_group_adjust, grouped and group_editing)
         self.chk_group_adjust.setEnabled(grouped)
 
     def _apply_group_mode_preview(self, value):
@@ -579,9 +579,9 @@ class SettingsDialog(QtWidgets.QDialog):
     def _apply_group_adjust_preview(self, value):
         if self.parent():
             if value:
-                self.parent().lock_group_layout()
-            else:
                 self.parent().enter_group_edit_mode()
+            else:
+                self.parent().lock_group_layout()
         else:
             self.settings.group_locked = bool(value)
         self._sync_group_mode_widgets()

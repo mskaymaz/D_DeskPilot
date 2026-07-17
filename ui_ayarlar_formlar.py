@@ -88,8 +88,8 @@ class AyarFormlari:
         dialog.chk_group_locked.setChecked(grouped)
         dialog.chk_group_locked.toggled.connect(dialog._apply_group_mode_preview)
 
-        dialog.chk_group_adjust = QtWidgets.QCheckBox("Modülleri Ayarla")
-        dialog.chk_group_adjust.setChecked(grouped and not group_editing)
+        dialog.chk_group_adjust = QtWidgets.QCheckBox("Modül Grubunu Ayarla")
+        dialog.chk_group_adjust.setChecked(grouped and group_editing)
         dialog.chk_group_adjust.setEnabled(grouped)
         dialog.chk_group_adjust.toggled.connect(dialog._apply_group_adjust_preview)
 

@@ -50,19 +50,26 @@ class PencereNavigasyonKarishimi:
 
         menu.addSeparator()
         grouped = not self.settings.free_layout_enabled
-        group_locked = grouped and not getattr(self, "_group_editing", False)
+        group_editing = getattr(self, "_group_editing", False)
 
         act_free_layout = menu.addAction("Modüller Serbest")
         act_free_layout.setCheckable(True)
         act_free_layout.setChecked(self.settings.free_layout_enabled)
         act_free_layout.setEnabled(not self.settings.settings_locked)
 
-        act_group_mode = menu.addAction(
-            "Modülleri Grupla" if group_locked else "Modülleri Ayarla"
-        )
+        act_group_mode = menu.addAction("Modüller Gruplu")
         act_group_mode.setCheckable(True)
-        act_group_mode.setChecked(group_locked)
-        act_group_mode.setEnabled(
+        act_group_mode.setChecked(
+            grouped and not group_editing and getattr(self.settings, "group_locked", True)
+        )
+        act_group_mode.setEnabled(not self.settings.settings_locked)
+
+        act_group_adjust = menu.addAction(
+            "Ayarı Tamamla" if group_editing else "Modül Grubunu Ayarla"
+        )
+        act_group_adjust.setCheckable(True)
+        act_group_adjust.setChecked(group_editing)
+        act_group_adjust.setEnabled(
             not self.settings.settings_locked and grouped
         )
 
@@ -135,8 +142,11 @@ class PencereNavigasyonKarishimi:
         elif action == act_group_mode:
             if action.isChecked():
                 self.lock_group_layout()
-            else:
+        elif action == act_group_adjust:
+            if action.isChecked():
                 self.enter_group_edit_mode()
+            else:
+                self.lock_group_layout()
         elif action == act_collect:
             self.tum_modulleri_topla()
         elif action == act_exit:

@@ -189,14 +189,17 @@ class QuickActionsPanel(QtWidgets.QFrame):
                 if event.button() == QtCore.Qt.MouseButton.LeftButton:
                     if hasattr(self.owner, "surukleme_konumu"):
                         self.owner.surukleme_konumu = global_pos - self.owner.frameGeometry().topLeft()
+                        self.owner.grabMouse()
                     elif getattr(self.owner, "_group_editing", False):
                         local_pos = obj.mapTo(self.owner, event.position().toPoint())
                         widget = self.owner._group_widget_at(local_pos)
                         if widget is not None:
                             canvas_pos = self.owner.group_canvas.mapFrom(self.owner, local_pos)
                             self.owner._group_drag = (widget, canvas_pos - widget.pos())
+                            self.owner.grabMouse()
                     else:
                         self.owner.drag_pos = global_pos - self.owner.frameGeometry().topLeft()
+                        self.owner.grabMouse()
                     return True
             elif event.type() == QtCore.QEvent.Type.MouseButtonRelease:
                 if event.button() == QtCore.Qt.MouseButton.LeftButton:
