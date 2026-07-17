@@ -151,7 +151,9 @@ class PencereGuncellemeKarishimi:
         batt_text = f"Pil: {yuzde_metni}"
         
         self.battery_label.setText(batt_text)
-        self.battery_icon_label.setVisible(True)
+        self.battery_icon_label.setVisible(
+            getattr(self.settings, "battery_icon_visible", True)
+        )
         self._set_battery_icon_color(
             self._battery_icon_color(pil_verisi.yuzde),
             percentage=pil_verisi.yuzde,
@@ -160,7 +162,9 @@ class PencereGuncellemeKarishimi:
 
         if self.free_battery_window:
             self.free_battery_window.pil_etiketi.setText(batt_text)
-            self.free_battery_window.pil_ikon_etiketi.setVisible(True)
+            self.free_battery_window.pil_ikon_etiketi.setVisible(
+                getattr(self.settings, "battery_icon_visible", True)
+            )
             self._set_battery_icon_color(
                 self._battery_icon_color(pil_verisi.yuzde),
                 self.free_battery_window.pil_ikon_etiketi,

@@ -48,6 +48,7 @@ class PanelSettings:
     date_hicri_first: bool = False
 
     battery_visible: bool = True
+    battery_icon_visible: bool = True
     battery_font_family: str = "Segoe UI"
     battery_color: str = "#FF0000"
     battery_bold: bool = True

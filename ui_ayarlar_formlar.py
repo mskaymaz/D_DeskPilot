@@ -195,6 +195,12 @@ class AyarFormlari:
         dialog.chk_batt_visible.setChecked(ayarlar.battery_visible)
         dialog.chk_batt_visible.toggled.connect(dialog._apply_batt_preview)
 
+        dialog.chk_batt_icon_visible = QtWidgets.QCheckBox("Pil simgesi görünür")
+        dialog.chk_batt_icon_visible.setChecked(
+            getattr(ayarlar, "battery_icon_visible", True)
+        )
+        dialog.chk_batt_icon_visible.toggled.connect(dialog._apply_batt_preview)
+
         dialog.chk_batt_unavailable_test = QtWidgets.QCheckBox(
             "Test: Pil bilgisi alınamıyor"
         )
@@ -233,6 +239,7 @@ class AyarFormlari:
         dialog.chk_batt_bold.toggled.connect(dialog._apply_batt_preview)
 
         f.addRow(dialog.chk_batt_visible)
+        f.addRow(dialog.chk_batt_icon_visible)
         f.addRow(dialog.chk_batt_unavailable_test)
         f.addRow("Uyarı seviyesi (%)", dialog.spn_batt_warn)
         f.addRow("Uyarı aralığı", dialog.spn_batt_interval)

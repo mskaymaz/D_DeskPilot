@@ -277,7 +277,7 @@ class SettingsDialog(QtWidgets.QDialog):
                 "quick_actions_icon_spacing",
             ),
             "Pil": (
-                "battery_visible", "battery_font_family", "battery_color", "battery_bold",
+                "battery_visible", "battery_icon_visible", "battery_font_family", "battery_color", "battery_bold",
                 "battery_warning_level", "battery_alert_interval", "battery_alert_sound_type",
                 "battery_scale", "battery_unavailable_test",
             ),
@@ -335,6 +335,10 @@ class SettingsDialog(QtWidgets.QDialog):
             self._set_value_silent(self.spn_quick_icon_spacing, s.quick_actions_icon_spacing)
         elif tab_name == "Pil":
             self._set_checked_silent(self.chk_batt_visible, s.battery_visible)
+            self._set_checked_silent(
+                self.chk_batt_icon_visible,
+                getattr(s, "battery_icon_visible", True),
+            )
             self._set_checked_silent(
                 self.chk_batt_unavailable_test,
                 getattr(s, "battery_unavailable_test", False),
@@ -439,6 +443,7 @@ class SettingsDialog(QtWidgets.QDialog):
                 "\n"
                 "Pil ayarları (sırasıyla):\n"
                 "- Pil bilgisi görünür: Pil satırını aç/kapat.\n"
+                "- Pil simgesi görünür: Pil simgesini aç/kapat.\n"
                 "- Test: Pil bilgisi alınamıyor: Pil verisi okunamıyormuş gibi güvenli durumu gösterir.\n"
                 "- Uyarı seviyesi (%): Pil bu seviyenin altına düşünce uyarı verir.\n"
                 "- Uyarı aralığı (sn): Uyarıların kaç saniyede bir tekrar edeceği.\n"
@@ -657,6 +662,7 @@ class SettingsDialog(QtWidgets.QDialog):
 
     def _apply_batt_preview(self, _=None):
         self.settings.battery_visible = self.chk_batt_visible.isChecked()
+        self.settings.battery_icon_visible = self.chk_batt_icon_visible.isChecked()
         self.settings.battery_unavailable_test = self.chk_batt_unavailable_test.isChecked()
         self.settings.battery_font_family = self.cmb_batt_font.currentFont().family()
         self.settings.battery_bold = self.chk_batt_bold.isChecked()

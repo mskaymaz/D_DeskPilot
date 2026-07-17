@@ -73,7 +73,10 @@ class WindowSettingsMixin:
         # --- Pil ---
         self._apply_battery_style(self.battery_label, self.battery_icon_label)
         self.battery_label.setVisible(self.settings.battery_visible)
-        self.battery_icon_label.setVisible(self.settings.battery_visible)
+        self.battery_icon_label.setVisible(
+            self.settings.battery_visible
+            and getattr(self.settings, "battery_icon_visible", True)
+        )
         if self.free_battery_window:
             self._apply_battery_style(
                 self.free_battery_window.pil_etiketi,
@@ -82,7 +85,10 @@ class WindowSettingsMixin:
             self.free_battery_window.setVisible(
                 self.settings.free_layout_enabled and self.settings.battery_visible
             )
-            self.free_battery_window.pil_ikon_etiketi.setVisible(self.settings.battery_visible)
+            self.free_battery_window.pil_ikon_etiketi.setVisible(
+                self.settings.battery_visible
+                and getattr(self.settings, "battery_icon_visible", True)
+            )
 
         self._set_battery_color(self.settings.battery_color)
         self._refresh_battery_rows()
