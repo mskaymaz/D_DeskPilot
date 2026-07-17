@@ -110,7 +110,7 @@ Hicri/Miladi sıralama ve H/M geçiş düğmesi.
 - [ ] Dünya ülkelerine göre hafta başlangıcı
 
 
-# 4. Pil Modülü
+# 4. Pil Modülü ***
 
 - [x] Pil yüzdesi
 - [x] Şarj durumu
@@ -118,15 +118,12 @@ Hicri/Miladi sıralama ve H/M geçiş düğmesi.
 - [x] Düşük pil bildirimi
 - [X] Kritik pil uyarısı
 - [x] Tam şarj bildirimi
-- [ ] Şarj kablosu takıldı / çıkarıldı bildirimi
-- [ ] Kalan tahmini kullanım süresi
-- [ ] Tam doluma kalan tahmini süre
-- [ ] Pil simgesi gösterimi
-- [ ] Pil yüzdesini göster / gizle
-- [ ] Pil durum metnini göster / gizle
-- [ ] Bildirim seviyelerini kullanıcı belirleyebilsin
-- [x ] Sessiz mod desteği
-- [ ] Pil bilgisi okunamıyorsa güvenli durum gösterimi
+- [x] Şarj kablosu takıldı / çıkarıldı bildirimi
+- [x] Pil simgesi gösterimi
+- [x] Pil yüzdesini göster / gizle
+- [x] Pil durum metnini göster / gizle
+- [x] Sessiz mod desteği
+- [x] Pil bilgisi okunamıyorsa güvenli durum gösterimi
 - [x] Dizüstü / Masaüstü uyumluluğu
 - [x] Serbest konumlandırma
 - [x] Yazı tipi seçimi
@@ -135,6 +132,9 @@ Hicri/Miladi sıralama ve H/M geçiş düğmesi.
 
 ### V2+
 
+- [ ] Bildirim seviyelerini kullanıcı belirleyebilsin
+- [ ] Kalan tahmini kullanım süresi v2
+- [ ] Tam doluma kalan tahmini süre
 - [ ] Pil kullanım istatistikleri
 - [ ] Günlük pil kullanım grafiği
 - [ ] Şarj döngüsü bilgisi (Destekleyen cihazlarda)
@@ -144,61 +144,56 @@ Hicri/Miladi sıralama ve H/M geçiş düğmesi.
 
 
 # 5. Hatırlatıcı Modülü (Reminder-YENİ)
-Bence özellikle şunlar kullanıcı tarafından her gün kullanılacak özellikler:
 
-⭐⭐⭐⭐⭐ Yaklaşan hatırlatıcılar görünümü
-⭐⭐⭐⭐ Günlük özet görünümü
-⭐⭐⭐⭐ Toplu erteleme
-⭐⭐⭐⭐ Toplu etkinleştirme / devre dışı bırakma
-⭐⭐⭐⭐ Kaçırılan hatırlatıcı bildirimi
-⭐⭐⭐⭐ Windows açıldığında kaçırılan hatırlatıcıları kontrol etme
-
-## Hatırlatıcı Yönetimi
-
-- [ ] Hatırlatıcı oluşturma
-- [ ] Hatırlatıcı düzenleme
-- [ ] Hatırlatıcı silme
-- [ ] Başlık
-- [ ] Açıklama
-- [ ] Tarih ve saat seçimi
-
----
-
-## Tekrarlama
-
-- [ ] Tek seferlik hatırlatıcı
-- [ ] Günlük tekrar
-- [ ] Haftalık tekrar
-- [ ] Aylık tekrar
-- [ ] Yıllık tekrar
-- [ ] Belirli günlerde tekrar
-
----
-
-## Bildirim
-
-- [ ] Popup hatırlatma penceresi
-- [ ] Bildirim sesi seçimi
-- [ ] Hatırlatma metnini sesli okuma (TTS)
-- [ ] Erteleme (Snooze)
-- [ ] Hatırlatıcıyı kapatma
-- [ ] Sessiz mod desteği
-- [ ] Kaçırılan hatırlatıcı bildirimi
-- [ ] Windows açıldıktan sonra kaçırılan hatırlatıcıları kontrol etme
-
----
-
-## Liste ve Görünüm
+## V1 Öncelikleri
 
 - [ ] Yaklaşan hatırlatıcılar görünümü
 - [ ] Günlük özet görünümü
-- [ ] Hatırlatıcı listesi görünümü
+- [ ] Toplu erteleme
+- [ ] Toplu etkinleştirme / devre dışı bırakma
+- [ ] Kaçırılan hatırlatıcı bildirimi
+- [ ] Windows açılışında kaçırılan hatırlatıcıları kontrol etme
+
+## Hatırlatıcı Oluşturma ve Yönetme
+
+- [ ] Hatırlatıcı oluşturma
+  - [ ] Başlık
+  - [ ] Açıklama
+  - [ ] Tarih ve saat
+- [ ] Hatırlatıcı düzenleme
+- [ ] Hatırlatıcı silme
+- [ ] Hatırlatıcıyı etkinleştirme / devre dışı bırakma
+- [ ] Tamamlandı olarak işaretleme
+
+## Tekrarlama
+
+- [ ] Tek seferlik
+- [ ] Günlük
+- [ ] Haftalık
+- [ ] Aylık
+- [ ] Yıllık
+- [ ] Belirli günlerde tekrar
+
+## Bildirim ve Hatırlatma
+
+- [ ] Popup hatırlatma penceresi
+- [ ] Bildirim sesi seçimi
+- [ ] Metni sesli okuma (TTS)
+- [ ] Erteleme
+- [ ] Hatırlatıcıyı kapatma / tamamlandı işaretleme
+- [ ] Sessiz mod desteği
+- [ ] Kaçırılan hatırlatıcı bildirimi
+- [ ] Windows açılışında kaçırılan hatırlatıcı kontrolü
+
+## Liste ve Görünüm
+
+- [ ] Yaklaşan hatırlatıcılar
+- [ ] Günlük özet
+- [ ] Tüm hatırlatıcılar listesi
 - [ ] Tamamlanan hatırlatıcılar
 - [ ] Geçmiş
 - [ ] Filtreleme
-- [ ] Arama (Başlık, açıklama ve ilgili alanlarda hızlı arama)
-
----
+- [ ] Arama
 
 ## Toplu İşlemler
 
@@ -207,18 +202,15 @@ Bence özellikle şunlar kullanıcı tarafından her gün kullanılacak özellik
 - [ ] Toplu erteleme
 - [ ] Toplu etkinleştirme / devre dışı bırakma
 
----
-
 ## İstatistik
 
-- [ ] Hatırlatıcı istatistikleri
-  - Toplam hatırlatıcı
-  - Aktif hatırlatıcı
-  - Bugünkü hatırlatıcılar
-  - Bu haftaki hatırlatıcılar
-  - Tamamlanan hatırlatıcılar
-  - Kaçırılan hatırlatıcılar
-  - Ertelenen hatırlatıcılar
+- [ ] Toplam hatırlatıcı
+- [ ] Aktif hatırlatıcı
+- [ ] Bugünkü hatırlatıcılar
+- [ ] Bu haftaki hatırlatıcılar
+- [ ] Tamamlanan hatırlatıcılar
+- [ ] Kaçırılan hatırlatıcılar
+- [ ] Ertelenen hatırlatıcılar
 
 ---
 
