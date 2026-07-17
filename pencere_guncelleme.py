@@ -149,6 +149,8 @@ class PencereGuncellemeKarishimi:
             getattr(self.settings, "language", "tr"),
         )
         batt_text = f"Pil: {yuzde_metni}"
+        self._last_battery_percentage = pil_verisi.yuzde
+        self._last_battery_charging = pil_verisi.sarjda
         
         self.battery_label.setText(batt_text)
         self.battery_icon_label.setVisible(
@@ -203,6 +205,8 @@ class PencereGuncellemeKarishimi:
             self._stop_full_charge_blink()
 
         if low_alert and not full_alert:
+            self._low_battery_alert_active = True
+            self._apply_low_battery_flash()
             now_ts = time.time()
             interval = max(1, int(getattr(self.settings, "battery_alert_interval", 10)))
             if now_ts - self._last_low_batt_alert_ts >= interval:
@@ -211,6 +215,7 @@ class PencereGuncellemeKarishimi:
             if not self.low_batt_timer.isActive():
                 self.low_batt_timer.start()
         else:
+            self._low_battery_alert_active = False
             self._last_low_batt_alert_ts = 0
             self._stop_low_batt_blink()
 
@@ -284,10 +289,32 @@ class PencereGuncellemeKarishimi:
         label.setMaximumHeight(16777215)
         label.adjustSize()
 
+    def _baslangic_kacirilan_hatirlaticilari_goster(self):
+        if not getattr(self, "hatirlatici_servisi", None):
+            return
+
+        yeni_kacirilanlar = self.hatirlatici_servisi.kacirilanlari_tara()
+        if not yeni_kacirilanlar:
+            return
+
+        satirlar = []
+        for hatirlatici in yeni_kacirilanlar:
+            zaman = hatirlatici.hatirlatma_zamani.strftime("%d.%m.%Y %H:%M")
+            satirlar.append(f"{zaman} - {hatirlatici.baslik}")
+
+        QtWidgets.QMessageBox.warning(
+            self,
+            "Kaçırılan Hatırlatıcılar",
+            "Açılışta kaçırılan hatırlatıcılar:\n\n" + "\n".join(satirlar),
+        )
+
     def hatirlaticilari_kontrol_et(self):
         if not getattr(self, "hatirlatici_servisi", None):
             return
         from hatirlatici_popup import HatirlaticiBildirimPenceresi
+
+        for hatirlatici in self.hatirlatici_servisi.kacirilanlari_tara():
+            self._hatirlatici_kacirildi_bildir(hatirlatici)
 
         gelenler = self.hatirlatici_servisi.zamani_gelenleri_tara()
         for h in gelenler:
@@ -301,6 +328,22 @@ class PencereGuncellemeKarishimi:
                 popup.destroyed.connect(lambda _=None, hid=h.id: self._aktif_popuplar.pop(hid, None))
                 popup.show()
                 self._aktif_popuplar[h.id] = popup
+
+    def _hatirlatici_kacirildi_bildir(self, hatirlatici):
+        zaman = hatirlatici.hatirlatma_zamani.strftime("%d.%m.%Y %H:%M")
+        mesaj = f"{hatirlatici.baslik} ({zaman}) kaçırıldı."
+        log_kaydet(mesaj)
+        bildirim_servisi = getattr(self, "bildirim_servisi", None)
+        if bildirim_servisi and not bildirim_servisi.bildirim_gonderilebilir_mi(
+            f"missed_reminder:{hatirlatici.id}"
+        ):
+            return
+        self._tepsi_bildirimi_goster(
+            "Kaçırılan hatırlatıcı",
+            mesaj,
+            QtWidgets.QSystemTrayIcon.MessageIcon.Warning,
+            5000,
+        )
 
     def _hatirlatici_tamamla(self, hatirlatici_id):
         from hatirlatici_modeli import HatirlaticiDurumu
@@ -477,17 +520,166 @@ class PencereGuncellemeKarishimi:
 
     def _stop_low_batt_blink(self):
         if self.low_batt_timer.isActive(): self.low_batt_timer.stop()
+        self._low_batt_blink_on = False
+        self._low_battery_alert_active = False
+        self._set_battery_flash_scale(1.0)
         self._set_battery_color(self.settings.battery_color)
 
     def _toggle_low_batt_blink(self):
         self._low_batt_blink_on = not self._low_batt_blink_on
-        self._set_battery_color("#cc0000" if self._low_batt_blink_on else self.settings.battery_color)
+        self._apply_low_battery_flash()
+
+    def _apply_low_battery_flash(self):
+        if not getattr(self, "_low_battery_alert_active", False):
+            return
+        if not hasattr(self, "_last_battery_percentage"):
+            return
+
+        pulse_scale = 1.12 if self._low_batt_blink_on else 1.0
+        color = "#dc2626" if self._low_batt_blink_on else self.settings.battery_color
+        self._set_battery_flash_scale(pulse_scale)
+        self._set_battery_color(color)
+        self._set_battery_icon_color(
+            color,
+            percentage=self._last_battery_percentage,
+            charging=self._last_battery_charging,
+            pulse_scale=pulse_scale,
+        )
+        if self.free_battery_window:
+            self._set_battery_icon_color(
+                color,
+                self.free_battery_window.pil_ikon_etiketi,
+                percentage=self._last_battery_percentage,
+                charging=self._last_battery_charging,
+                pulse_scale=pulse_scale,
+            )
+
+    def _set_battery_flash_scale(self, scale):
+        labels = [(self.battery_label, self.battery_icon_label)]
+        if self.free_battery_window:
+            labels.append(
+                (
+                    self.free_battery_window.pil_etiketi,
+                    self.free_battery_window.pil_ikon_etiketi,
+                )
+            )
+
+        if scale == 1.0:
+            for label, icon_label in labels:
+                self._apply_battery_style(label, icon_label)
+            self._refresh_battery_rows()
+            for widget, position in getattr(
+                self, "_battery_flash_original_positions", []
+            ):
+                widget.move(position)
+            if hasattr(self, "_battery_flash_original_main_pos"):
+                self.move(self._battery_flash_original_main_pos)
+            if (
+                self.free_battery_window
+                and hasattr(self, "_battery_flash_original_free_pos")
+            ):
+                self.free_battery_window.move(self._battery_flash_original_free_pos)
+            for attribute in (
+                "_battery_flash_original_positions",
+                "_battery_flash_original_main_pos",
+                "_battery_flash_original_free_pos",
+            ):
+                if hasattr(self, attribute):
+                    delattr(self, attribute)
+            if hasattr(self, "_refresh_group_canvas_bounds"):
+                self._refresh_group_canvas_bounds()
+            return
+
+        if not hasattr(self, "_battery_flash_original_positions"):
+            self._battery_flash_original_positions = [
+                (widget, widget.pos())
+                for widget in (
+                    self.battery_row,
+                    self.time_label,
+                    self.date_container,
+                )
+            ]
+            self._battery_flash_original_main_pos = self.pos()
+            if self.free_battery_window:
+                self._battery_flash_original_free_pos = self.free_battery_window.pos()
+
+        battery_center = self.battery_row.geometry().center()
+        free_center = (
+            self.free_battery_window.frameGeometry().center()
+            if self.free_battery_window
+            else None
+        )
+
+        font_size = max(
+            1,
+            int(
+                BATTERY_BASE_FONT_SIZE
+                * self.settings.global_scale
+                * self.settings.battery_scale
+                * scale
+            ),
+        )
+        icon_size = max(
+            1,
+            int(
+                BATTERY_BASE_FONT_SIZE
+                * self.settings.global_scale
+                * self.settings.battery_scale
+                * 1.04
+                * 1.2
+                * scale
+            ),
+        )
+        for label, icon_label in labels:
+            font = QtGui.QFont(self.settings.battery_font_family, font_size)
+            font.setBold(self.settings.battery_bold)
+            label.setFont(font)
+            label.setMinimumHeight(0)
+            label.setMaximumHeight(16777215)
+            label.setFixedHeight(QtGui.QFontMetrics(font).height())
+            label.adjustSize()
+            icon_label.setFixedSize(icon_size, icon_size)
+
+        self._refresh_battery_rows()
+        if self.isVisible() and not getattr(self, "_free_layout_active", False):
+            target = battery_center - self.battery_row.rect().center()
+            shift_x = max(0, -target.x())
+            shift_y = max(0, -target.y())
+            if shift_x or shift_y:
+                shift = QtCore.QPoint(shift_x, shift_y)
+                for module in (
+                    self.battery_row,
+                    self.time_label,
+                    self.date_container,
+                ):
+                    if module.isVisible():
+                        module.move(module.pos() + shift)
+                self.move(self.pos() - shift)
+                target += shift
+            self.battery_row.move(target)
+        if self.free_battery_window:
+            self.free_battery_window.adjustSize()
+            if free_center is not None:
+                self.free_battery_window.move(
+                    free_center
+                    - QtCore.QPoint(
+                        self.free_battery_window.width() // 2,
+                        self.free_battery_window.height() // 2,
+                    )
+                )
+        if hasattr(self, "_refresh_group_canvas_bounds"):
+            self._refresh_group_canvas_bounds()
+        self.adjustSize()
 
     def _set_battery_color(self, color):
         style = f"color:{color}; opacity:{self.settings.battery_opacity};"
         self.battery_label.setStyleSheet(style)
+        if hasattr(self.battery_label, "setTextColor"):
+            self.battery_label.setTextColor(color)
         if self.free_battery_window:
             self.free_battery_window.pil_etiketi.setStyleSheet(style)
+            if hasattr(self.free_battery_window.pil_etiketi, "setTextColor"):
+                self.free_battery_window.pil_etiketi.setTextColor(color)
 
     def _battery_icon_color(self, percentage):
         if percentage <= 20:
@@ -500,7 +692,7 @@ class PencereGuncellemeKarishimi:
             return "#65d600"
         return "#16a34a"
 
-    def _battery_icon_pixmap(self, color, percentage, label):
+    def _battery_icon_pixmap(self, color, percentage, label, pulse_scale=1.0):
         if percentage > 80:
             icon_index = 0
         elif percentage > 60:
@@ -519,15 +711,30 @@ class PencereGuncellemeKarishimi:
         )
         renderer = QtSvg.QSvgRenderer(QtCore.QByteArray(svg.encode("utf-8")))
         scale = self.settings.global_scale * self.settings.battery_scale
-        size = max(1, int(BATTERY_BASE_FONT_SIZE * scale * 1.04 * 1.2))
+        base_size = max(1, int(BATTERY_BASE_FONT_SIZE * scale * 1.04 * 1.2))
+        draw_size = max(1, int(base_size * pulse_scale))
+        size = max(base_size, draw_size)
         pixmap = QtGui.QPixmap(size, size)
         pixmap.fill(QtCore.Qt.GlobalColor.transparent)
         painter = QtGui.QPainter(pixmap)
-        renderer.render(painter)
+        target = QtCore.QRectF(
+            (size - draw_size) / 2,
+            (size - draw_size) / 2,
+            draw_size,
+            draw_size,
+        )
+        renderer.render(painter, target)
         painter.end()
         return pixmap
 
-    def _set_battery_icon_color(self, color, label=None, percentage=None, charging=False):
+    def _set_battery_icon_color(
+        self,
+        color,
+        label=None,
+        percentage=None,
+        charging=False,
+        pulse_scale=1.0,
+    ):
         label = label or self.battery_icon_label
         if charging:
             label.setPixmap(QtGui.QPixmap())
@@ -543,7 +750,9 @@ class PencereGuncellemeKarishimi:
             )
             return
         label.setText("")
-        label.setPixmap(self._battery_icon_pixmap(color, percentage, label))
+        label.setPixmap(
+            self._battery_icon_pixmap(color, percentage, label, pulse_scale)
+        )
 
     def _tepsi_bildirimi_goster(self, baslik, mesaj, ikon, sure=5000):
         if not getattr(self.settings, "tray_notifications_enabled", True):

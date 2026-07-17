@@ -38,8 +38,8 @@ class SerbestSatirPenceresi(QtWidgets.QWidget):
 
     def _arayuz_kur(self):
         if self.tur == "battery":
-            self.pil_etiketi = QtWidgets.QLabel(alignment=QtCore.Qt.AlignmentFlag.AlignCenter)
-            self.pil_ikon_etiketi = QtWidgets.QLabel(alignment=QtCore.Qt.AlignmentFlag.AlignCenter)
+            self.pil_etiketi = AltHizaliEtiket(alignment=QtCore.Qt.AlignmentFlag.AlignCenter)
+            self.pil_ikon_etiketi = AltHizaliEtiket(alignment=QtCore.Qt.AlignmentFlag.AlignCenter)
             self.pil_ikon_etiketi.setVisible(False)
 
             satir = QtWidgets.QWidget()

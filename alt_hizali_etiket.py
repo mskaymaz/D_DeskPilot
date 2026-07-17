@@ -5,6 +5,10 @@ except ImportError:
 
 
 class AltHizaliEtiket(QtWidgets.QLabel):
+    def setTextColor(self, color):
+        self._text_color = QtGui.QColor(color)
+        self.update()
+
     def paintEvent(self, event):
         metin = self.text()
         if not metin:
@@ -12,7 +16,13 @@ class AltHizaliEtiket(QtWidgets.QLabel):
             return
         painter = QtGui.QPainter(self)
         painter.setFont(self.font())
-        painter.setPen(self.palette().color(QtGui.QPalette.ColorRole.WindowText))
+        painter.setPen(
+            getattr(
+                self,
+                "_text_color",
+                self.palette().color(QtGui.QPalette.ColorRole.WindowText),
+            )
+        )
         fm = QtGui.QFontMetrics(self.font())
         satirlar = metin.splitlines()
         if len(satirlar) > 1:

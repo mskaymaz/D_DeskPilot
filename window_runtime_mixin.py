@@ -73,3 +73,4 @@ class WindowRuntimeMixin:
                 log_kaydet(f"{ad} baslatilamadi: {e}", "error")
         self.update_battery()
         QtCore.QTimer.singleShot(500, self._baslangic_kacirilan_alarmlari_goster)
+        QtCore.QTimer.singleShot(600, self._baslangic_kacirilan_hatirlaticilari_goster)

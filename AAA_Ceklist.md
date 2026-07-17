@@ -147,12 +147,12 @@ Hicri/Miladi sıralama ve H/M geçiş düğmesi.
 
 ## V1 Öncelikleri
 
-- [ ] Yaklaşan hatırlatıcılar görünümü
-- [ ] Günlük özet görünümü
-- [ ] Toplu erteleme
-- [ ] Toplu etkinleştirme / devre dışı bırakma
-- [ ] Kaçırılan hatırlatıcı bildirimi
-- [ ] Windows açılışında kaçırılan hatırlatıcıları kontrol etme
+- [x] Yaklaşan hatırlatıcılar görünümü
+- [x] Günlük özet görünümü
+- [x] Toplu erteleme
+- [x] Toplu etkinleştirme / devre dışı bırakma
+- [x] Kaçırılan hatırlatıcı bildirimi
+- [x] Windows açılışında kaçırılan hatırlatıcıları kontrol etme
 
 ## Hatırlatıcı Oluşturma ve Yönetme
 

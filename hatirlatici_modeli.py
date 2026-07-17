@@ -13,6 +13,7 @@ class TekrarTipi(Enum):
 class HatirlaticiDurumu(Enum):
     """Hatırlatıcının güncel yaşam döngüsü durumu."""
     AKTIF = "active"
+    DEVRE_DISI = "disabled"
     TAMAMLANDI = "completed"
     KACIRILDI = "missed"
 

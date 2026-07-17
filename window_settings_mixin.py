@@ -409,6 +409,8 @@ class WindowSettingsMixin:
         )
         bf.setBold(self.settings.battery_bold)
         label.setFont(bf)
+        if hasattr(label, "setTextColor"):
+            label.setTextColor(self.settings.battery_color)
         label.setStyleSheet(
             f"color:{self.settings.battery_color};"
             f"opacity:{self.settings.battery_opacity};"
