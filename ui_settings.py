@@ -279,7 +279,7 @@ class SettingsDialog(QtWidgets.QDialog):
             "Pil": (
                 "battery_visible", "battery_font_family", "battery_color", "battery_bold",
                 "battery_warning_level", "battery_alert_interval", "battery_alert_sound_type",
-                "battery_scale",
+                "battery_scale", "battery_unavailable_test",
             ),
             "Saat": (
                 "time_visible", "time_font_family", "time_color", "time_bold", "time_24h",
@@ -335,6 +335,10 @@ class SettingsDialog(QtWidgets.QDialog):
             self._set_value_silent(self.spn_quick_icon_spacing, s.quick_actions_icon_spacing)
         elif tab_name == "Pil":
             self._set_checked_silent(self.chk_batt_visible, s.battery_visible)
+            self._set_checked_silent(
+                self.chk_batt_unavailable_test,
+                getattr(s, "battery_unavailable_test", False),
+            )
             self._set_checked_silent(self.chk_batt_bold, s.battery_bold)
             self._set_value_silent(self.spn_batt_warn, s.battery_warning_level)
             self._set_value_silent(self.spn_batt_interval, s.battery_alert_interval)
@@ -435,6 +439,7 @@ class SettingsDialog(QtWidgets.QDialog):
                 "\n"
                 "Pil ayarları (sırasıyla):\n"
                 "- Pil bilgisi görünür: Pil satırını aç/kapat.\n"
+                "- Test: Pil bilgisi alınamıyor: Pil verisi okunamıyormuş gibi güvenli durumu gösterir.\n"
                 "- Uyarı seviyesi (%): Pil bu seviyenin altına düşünce uyarı verir.\n"
                 "- Uyarı aralığı (sn): Uyarıların kaç saniyede bir tekrar edeceği.\n"
                 "- Uyarı sesi: Uyarı sesinin tipi (Uyarı 1/2/3).\n"
@@ -652,13 +657,16 @@ class SettingsDialog(QtWidgets.QDialog):
 
     def _apply_batt_preview(self, _=None):
         self.settings.battery_visible = self.chk_batt_visible.isChecked()
+        self.settings.battery_unavailable_test = self.chk_batt_unavailable_test.isChecked()
         self.settings.battery_font_family = self.cmb_batt_font.currentFont().family()
         self.settings.battery_bold = self.chk_batt_bold.isChecked()
         self.settings.battery_warning_level = self.spn_batt_warn.value()
         self.settings.battery_alert_interval = self.spn_batt_interval.value()
         self.settings.battery_alert_sound_type = self.cmb_batt_sound.currentText()
         self._set_dirty(True)
-        if self.parent(): self.parent().apply_settings()
+        if self.parent():
+            self.parent().apply_settings()
+            self.parent().update_battery()
 
     # ================= ORTAK =================
 

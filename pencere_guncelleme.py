@@ -117,15 +117,29 @@ class PencereGuncellemeKarishimi:
         self.free_time_window.resize(genislik, yukseklik)
 
     def update_battery(self):
-        if not getattr(self, "pil_servisi", None):
-            return
         if not self.settings.battery_visible:
             self._stop_full_charge_blink()
             self._stop_low_batt_blink()
             return
+        if getattr(self.settings, "battery_unavailable_test", False):
+            self._pil_bilgisi_yok_goster()
+            return
+        if not getattr(self, "pil_servisi", None):
+            return
 
         pil_verisi = self.pil_servisi.mevcut_durumu_al()
-        if not pil_verisi: return
+        if not pil_verisi:
+            self._pil_bilgisi_yok_goster()
+            return
+
+        if getattr(self, "_battery_unavailable_display_active", False):
+            self._apply_battery_style(self.battery_label, self.battery_icon_label)
+            if self.free_battery_window:
+                self._apply_battery_style(
+                    self.free_battery_window.pil_etiketi,
+                    self.free_battery_window.pil_ikon_etiketi,
+                )
+            self._battery_unavailable_display_active = False
 
         if self.pil_servisi.sarj_durumu_degisti_mi(pil_verisi.sarjda):
             log_kaydet("Şarj durumu değişti.")
@@ -222,6 +236,49 @@ class PencereGuncellemeKarishimi:
                 sonraki_metin = f"{sonraki_h.baslik} ({zaman.strftime('%H:%M')})"
             
             self.tepsi_ikonu.ozet_guncelle(pil_verisi.yuzde, pil_verisi.sarjda, sonraki_metin)
+
+    def _pil_bilgisi_yok_goster(self):
+        """Pil verisi okunamadiginda eski veya yaniltici bilgiyi gostermez."""
+        self._battery_unavailable_display_active = True
+        self._stop_full_charge_blink()
+        self._stop_low_batt_blink()
+        self._full_charge_notified = False
+        self._last_full_batt_alert_ts = 0
+        self._last_low_batt_alert_ts = 0
+
+        mesaj = "Pil bilgisi\nalınamıyor"
+        self.battery_label.setText(mesaj)
+        self._set_battery_unavailable_text_style(self.battery_label)
+        self.battery_icon_label.setPixmap(QtGui.QPixmap())
+        self.battery_icon_label.setText("")
+        self.battery_icon_label.setVisible(False)
+        self._set_battery_color(self.settings.battery_color)
+
+        if self.free_battery_window:
+            self.free_battery_window.pil_etiketi.setText(mesaj)
+            self._set_battery_unavailable_text_style(
+                self.free_battery_window.pil_etiketi
+            )
+            self.free_battery_window.pil_ikon_etiketi.setPixmap(QtGui.QPixmap())
+            self.free_battery_window.pil_ikon_etiketi.setText("")
+            self.free_battery_window.pil_ikon_etiketi.setVisible(False)
+            self.free_battery_window.pil_etiketi.setStyleSheet(
+                f"color:{self.settings.battery_color}; opacity:{self.settings.battery_opacity};"
+            )
+
+        self._refresh_battery_rows()
+
+    def _set_battery_unavailable_text_style(self, label):
+        scale = self.settings.global_scale * self.settings.battery_scale
+        size = max(1, int(BATTERY_BASE_FONT_SIZE * scale * 0.5))
+        font = QtGui.QFont(self.settings.battery_font_family, size)
+        font.setBold(self.settings.battery_bold)
+        label.setFont(font)
+        label.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+        label.setWordWrap(True)
+        label.setMinimumHeight(0)
+        label.setMaximumHeight(16777215)
+        label.adjustSize()
 
     def hatirlaticilari_kontrol_et(self):
         if not getattr(self, "hatirlatici_servisi", None):

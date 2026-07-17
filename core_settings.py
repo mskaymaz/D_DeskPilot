@@ -56,6 +56,7 @@ class PanelSettings:
     battery_alert_sound_type: str = "Uyarı 1"
     battery_full_alert_enabled: bool = False
     battery_full_alert_level: int = 100
+    battery_unavailable_test: bool = False
 
     alarm_visible: bool = True     # Alarm modülü görünürlüğü
     reminder_visible: bool = True  # Hatırlatıcı modülü görünürlüğü

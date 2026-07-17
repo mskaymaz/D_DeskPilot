@@ -195,6 +195,14 @@ class AyarFormlari:
         dialog.chk_batt_visible.setChecked(ayarlar.battery_visible)
         dialog.chk_batt_visible.toggled.connect(dialog._apply_batt_preview)
 
+        dialog.chk_batt_unavailable_test = QtWidgets.QCheckBox(
+            "Test: Pil bilgisi alınamıyor"
+        )
+        dialog.chk_batt_unavailable_test.setChecked(
+            getattr(ayarlar, "battery_unavailable_test", False)
+        )
+        dialog.chk_batt_unavailable_test.toggled.connect(dialog._apply_batt_preview)
+
         dialog.spn_batt_warn = QtWidgets.QSpinBox()
         dialog.spn_batt_warn.setRange(1, 100)
         dialog.spn_batt_warn.setValue(ayarlar.battery_warning_level)
@@ -225,6 +233,7 @@ class AyarFormlari:
         dialog.chk_batt_bold.toggled.connect(dialog._apply_batt_preview)
 
         f.addRow(dialog.chk_batt_visible)
+        f.addRow(dialog.chk_batt_unavailable_test)
         f.addRow("Uyarı seviyesi (%)", dialog.spn_batt_warn)
         f.addRow("Uyarı aralığı", dialog.spn_batt_interval)
         f.addRow("Uyarı sesi", dialog.cmb_batt_sound)
