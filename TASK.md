@@ -1,4 +1,4 @@
-# DESKPILOTF TASK
+# DESKPILOT TASK
 
 ## Status Legend
 - `[x]` Completed
@@ -6,8 +6,8 @@
 - `[ ]` Not started
 - `[!]` Blocked / decision required
 
-## Project: D_DeskPilotF
-## Technology Stack: Flutter/Dart + C++ (engine via FFI when needed)
+## Project: D_DeskPilot
+## Technology Stack: Flutter/Dart (UI) + Karma Motor Mimarisi
 ## Platform: Windows (initial), macOS/Linux (future)
 
 ---
