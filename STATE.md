@@ -113,3 +113,9 @@ Communicate with the user in Turkish unless explicitly requested otherwise.
 
 ## Last Updated
 2026-09-18 — Multi-window mimari + sağ tık renk ayarı + çıkış komutu. Bilinen hatalar yukarıda kayıtlı.
+
+## IST-001 Denetim Hatırlatıcısı (27.11.2026)
+> Yeni oturumda çalışmaya başlandığında önce aşağıdaki eksikler `IST-001` (`D:\Code\mskaymaz\istisare\istisareler\001-uygulama-anayasasi-ve-repo-mimarisi.md`) doğrultusunda ele alınır:
+- [ ] Kodda `Eco-SDK` (`eco_device_id` + 7 günlük `/api/v1/telemetry/heartbeat`) entegrasyonu yapılacak.
+- [ ] Eksik SSOT belgeleri tamamlanacak: `CORE.md`, `CHANGELOG.md` (`TASK.md` -> `tasks.md` hizalaması) ve `docs/kullanim_kilavuzu/{tr,en,ar}`.
+- [ ] `test/widget_test.dart` (`DeskPilotApp` referans hatası) ve `flutter analyze` uyarıları temizlenecek.
